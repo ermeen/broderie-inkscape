@@ -104,7 +104,7 @@ class Session:
             self.ids = [i for i in d.get("ids") or [] if i]
             self.nom = d.get("nom") or self.nom
             self.version += 1
-            return {"svg": renvoi, "panneau_ouvert": time.time() - self.vu < 12}
+            return {"svg": renvoi, "panneau_ouvert": time.time() - self.vu < 6}
 
     def _rejouer(self, doc, op):
         el = M.par_id(doc, op[1]) if op[0] != "commande" else None

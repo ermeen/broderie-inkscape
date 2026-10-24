@@ -54,6 +54,20 @@ def _demarrer_serveur():
     raise inkex.AbortExtension("Le panneau de broderie n'a pas pu démarrer.")
 
 
+def ouvrir_navigateur():
+    """Ouvre le panneau dans le navigateur par défaut. `open` de macOS d'abord : le module
+    webbrowser passe par AppleScript, que macOS peut bloquer sans rien dire quand Inkscape le lance."""
+    try:
+        if sys.platform == "darwin":
+            subprocess.run(["/usr/bin/open", URL], check=True, timeout=10,
+                           stdin=subprocess.DEVNULL, stdout=subprocess.DEVNULL, stderr=subprocess.PIPE)
+            return
+    except (OSError, subprocess.SubprocessError) as e:
+        with open(os.path.join(tempfile.gettempdir(), "broderie-panneau.log"), "a") as j:
+            j.write("ouverture du navigateur : %s\n" % e)
+    webbrowser.open(URL)
+
+
 class PanneauBroderie(inkex.EffectExtension):
     def effect(self):
         _demarrer_serveur()
@@ -61,7 +75,7 @@ class PanneauBroderie(inkex.EffectExtension):
         r = _appel("sync", {"svg": etree.tostring(self.document.getroot(), encoding="unicode"),
                             "ids": list(self.options.ids or []), "nom": nom}, delai=600)
         if not r.get("panneau_ouvert") and not os.environ.get("BRODERIE_SANS_NAVIGATEUR"):
-            webbrowser.open(URL)
+            ouvrir_navigateur()
         if r.get("svg"):
             self.document = inkex.load_svg(r["svg"].encode("utf-8"))
             self.svg = self.document.getroot()
