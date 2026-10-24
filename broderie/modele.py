@@ -184,7 +184,13 @@ def schema():
             q["unite"] = tr(p.get("unit", "")) if isinstance(p.get("unit"), str) else ""
             q["groupe"] = GROUPES.get(p.get("group"), p.get("group") or "")
             q["courant"] = p["name"] in COURANTS.get(typ, [])
-            if isinstance(p.get("options"), list):
+            if p["name"] == "meander_pattern":            # liste construite par Ink/Stitch à partir de ses motifs
+                from . import moteur
+                tuiles = moteur.motifs_meandre()
+                q["options"] = [t["id"] for t in tuiles]
+                q["options_libelles"] = [t["nom"] for t in tuiles]
+                q["apercus"] = [t["dossier"] for t in tuiles]
+            elif isinstance(p.get("options"), list):
                 q["options_libelles"] = [tr(_libelle_option(o)) for o in p["options"]]
             lst.append(q)
         out[typ] = {"titre": TITRES.get(typ, typ), "params": lst}

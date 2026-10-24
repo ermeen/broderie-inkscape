@@ -4,6 +4,41 @@ Source : lecture de l'installation réelle d'Ink/Stitch (146 fichiers de command
 
 **États** : `testé` = vérifié par un essai réel avec le moteur Ink/Stitch ; `accessible` = présent dans le panneau, écrit le même attribut qu'Ink/Stitch, pas testé individuellement ; `Inkscape` = reste dans Inkscape (non concerné).
 
+## 0. Ink/Stitch ↔ Broderie : où trouver chaque fonction
+
+Vérification faite le 24/10/2026 sur Ink/Stitch v3.3.0.
+
+États :
+- **testé** : essayé avec le moteur Ink/Stitch ;
+- **accessible** : présent, mais pas essayé une à une ;
+- **Inkscape** : se fait dans Inkscape.
+
+| Fonction Ink/Stitch | Dans Broderie | État |
+|---|---|---|
+| Paramètres (139 réglages : remplissage, satin, trait, clone, généraux) | Objets › tuiles « Type de point », curseurs essentiels, « Plus de réglages » par thèmes (tous les réglages, aucun masqué hors condition de méthode) | testé (types, densité, angle, longueur, sous-couches, coupe/arrêt) ; accessible (les autres) |
+| Motifs de méandre (75) | Objets › Méandre › grille d'images | testé (liste) |
+| Fenêtre Paramètres d'origine | Export › Toutes les commandes › Paramètres | accessible |
+| Aperçu du plan de broderie : points, sauts, pénétrations, symboles de commande | Aperçu (Objets et Aperçu) › Points + cases Sauts / Pénétrations / Symboles | testé |
+| Rendu réaliste (image 300/600 ppp) | Aperçu › Réaliste (600 ppp), tissu et ombre | testé |
+| Rendu réaliste vectoriel | retiré (trop de mémoire sur 8 Go) | — |
+| Simulateur (lecture, vitesse, position, sauts, coupes, arrêts, changements de couleur, pénétrations) | onglet Points : lecture, curseur, vitesse, zoom, cases Sauts / Coupes et arrêts / Pénétrations, compteur de sauts et coupes | testé |
+| Lettrage (texte, police, échelle, alignement, espacements, interligne, coupes, tri des couleurs, symboles) | Objets › + Texte (140 polices avec aperçu) | testé (texte multiligne, police, échelle, espacements, coupes) |
+| Lettrage le long d'un chemin | Texte choisi › Texte courbé | testé |
+| Autres outils de lettrage (gestion des polices, JSON, kerning…) | Export › Toutes les commandes | accessible |
+| Colonne satin (rails + traverses en un objet) | Objets › Rails et traverses › Assembler | testé |
+| Trait en satin, auto-satin, couper le satin, inverser les rails, satin en trait | tuile Satin ; Objets › Outils | testé (trait en satin, auto-satin) |
+| Remplissage en trait, knockdown, redwork, auto-route point droit | Objets › Outils | testé (commandes) |
+| Ordre de couture | Objets › ▲▼ | testé |
+| Couleurs des fils | Objets › Couleur | testé |
+| Palettes, liste de fils, gestion des couleurs | Export › Toutes les commandes | accessible (palette : testé) |
+| Commandes (coupe, arrêt, ignorer, début/fin, symboles) | réglages « Couper le fil / Arrêter la machine » ; Toutes les commandes | testé (coupe) |
+| Export (21 formats) | Export › format (+ marque de machine), cadre, vérification de taille, durée estimée | testé (DST, PES) ; accessible (autres) |
+| Import de fichiers de broderie (50 formats) | Inkscape (Fichier › Ouvrir) | Inkscape |
+| Impression PDF, préférences, dépannage, infos élément, éditeur de couches | Export › Toutes les commandes (fenêtre Ink/Stitch) | accessible |
+| Sélectionner des éléments par type | menu Ink/Stitch d'Inkscape (agit sur la sélection d'Inkscape) | Inkscape |
+| Copier des réglages d'un objet à l'autre (« Dupliquer les paramètres ») | Objets › Copier / Coller / Coller sur tous les… | testé |
+| Dessiner, déplacer, tourner, agrandir | Inkscape | Inkscape |
+
 ## 1. Réglages de broderie (Ink/Stitch › Paramètres)
 
 Accès actuel : Extensions › Ink/Stitch › Paramètres (fenêtre séparée). Stockage : attribut `inkstitch:<nom>` sur l'objet SVG, identique dans le panneau.

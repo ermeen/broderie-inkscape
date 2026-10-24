@@ -131,12 +131,13 @@ def document_modifie(sortie):
 MODES = {"points": "simple", "realiste": "realistic-600"}   # le rendu vectoriel demandait trop de mémoire
 
 
-def apercu(document, ids=None, mode="points"):
+def apercu(document, ids=None, mode="points", options=None):
     """SVG autonome des points calculés par Ink/Stitch (« Aperçu du plan de broderie »)."""
     code, out, err = executer(document, "stitch_plan_preview", ids, {
         "render-mode": MODES.get(mode, "simple"), "move-to-side": False, "layer-visibility": "unchanged",
-        "needle-points": mode == "points", "render-jumps": mode == "points", "ignore-layer": False, "overwrite": True,
-        "visual-commands": False, "insensitive": False})
+        "needle-points": mode == "points" and (options or {}).get("penetrations", True),
+        "render-jumps": mode == "points" and (options or {}).get("sauts", True), "ignore-layer": False, "overwrite": True,
+        "visual-commands": bool((options or {}).get("commandes", False)), "insensitive": False})
     doc = document_modifie(out)
     if doc is None:
         return None, err or "Aucun point généré."
@@ -212,6 +213,7 @@ def lettrage(document, params):
     import zipfile
     p = dict(params)
     p["file-formats"] = "svg"
+    p.setdefault("separator", "\u00a7\u00a7\u00a7")   # sinon chaque ligne devient un texte séparé
     code, out, err = executer(document, "batch_lettering", None, p)
     if not out or not out.startswith(b"PK"):
         return None, err
@@ -220,3 +222,25 @@ def lettrage(document, params):
         if not noms:
             return None, err
         return etree.ElementTree(etree.fromstring(z.read(noms[0]), etree.XMLParser(huge_tree=True))), err
+
+
+def motifs_meandre():
+    """Motifs du remplissage « Méandre » fournis avec Ink/Stitch (identifiant, nom, aperçu)."""
+    import json
+    r = _ressources()
+    base = os.path.join(r, "tiles") if r else None
+    out = []
+    for d in os.listdir(base) if base and os.path.isdir(base) else []:
+        try:
+            with open(os.path.join(base, d, "tile.json"), encoding="utf-8") as f:
+                j = json.load(f)
+        except (OSError, ValueError):
+            continue
+        out.append({"id": j.get("id") or d, "nom": j.get("name") or d, "dossier": d})
+    return sorted(out, key=lambda t: t["nom"])
+
+
+def apercu_motif(dossier):
+    r = _ressources()
+    f = os.path.normpath(os.path.join(r or "", "tiles", dossier, "preview.png"))
+    return f if r and f.startswith(os.path.join(r, "tiles")) and os.path.exists(f) else None

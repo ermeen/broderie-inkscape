@@ -200,7 +200,7 @@ class Session:
                 self.version += 1
                 return self.etat()
             if nom == "apercu":
-                svg, err = E.apercu(self.document, d.get("ids") or None, d.get("mode") or "points")
+                svg, err = E.apercu(self.document, d.get("ids") or None, d.get("mode") or "points", d.get("options") or {})
                 return {"svg": svg, "erreur": None if svg else (err or "")[-2000:]}
             if nom == "simulateur":
                 E.executer(self.document, "simulator", d.get("ids") or None, attendre=False)
@@ -376,6 +376,12 @@ def _gestionnaire(session):
                     return self._envoyer(500, err or "Export impossible", "text/plain; charset=utf-8")
                 return self._envoyer(200, data, "application/octet-stream",
                                      {"Content-Disposition": 'attachment; filename="%s.%s"' % (session.nom, fmt)})
+            if u.path.startswith("/motif/"):
+                f = E.apercu_motif(u.path.split("/")[2])
+                if not f:
+                    return self._envoyer(404, "introuvable", "text/plain")
+                with open(f, "rb") as fh:
+                    return self._envoyer(200, fh.read(), "image/png")
             if u.path.startswith("/police/"):
                 f = E.apercu_police(u.path.split("/")[2])
                 if not f:

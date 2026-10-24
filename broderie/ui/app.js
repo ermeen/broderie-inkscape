@@ -161,7 +161,17 @@ function reglage(o, p, nomSimple) {
   d.className = 'reglage' + (modifie ? ' modifie' : '');
   const unite = p.unite ? `<span class="unite">${esc(p.unite.replace(/\(.*\)/, '').trim())}</span>` : '';
   const raz = '<button class="raz" title="Valeur par défaut">↺</button>';
-  if (Array.isArray(p.options) && (p.type === 'dropdown' || p.type === 'combo')) {
+  if (p.name === 'meander_pattern' && Array.isArray(p.apercus)) {
+    const cur = v ?? p.options[0];
+    d.innerHTML = `<div class="haut"><label title="${aide}">${lib}</label>${raz}</div><div class="motifs"></div>`;
+    p.options.forEach((op, i) => {
+      const b = document.createElement('button'); b.type = 'button'; b.className = 'motif' + (op === cur ? ' on' : '');
+      b.title = p.options_libelles[i];
+      b.innerHTML = `<img loading="lazy" src="/motif/${encodeURIComponent(p.apercus[i])}" alt="">`;
+      b.onclick = () => envoyer(o, { [p.name]: op });
+      $('.motifs', d).appendChild(b);
+    });
+  } else if (Array.isArray(p.options) && (p.type === 'dropdown' || p.type === 'combo')) {
     const cur = v ?? (p.type === 'dropdown' ? 0 : p.options[0]);
     d.innerHTML = `<div class="haut"><label title="${aide}">${lib}</label>${raz}</div><select>${p.options.map((op, i) => {
       const val = p.type === 'dropdown' ? i : op;
@@ -475,6 +485,18 @@ $('#bTexte').onclick = () => { S.texte = true; const o = S.etat.objets.find((x) 
 let vb0 = null, vb = null, apercuDemande = 0, apercuEnCours = false;
 // mode de rendu et couleur du tissu (retenus d'une fois sur l'autre)
 let MODE = 'points', TISSU = '#ffffff';
+const AFF = { sauts: true, penetrations: true, coupes: true, commandes: false };
+try { Object.assign(AFF, JSON.parse(localStorage.getItem('broderie.affichage') || '{}')); } catch (e) { /* défaut */ }
+function interrupteursAffichage(liste, apres) {
+  const d = document.createElement('span'); d.className = 'affichage';
+  for (const [k, l, t] of liste) {
+    const c = document.createElement('label'); c.title = t;
+    c.innerHTML = `<input type="checkbox" ${AFF[k] ? 'checked' : ''}> ${l}`;
+    $('input', c).onchange = (e) => { AFF[k] = e.target.checked; try { localStorage.setItem('broderie.affichage', JSON.stringify(AFF)); } catch (x) { /* rien */ } apres(); };
+    d.appendChild(c);
+  }
+  return d;
+}
 try { MODE = localStorage.getItem('broderie.mode') || 'points'; if (MODE !== 'points') MODE = 'realiste'; TISSU = localStorage.getItem('broderie.tissu') || '#ffffff'; } catch (e) { /* sans stockage */ }
 function barreRendu() {
   const d = document.createElement('div'); d.className = 'barre-rendu';
@@ -483,6 +505,10 @@ function barreRendu() {
     b.onclick = (e) => { e.stopPropagation(); MODE = k; try { localStorage.setItem('broderie.mode', k); } catch (x) { /* rien */ } apercu(); };
     d.appendChild(b);
   }
+  if (MODE === 'points') d.appendChild(interrupteursAffichage([
+    ['sauts', 'Sauts', 'Déplacements du fil sans broder (sauts)'],
+    ['penetrations', 'Pénétrations', 'Points d\'entrée de l\'aiguille'],
+    ['commandes', 'Symboles', 'Symboles de commandes Ink/Stitch (coupe, arrêt, début, fin…)']], () => apercu()));
   const c = document.createElement('label'); c.title = 'Couleur du tissu';
   c.innerHTML = `Tissu <input type="color" value="${TISSU}">`;
   $('input', c).oninput = (e) => { TISSU = e.target.value; $('#apercu').style.background = TISSU; majTissu(); try { localStorage.setItem('broderie.tissu', TISSU); } catch (x) { /* rien */ } };
@@ -500,7 +526,7 @@ async function apercu() {
   a.appendChild(badge);
   try {
     badge.textContent = MODE === 'points' ? 'Calcul des points…' : 'Rendu réaliste…';
-    const r = await api('apercu', { ids: S.etat.selection, mode: MODE });
+    const r = await api('apercu', { ids: S.etat.selection, mode: MODE, options: { sauts: AFF.sauts, penetrations: AFF.penetrations, commandes: AFF.commandes } });
     if (!r.svg) { a.className = 'vide'; a.textContent = r.erreur || 'Aucun point.'; a.appendChild(barreRendu()); vb = vb0 = null; return; }
     const garder = vb && vb0;
     a.className = ''; a.innerHTML = r.svg; a.style.background = TISSU;
@@ -696,17 +722,28 @@ function dessinerSimulation() {
   g.lineWidth = Math.max(1 / SIM.vue.k, 2.2 * k); g.lineCap = 'round'; g.lineJoin = 'round';   // fil ≈ 0,22 mm (unités 0,1 mm)
   g.globalAlpha = 0.9;
   const trous = [];                                 // pénétrations de l'aiguille, visibles en zoomant
+  const sauts = [], marques = [];                   // sauts, coupes, arrêts, changements de couleur
+  let nSauts = 0;
   let fil = 0, prec = null, nPoints = 0;
   g.strokeStyle = SIM.fils[0] || '#000'; g.beginPath();
   for (let i = 0; i < SIM.i && i < SIM.pts.length; i++) {
     const [x, y, c] = SIM.pts[i];
     const X = ox + x * k, Y = oy + y * k;
-    if (c === 'COLOR_CHANGE') { g.stroke(); fil++; g.strokeStyle = SIM.fils[fil] || '#000'; g.beginPath(); prec = null; continue; }
+    if (c === 'COLOR_CHANGE') { g.stroke(); fil++; g.strokeStyle = SIM.fils[fil] || '#000'; g.beginPath(); prec = null; marques.push(['couleur', X, Y]); continue; }
     if (c === 'STITCH') {
-      if (prec) { g.moveTo(prec[0], prec[1]); g.lineTo(X, Y); }
-      prec = [X, Y]; nPoints++;
-      if (k * SIM.vue.k > 3) trous.push(X, Y);
-    } else prec = [X, Y];       // saut, coupe, arrêt : pas de fil dessiné
+      if (prec) {
+        if (prec[2]) sauts.push(prec[0], prec[1], X, Y);   // arrivée d'un saut
+        else { g.moveTo(prec[0], prec[1]); g.lineTo(X, Y); }
+      }
+      prec = [X, Y, false]; nPoints++;
+      if (AFF.penetrations && k * SIM.vue.k > 3) trous.push(X, Y);
+    } else {                    // saut, coupe, arrêt : pas de fil brodé
+      if (prec && c === 'JUMP') sauts.push(prec[0], prec[1], X, Y);
+      if (c === 'TRIM') marques.push(['coupe', X, Y]);
+      if (c === 'STOP') marques.push(['arret', X, Y]);
+      prec = [X, Y, c === 'JUMP'];
+      if (c === 'JUMP') nSauts++;
+    }
   }
   g.stroke();
   g.globalAlpha = 1;
@@ -715,12 +752,29 @@ function dessinerSimulation() {
     const r = Math.max(0.6 * k, 1.2 / SIM.vue.k);
     for (let j = 0; j < trous.length; j += 2) { g.beginPath(); g.arc(trous[j], trous[j + 1], r, 0, 7); g.fill(); }
   }
+  const px = 1 / SIM.vue.k;                        // un pixel écran, quelle que soit la loupe
+  if (AFF.sauts && sauts.length) {
+    g.save(); g.strokeStyle = 'rgba(120,120,130,.9)'; g.lineWidth = 1.2 * dpr * px; g.setLineDash([5 * dpr * px, 4 * dpr * px]);
+    g.beginPath();
+    for (let j = 0; j < sauts.length; j += 4) { g.moveTo(sauts[j], sauts[j + 1]); g.lineTo(sauts[j + 2], sauts[j + 3]); }
+    g.stroke(); g.restore();
+  }
+  if (AFF.coupes) {
+    g.save(); g.font = `${13 * dpr * px}px -apple-system, sans-serif`; g.textAlign = 'center'; g.textBaseline = 'middle';
+    for (const [t, x, y] of marques) {
+      const sym = t === 'coupe' ? '✂' : t === 'arret' ? '⏸' : '◆';
+      g.fillStyle = t === 'coupe' ? '#d33' : t === 'arret' ? '#d80' : '#36c';
+      g.fillText(sym, x + 8 * dpr * px, y - 8 * dpr * px);
+    }
+    g.restore();
+  }
   const cur = SIM.pts[Math.min(SIM.i, SIM.pts.length) - 1];
   if (cur && SIM.i < SIM.pts.length) {
     g.fillStyle = '#e74c3c'; g.beginPath(); g.arc(ox + cur[0] * k, oy + cur[1] * k, 4 * dpr / SIM.vue.k, 0, 7); g.fill();
   }
   const total = SIM.pts.filter((p) => p[2] === 'STITCH').length;
-  $('#sInfo').textContent = `${nPoints.toLocaleString('fr')} / ${total.toLocaleString('fr')} points · fil ${Math.min(fil + 1, Math.max(1, SIM.fils.length))} / ${Math.max(1, SIM.fils.length)}`;
+  const nCoupes = marques.filter((m) => m[0] === 'coupe').length;
+  $('#sInfo').textContent = `${nPoints.toLocaleString('fr')} / ${total.toLocaleString('fr')} points · fil ${Math.min(fil + 1, Math.max(1, SIM.fils.length))} / ${Math.max(1, SIM.fils.length)} · ${nSauts} saut(s) · ${nCoupes} coupe(s)`;
   $('#sPos').value = SIM.i;
 }
 function boucle() {
@@ -731,6 +785,9 @@ function boucle() {
   SIM.raf = requestAnimationFrame(boucle);
 }
 function arreterSimulation() { SIM.lecture = false; cancelAnimationFrame(SIM.raf); $('#sJouer').textContent = '▶'; }
+$('#simuOptions').appendChild(interrupteursAffichage([
+  ['sauts', 'Sauts', 'Déplacements du fil sans broder'], ['coupes', 'Coupes et arrêts', 'Coupes de fil ✂, arrêts machine ⏸, changements de couleur ◆'],
+  ['penetrations', 'Pénétrations', 'Points d\'entrée de l\'aiguille (en zoomant)']], () => dessinerSimulation()));
 $('#sJouer').onclick = () => {
   if (!SIM.pts) return;
   if (SIM.lecture) { arreterSimulation(); return; }
@@ -757,7 +814,8 @@ $('#simuCanvas').addEventListener('pointerdown', (e) => {
 $('#simuCanvas').addEventListener('dblclick', () => { SIM.vue = { k: 1, x: 0, y: 0 }; dessinerSimulation(); });
 
 // ---------------------------------------------------------------- texte brodé (sans fenêtre Ink/Stitch)
-const TX = { texte: 'Bonjour', police: null, echelle: 100, align: 'left', pour: null };
+const TX = { texte: 'Bonjour', police: null, echelle: 100, align: 'left', pour: null,
+  lettres: 0, mots: 0, lignes: 0, coupes: 'off', tri: 'off', symboles: false };
 async function rendreTexte() {
   const div = $('#texte');
   if (!S.polices) {
@@ -772,6 +830,9 @@ async function rendreTexte() {
       TX.texte = j.text ?? TX.texte; TX.echelle = j.scale ?? 100;
       TX.police = (S.polices.find((p) => p.id === j.font) || {}).nom || TX.police;
       TX.align = ['left', 'center', 'right'][j.text_align || 0] || 'left';
+      TX.lettres = j.letter_spacing || 0; TX.mots = j.word_spacing || 0; TX.lignes = j.line_height || 0;
+      TX.coupes = ['off', 'line', 'word', 'glyph'][j.trim_option || 0] || 'off';
+      TX.tri = ['off', 'all', 'line', 'word'][j.color_sort || 0] || 'off'; TX.symboles = !!j.use_trim_symbols;
     } catch (e) { /* lettrage illisible : valeurs actuelles */ }
     TX.pour = existant.id;
   }
@@ -785,6 +846,16 @@ async function rendreTexte() {
     <div class="bloc reglage"><div class="haut"><label>Taille</label><span class="val"><input type="number" id="txEchN" value="${TX.echelle}"><span class="unite">%</span></span></div>
       <input type="range" id="txEch" min="${mi}" max="${ma}" step="5" value="${TX.echelle}"><span class="muted small">Conseillé pour cette police : ${mi} à ${ma} %</span></div>
     <div class="bloc"><h2>Alignement</h2><div class="outils" id="txAlign"></div></div>
+    <details class="theme"><summary>Espacements, coupes et couleurs</summary>
+      <div class="reglage"><div class="haut"><label>Espace entre les lettres</label><span class="val"><input type="number" step="0.5" id="txLet" value="${TX.lettres}"><span class="unite">mm</span></span></div></div>
+      <div class="reglage"><div class="haut"><label>Espace entre les mots</label><span class="val"><input type="number" step="0.5" id="txMot" value="${TX.mots}"><span class="unite">mm</span></span></div></div>
+      <div class="reglage"><div class="haut"><label>Interligne (en plus)</label><span class="val"><input type="number" step="0.5" id="txLig" value="${TX.lignes}"><span class="unite">mm</span></span></div></div>
+      <div class="reglage"><div class="haut"><label>Couper le fil</label></div><select id="txCoupe">
+        ${[['off', 'Jamais'], ['line', 'Après chaque ligne'], ['word', 'Après chaque mot'], ['glyph', 'Après chaque lettre']].map(([k, l]) => `<option value="${k}" ${TX.coupes === k ? 'selected' : ''}>${l}</option>`).join('')}</select></div>
+      <div class="reglage"><div class="haut"><label>Regrouper les couleurs (polices multicolores)</label></div><select id="txTri">
+        ${[['off', 'Non'], ['all', 'Tout le texte'], ['line', 'Par ligne'], ['word', 'Par mot']].map(([k, l]) => `<option value="${k}" ${TX.tri === k ? 'selected' : ''}>${l}</option>`).join('')}</select></div>
+      <label class="interrupteur"><span>Coupes par symboles de commande</span><input type="checkbox" id="txSym" ${TX.symboles ? 'checked' : ''}></label>
+    </details>
     <button class="principal" id="txOk">${existant ? 'Mettre à jour le texte' : 'Ajouter au dessin'}</button>`;
   $('#txFermer').onclick = () => { S.texte = false; rendreTout(); };
   const liste = $('#polListe');
@@ -814,8 +885,12 @@ async function rendreTexte() {
     TX.texte = $('#txTexte').value;
     if (!TX.texte.trim()) { message('Écrivez un texte.', true); return; }
     try {
+      TX.lettres = +$('#txLet').value || 0; TX.mots = +$('#txMot').value || 0; TX.lignes = +$('#txLig').value || 0;
+      TX.coupes = $('#txCoupe').value; TX.tri = $('#txTri').value; TX.symboles = $('#txSym').checked;
       const r = await api('lettrage', { remplacer: existant ? existant.id : null,
-        params: { text: TX.texte, font: TX.police, scale: TX.echelle, 'text-align': TX.align } }, 'Création du texte brodé…');
+        params: { text: TX.texte, font: TX.police, scale: TX.echelle, 'text-align': TX.align, letter_spacing: TX.lettres,
+          word_spacing: TX.mots, line_height: TX.lignes, trim: TX.coupes, 'color-sort': TX.tri, 'use-command-symbols': TX.symboles } },
+        'Création du texte brodé…');
       S.etat = await api('etat'); S.sel = r.id || S.sel; TX.pour = null; S.texte = false;
       rendreTout(); apercuBientot();
       message('Texte prêt. Appuyez sur ⌘⌥B dans Inkscape pour l\'ajouter au dessin.');
