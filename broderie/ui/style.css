@@ -207,3 +207,21 @@ dialog { border: 1px solid var(--bord); border-radius: 12px; background: var(--p
 #bandeauAncien button { margin: 6px 6px 0 0; font-size: 12px; }
 .sauts-panneau { fill: none; stroke: #555; stroke-width: 1.5px; vector-effect: non-scaling-stroke; stroke-dasharray: 6 4; }
 .icone-cmd { pointer-events: none; }
+.ligne-cadre { display: flex; gap: 6px; } .ligne-cadre select { flex: 1; }
+.boutons-cadre { margin-top: 10px; display: flex; flex-direction: column; gap: 6px; }
+/* onglet Points : la simulation occupe toute la hauteur ; poignée pour la redimensionner */
+#v-points { padding: 6px; }
+#simu { flex: 1; min-height: 0; }
+.simu-vue { flex: 1 1 auto; min-height: 160px; height: var(--hauteur-simu, auto); }
+#v-points.taille-fixe .simu-vue { flex: none; }
+#poigneeSimu { height: 10px; cursor: ns-resize; display: flex; align-items: center; justify-content: center; touch-action: none; }
+#poigneeSimu::before { content: ""; width: 44px; height: 4px; border-radius: 2px; background: var(--bord); }
+#poigneeSimu:hover::before { background: var(--accent); }
+/* la zone de dessin occupe toute la place de la simulation (sinon un canvas garde 150 px de haut) */
+.simu-vue { position: relative; }
+#simuCanvas { position: absolute; inset: 0; width: 100%; height: 100%; }
+#simu { min-height: 0; height: 100%; }
+/* mise en page verticale : la zone principale prend toute la hauteur, quels que soient les bandeaux affichés */
+body { display: flex; flex-direction: column; }
+body > main { flex: 1 1 auto; min-height: 0; }
+body > header, body > footer, body > #journal, body > #tache, body > #bandeauAncien { flex: none; }

@@ -41,6 +41,36 @@ def _lire(svg):
                                               etree.XMLParser(huge_tree=True)))
 
 
+CADRES = os.path.expanduser("~/Library/Application Support/broderie-panneau/cadres.json")
+CADRES_DEFAUT = [{"nom": "100 × 100", "largeur": 100, "hauteur": 100}, {"nom": "130 × 180", "largeur": 130, "hauteur": 180},
+                 {"nom": "160 × 260", "largeur": 160, "hauteur": 260}, {"nom": "200 × 200", "largeur": 200, "hauteur": 200},
+                 {"nom": "200 × 300", "largeur": 200, "hauteur": 300}, {"nom": "240 × 150", "largeur": 240, "hauteur": 150},
+                 {"nom": "360 × 200", "largeur": 360, "hauteur": 200}]
+
+
+def lire_cadres():
+    try:
+        with open(CADRES, encoding="utf-8") as f:
+            return json.load(f)
+    except (OSError, ValueError):
+        return [dict(c) for c in CADRES_DEFAUT]
+
+
+def ecrire_cadres(cadres):
+    propres = []
+    for c in cadres:
+        try:
+            l, h = float(c["largeur"]), float(c["hauteur"])
+        except (KeyError, TypeError, ValueError):
+            continue
+        if l > 0 and h > 0:
+            propres.append({"nom": str(c.get("nom") or "%g × %g" % (l, h))[:60], "largeur": l, "hauteur": h})
+    os.makedirs(os.path.dirname(CADRES), exist_ok=True)
+    with open(CADRES, "w", encoding="utf-8") as f:
+        json.dump(propres, f, ensure_ascii=False, indent=1)
+    return propres
+
+
 def signature(doc):
     """Ce qui compte pour la broderie : formes, styles, transformations et réglages, par objet."""
     sig = []
@@ -162,6 +192,9 @@ class Session:
                     "perime": perime() and not self.attente and not (self.tache and not self.tache.get("fini"))}
 
     def _rejouer(self, doc, op):
+        if op[0] == "cadre":
+            M.appliquer_cadre(doc, *op[1:])
+            return
         if op[0] == "version":
             E.marquer_a_jour(doc)
             return
@@ -178,7 +211,7 @@ class Session:
     # --- actions du panneau -------------------------------------------------
     def action(self, nom, d):
         r = self._action(nom, d)
-        if nom in ("params", "couleur", "ordre", "abandonner", "sync", "lettrage", "assembler", "marquer_a_jour"):
+        if nom in ("params", "couleur", "ordre", "abandonner", "sync", "lettrage", "assembler", "marquer_a_jour", "cadre"):
             self.sauver()
         return r
 
@@ -244,6 +277,17 @@ class Session:
                 from . import fenetre
                 ok, msg = fenetre.placer("http://127.0.0.1:%d" % PORT, int(d.get("largeur") or 440), forcer=True)
                 return {"ok": ok, "message": msg}
+            if nom == "cadre":                        # le cadre devient la page d'Inkscape, motif centré
+                op = ("cadre", float(d["largeur"]), float(d["hauteur"]), bool(d.get("centrer", True)), bool(d.get("page", True)))
+                M.appliquer_cadre(self.document, *op[1:])
+                self.attente.append(op)
+                self.version += 1
+                self.log("Cadre %g × %g mm appliqué" % (op[1], op[2]))
+                return self.etat()
+            if nom == "cadres":                       # cadres de la brodeuse (liste personnelle)
+                return {"cadres": lire_cadres()}
+            if nom == "cadres_ecrire":
+                return {"cadres": ecrire_cadres(d.get("cadres") or [])}
             if nom == "marquer_a_jour":               # « Ce dessin est récent »
                 E.marquer_a_jour(self.document)
                 self.attente.append(("version",))

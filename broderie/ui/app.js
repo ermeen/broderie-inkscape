@@ -846,26 +846,51 @@ async function rendreStats(sel) {
     return s;
   } catch (e) { div.innerHTML = `<span class="muted small">${esc(e.message)}</span>`; }
 }
-const CADRES = [['', 'Pas de cadre précis'], ['100x100', '100 × 100 mm'], ['130x180', '130 × 180 mm'], ['160x260', '160 × 260 mm'],
-  ['200x200', '200 × 200 mm'], ['200x300', '200 × 300 mm'], ['240x150', '240 × 150 mm'], ['360x200', '360 × 200 mm']];
+// Cadres de la brodeuse : liste personnelle (ajout, suppression), centrage du motif, cadre = page d'Inkscape
+S.cadres = null;
+const cadreChoisi = () => (S.cadres || [])[+$('#fCadre').value];
 async function rendreExport() {
+  if (!S.cadres) S.cadres = (await api('cadres')).cadres;
   const sel = $('#fCadre');
-  if (!sel.options.length) {
-    let c = ''; try { c = localStorage.getItem('broderie.cadre') || ''; } catch (e) { /* sans stockage */ }
-    sel.innerHTML = CADRES.map(([k, l]) => `<option value="${k}" ${k === c ? 'selected' : ''}>${l}</option>`).join('');
-    sel.onchange = () => { try { localStorage.setItem('broderie.cadre', sel.value); } catch (e) { /* rien */ } verifierCadre(); };
-  }
+  let c = 0; try { c = +(localStorage.getItem('broderie.cadreN') || 0); } catch (e) { /* sans stockage */ }
+  sel.innerHTML = S.cadres.map((x, i) => `<option value="${i}" ${i === c ? 'selected' : ''}>${esc(x.nom)} — ${x.largeur} × ${x.hauteur} mm</option>`).join('');
+  sel.onchange = () => { try { localStorage.setItem('broderie.cadreN', sel.value); } catch (e) { /* rien */ } verifierCadre(); };
   await rendreStats('#statsExport');
   verifierCadre();
 }
 function verifierCadre() {
-  const i = $('#cadreInfo'), v = $('#fCadre').value;
-  if (!v || !S.dimensions) { i.textContent = ''; return; }
-  const [cw, ch] = v.split('x').map(Number), [w, h] = S.dimensions;
-  const ok = (w <= cw && h <= ch) || (w <= ch && h <= cw);
+  const i = $('#cadreInfo'), c = cadreChoisi();
+  if (!c || !S.dimensions) { i.textContent = ''; return; }
+  const [w, h] = S.dimensions;
+  const ok = (w <= c.largeur && h <= c.hauteur);
+  const tourne = !ok && w <= c.hauteur && h <= c.largeur;
   i.innerHTML = ok ? `<span style="color:#5ec27a">✓ Le motif (${w.toFixed(0)} × ${h.toFixed(0)} mm) tient dans le cadre.</span>`
+    : tourne ? `<span style="color:#f2b45a">⚠ Le motif tient seulement s'il est tourné d'un quart de tour (dans Inkscape).</span>`
     : `<span style="color:#f2b45a">⚠ Le motif (${w.toFixed(0)} × ${h.toFixed(0)} mm) dépasse ce cadre.</span>`;
 }
+$('#bCadreAjout').onclick = async () => {
+  const l = +$('#ncL').value, h = +$('#ncH').value;
+  if (!(l > 0 && h > 0)) { message('Indiquez la largeur et la hauteur du cadre en millimètres.', true); return; }
+  S.cadres = (await api('cadres_ecrire', { cadres: [...S.cadres, { nom: $('#ncNom').value.trim() || `${l} × ${h}`, largeur: l, hauteur: h }] })).cadres;
+  try { localStorage.setItem('broderie.cadreN', S.cadres.length - 1); } catch (e) { /* rien */ }
+  $('#nouveauCadre').open = false; $('#ncNom').value = $('#ncL').value = $('#ncH').value = '';
+  rendreExport(); message('Cadre ajouté.');
+};
+$('#bCadreSuppr').onclick = async () => {
+  const n = +$('#fCadre').value, c = S.cadres[n];
+  if (!c || !confirm(`Supprimer le cadre « ${c.nom} » de la liste ?`)) return;
+  S.cadres = (await api('cadres_ecrire', { cadres: S.cadres.filter((_, i) => i !== n) })).cadres;
+  try { localStorage.setItem('broderie.cadreN', 0); } catch (e) { /* rien */ }
+  rendreExport(); message('Cadre supprimé.');
+};
+$('#bCadreCentrer').onclick = async () => {
+  const c = cadreChoisi(); if (!c) return;
+  try {
+    S.etat = await api('cadre', { largeur: c.largeur, hauteur: c.hauteur, centrer: true, page: $('#cbCadrePage').checked });
+    rendreTout(); apercuBientot();
+    message(`Motif centré dans le cadre ${c.largeur} × ${c.hauteur} mm. Appuyez sur ⌘⌥B (ou Synchroniser) pour le voir dans Inkscape.`);
+  } catch (e) { message(e.message, true); }
+};
 
 // ---------------------------------------------------------------- simulation intégrée (comme le simulateur d'Ink/Stitch)
 // Points calculés par Ink/Stitch (export JSON, unités 0,1 mm centrées sur le motif) ; mêmes commandes,
@@ -1112,6 +1137,23 @@ function majBoutonsSimu() {
   if (d) d.classList.toggle('on', SIM.sens < 0);
 }
 construireBarresSimu();
+// poignée : hauteur de la simulation (double-clic : toute la hauteur disponible)
+try { const h = localStorage.getItem('broderie.hauteurSimu'); if (h) { document.documentElement.style.setProperty('--hauteur-simu', h + 'px'); $('#v-points').classList.add('taille-fixe'); } } catch (e) { /* rien */ }
+$('#poigneeSimu').addEventListener('pointerdown', (e) => {
+  e.preventDefault();
+  const v = $('.simu-vue'), h0 = v.getBoundingClientRect().height, y0 = e.clientY;
+  let h = h0;
+  $('#v-points').classList.add('taille-fixe');
+  const mv = (ev) => { h = Math.max(140, h0 + ev.clientY - y0); document.documentElement.style.setProperty('--hauteur-simu', h + 'px'); dessinerSimulation(); };
+  const up = () => { document.removeEventListener('pointermove', mv); document.removeEventListener('pointerup', up);
+    try { localStorage.setItem('broderie.hauteurSimu', Math.round(h)); } catch (x) { /* rien */ } dessinerPiste(); };
+  document.addEventListener('pointermove', mv); document.addEventListener('pointerup', up);
+});
+$('#poigneeSimu').addEventListener('dblclick', () => {
+  $('#v-points').classList.remove('taille-fixe'); document.documentElement.style.removeProperty('--hauteur-simu');
+  try { localStorage.removeItem('broderie.hauteurSimu'); } catch (x) { /* rien */ }
+  dessinerSimulation();
+});
 $('#sPos').oninput = (e) => allerA(+e.target.value);
 window.addEventListener('resize', () => { if (S.vue === 'points') { dessinerPiste(); dessinerSimulation(); } });
 document.addEventListener('keydown', (e) => {
@@ -1119,7 +1161,24 @@ document.addEventListener('keydown', (e) => {
   const touches = { p: 'play', P: 'play', r: 'restart', R: 'restart', ArrowUp: 'faster', ArrowDown: 'slower', '+': 'forward_stitch',
     '=': 'forward_stitch', '-': 'backward_stitch', PageUp: 'forward_command', PageDown: 'backward_command' };
   if (e.key === 'ArrowLeft' || e.key === 'ArrowRight') { SIM.sens = e.key === 'ArrowLeft' ? -1 : 1; majBoutonsSimu(); e.preventDefault(); return; }
-  if (e.key === 'o' || e.key === 'O') { SIM_AFF.npp = !SIM_AFF.npp; memoriser(); construireBarresSimu(); dessinerSimulation(); return; }
+  if (e.key === 'o' || e.key === 'O') { SIM_AFF.npp = !SIM_AFF.npp; memoriser(); construireBarresSimu();
+// poignée : hauteur de la simulation (double-clic : toute la hauteur disponible)
+try { const h = localStorage.getItem('broderie.hauteurSimu'); if (h) { document.documentElement.style.setProperty('--hauteur-simu', h + 'px'); $('#v-points').classList.add('taille-fixe'); } } catch (e) { /* rien */ }
+$('#poigneeSimu').addEventListener('pointerdown', (e) => {
+  e.preventDefault();
+  const v = $('.simu-vue'), h0 = v.getBoundingClientRect().height, y0 = e.clientY;
+  let h = h0;
+  $('#v-points').classList.add('taille-fixe');
+  const mv = (ev) => { h = Math.max(140, h0 + ev.clientY - y0); document.documentElement.style.setProperty('--hauteur-simu', h + 'px'); dessinerSimulation(); };
+  const up = () => { document.removeEventListener('pointermove', mv); document.removeEventListener('pointerup', up);
+    try { localStorage.setItem('broderie.hauteurSimu', Math.round(h)); } catch (x) { /* rien */ } dessinerPiste(); };
+  document.addEventListener('pointermove', mv); document.addEventListener('pointerup', up);
+});
+$('#poigneeSimu').addEventListener('dblclick', () => {
+  $('#v-points').classList.remove('taille-fixe'); document.documentElement.style.removeProperty('--hauteur-simu');
+  try { localStorage.removeItem('broderie.hauteurSimu'); } catch (x) { /* rien */ }
+  dessinerSimulation();
+}); dessinerSimulation(); return; }
   if (touches[e.key]) { ACTIONS_SIMU[touches[e.key]][1](); e.preventDefault(); }
 });
 // molette : zoom autour du pointeur · glisser : déplacer · double-clic : tout voir

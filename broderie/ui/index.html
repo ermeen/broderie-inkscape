@@ -41,6 +41,7 @@
         <div id="simuInfo" class="simu-info" hidden></div>
         <div id="simuReglages" class="simu-info" hidden></div>
       </div>
+      <div id="poigneeSimu" title="Glisser pour agrandir ou réduire la simulation (double-clic : toute la hauteur)"></div>
       <div class="simu-piste"><canvas id="sMarques"></canvas><input id="sPos" type="range" min="0" max="0" value="0"></div>
       <div class="simu-barre controles" id="simuControles"></div>
       <div class="simu-barre vues" id="simuVues"></div>
@@ -58,9 +59,19 @@
       <div class="carte-titre"><span>Exporter</span></div>
       <label class="etiquette">Fichier de broderie</label>
       <select id="fFormat"></select>
-      <label class="etiquette">Taille du cadre</label>
-      <select id="fCadre"></select>
+      <label class="etiquette">Cadre de la brodeuse</label>
+      <div class="ligne-cadre"><select id="fCadre"></select><button id="bCadreSuppr" class="petit" title="Supprimer ce cadre de la liste">Supprimer</button></div>
       <div id="cadreInfo" class="small"></div>
+      <details id="nouveauCadre" class="theme"><summary>Ajouter un cadre</summary>
+        <div class="champ"><label>Nom</label><input type="text" id="ncNom" placeholder="ex. Grand cadre Brother"></div>
+        <div class="champ"><label>Largeur (mm)</label><input type="number" id="ncL" min="10" step="1"></div>
+        <div class="champ"><label>Hauteur (mm)</label><input type="number" id="ncH" min="10" step="1"></div>
+        <button id="bCadreAjout" class="petit">Ajouter ce cadre</button>
+      </details>
+      <div class="boutons-cadre">
+        <button id="bCadreCentrer" title="Centre le motif dans le cadre et fait de la page d'Inkscape la taille du cadre">⊕ Centrer le motif dans le cadre</button>
+        <label class="interrupteur"><span>Montrer le cadre dans Inkscape (la page prend sa taille)</span><input type="checkbox" id="cbCadrePage" checked></label>
+      </div>
       <button id="bExport" class="principal large">Exporter</button>
       <p class="muted small">Le fichier est calculé par Ink/Stitch et enregistré dans Téléchargements.</p>
     </div>

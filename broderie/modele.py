@@ -436,3 +436,47 @@ def page_et_centre(svg, ids=None):
     y0 = vb[1] if len(vb) == 4 else 0
     return {"largeur": w or (vb[2] if len(vb) == 4 else 0), "hauteur": h or (vb[3] if len(vb) == 4 else 0),
             "cx": ((boite.left + boite.right) / 2 - x0) * kx, "cy": ((boite.top + boite.bottom) / 2 - y0) * ky}
+
+
+def emprise(svg, ids=None):
+    """Emprise des objets brodés en unités du dessin (x0, y0, x1, y1), transformations comprises."""
+    ix = _inkex()
+    boite = None
+    for el in objets(svg, ids):
+        try:
+            t = ix.transforms.Transform()
+            for a in reversed(list(el.iterancestors())):
+                if a.get("transform"):
+                    t = t @ ix.transforms.Transform(a.get("transform"))
+            b = ix.paths.Path(_tracé(el)).transform(t @ ix.transforms.Transform(el.get("transform") or "")).bounding_box()
+            boite = b if boite is None else boite + b
+        except Exception:
+            continue
+    return (boite.left, boite.top, boite.right, boite.bottom) if boite else None
+
+
+def appliquer_cadre(svg, largeur, hauteur, centrer=True, page=True):
+    """Le cadre de la brodeuse devient la page d'Inkscape (largeur × hauteur en mm) ; le motif est centré dessus.
+    L'échelle du dessin (unités par mm) est conservée."""
+    ix = _inkex()
+    r = svg.getroot() if hasattr(svg, "getroot") else svg
+    vb = [float(x) for x in (r.get("viewBox") or "").replace(",", " ").split()] or None
+    try:
+        w_mm = ix.units.convert_unit(r.get("width"), "mm") if r.get("width") else None
+    except Exception:
+        w_mm = None
+    u = (vb[2] / w_mm) if vb and len(vb) == 4 and w_mm else 1.0          # unités du dessin par mm
+    x0, y0 = (vb[0], vb[1]) if vb and len(vb) == 4 else (0.0, 0.0)
+    if page:
+        r.set("width", "%gmm" % largeur)
+        r.set("height", "%gmm" % hauteur)
+        r.set("viewBox", "%g %g %g %g" % (x0, y0, largeur * u, hauteur * u))
+    if centrer:
+        b = emprise(svg)
+        if b:
+            dx = x0 + (largeur * u - (b[2] - b[0])) / 2 - b[0]
+            dy = y0 + (hauteur * u - (b[3] - b[1])) / 2 - b[1]
+            for enfant in r:
+                if isinstance(enfant.tag, str) and local(enfant) in FORMES | {"g"} and local(enfant) != "defs":
+                    t = enfant.get("transform") or ""
+                    enfant.set("transform", ("translate(%g,%g) %s" % (dx, dy, t)).strip())
