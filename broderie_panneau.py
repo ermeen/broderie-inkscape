@@ -150,6 +150,18 @@ class PanneauBroderie(inkex.EffectExtension):
         r = _appel("sync", {"svg": etree.tostring(self.document.getroot(), encoding="unicode"),
                             "ids": list(self.options.ids or []), "nom": nom}, delai=600)
         note("sync faite, panneau ouvert=%s, renvoi=%s" % (r.get("panneau_ouvert"), bool(r.get("svg"))))
+        if r.get("perime") or "perime" not in r:     # ancienne version sans ce signal : à mettre à jour aussi
+            # nouvelle version installée et rien en attente : on redémarre le panneau (il recharge sa session)
+            note("mise à jour du panneau")
+            try:
+                _appel("quitter", delai=3)
+            except OSError:
+                pass
+            time.sleep(0.8)
+            _demarrer_serveur()
+            r2 = _appel("sync", {"svg": etree.tostring(self.document.getroot(), encoding="unicode"),
+                                 "ids": list(self.options.ids or []), "nom": nom}, delai=600)
+            r["panneau_ouvert"] = r2.get("panneau_ouvert") or r.get("panneau_ouvert")
         # réglages renvoyés : on reste dans Inkscape ; sinon on montre le panneau
         if not r.get("svg") and not os.environ.get("BRODERIE_SANS_NAVIGATEUR"):
             ouvrir_navigateur(bool(r.get("panneau_ouvert")))

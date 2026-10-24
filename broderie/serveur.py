@@ -20,6 +20,16 @@ from . import modele as M
 from . import moteur as E
 
 UI = os.path.join(M.ICI, "ui")
+DEMARRAGE = time.time()
+
+
+def perime():
+    """Le code du panneau a été mis à jour depuis le démarrage de ce serveur."""
+    try:
+        return any(os.path.getmtime(os.path.join(M.ICI, f)) > DEMARRAGE
+                   for f in os.listdir(M.ICI) if f.endswith(".py"))
+    except OSError:
+        return False
 PORT = int(os.environ.get("BRODERIE_PORT") or 47811)
 SESSION = os.path.expanduser(os.environ.get("BRODERIE_SESSION") or
                              "~/Library/Application Support/broderie-panneau/session-%d.json" % PORT)
@@ -133,7 +143,8 @@ class Session:
             self.ids = [i for i in d.get("ids") or [] if i]
             self.nom = d.get("nom") or self.nom
             self.version += 1
-            return {"svg": renvoi, "panneau_ouvert": time.time() - self.vu < 6}
+            return {"svg": renvoi, "panneau_ouvert": time.time() - self.vu < 6,
+                    "perime": perime() and not self.attente and not (self.tache and not self.tache.get("fini"))}
 
     def _rejouer(self, doc, op):
         el = M.par_id(doc, op[1]) if op[0] != "commande" else None
