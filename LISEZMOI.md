@@ -28,6 +28,22 @@ Certaines commandes ouvrent leur propre fenêtre d'Ink/Stitch (Lettrage, Paramè
 
 Les réglages sont enregistrés exactement comme Ink/Stitch les enregistre. Le dessin reste donc utilisable avec les menus Ink/Stitch habituels.
 
+## Où sont enregistrés les réglages de broderie ?
+
+**Dans le fichier SVG d'Inkscape**, exactement comme Ink/Stitch les enregistre. Il n'y a pas de fichier à part.
+
+1. Les réglages changés dans le panneau sont d'abord **en attente**. Le bas du panneau indique combien.
+2. **⌘⌥B** (ou « Synchroniser avec Inkscape ») les met dans le dessin.
+3. **⌘S dans Inkscape** les enregistre dans votre fichier `.svg`.
+
+Le fichier reste compatible avec Ink/Stitch seul : on peut le rouvrir avec ses menus habituels, et inversement.
+
+Les modifications en attente ne sont pas perdues :
+- si le panneau est fermé ou redémarré, il les garde dans `~/Library/Application Support/broderie-panneau/` ;
+- elles sont rattachées à leur dessin. Si vous passez à un autre dessin avant ⌘⌥B, elles sont mises de côté, puis appliquées quand vous revenez au premier dessin.
+
+Pensez donc à faire **⌘⌥B puis ⌘S** avant de fermer Inkscape.
+
 ## Message « Unversioned Ink/Stitch SVG file detected »
 
 - Avec un **ancien dessin** fait avec une ancienne version d'Ink/Stitch : cliquez **Update**.

@@ -62,6 +62,7 @@ class Session:
         self.ids = []
         self.nom = "dessin"
         self.attente = []                 # modifications pas encore renvoyées à Inkscape
+        self.reserve = {}                 # modifications en attente d'autres dessins (nom du dessin → liste)
         self.version = 0                  # change à chaque nouveau dessin reçu d'Inkscape
         self.verrou = threading.RLock()
         self.journal = []
@@ -73,7 +74,7 @@ class Session:
     def sauver(self):
         try:
             os.makedirs(os.path.dirname(SESSION), exist_ok=True)
-            d = {"recu": self.recu, "ids": self.ids, "nom": self.nom, "attente": self.attente,
+            d = {"recu": self.recu, "ids": self.ids, "nom": self.nom, "attente": self.attente, "reserve": self.reserve,
                  "document": etree.tostring(self.document.getroot(), encoding="unicode") if self.document is not None else None}
             with open(SESSION + ".tmp", "w", encoding="utf-8") as f:
                 json.dump(d, f)
@@ -93,6 +94,7 @@ class Session:
             self.base = signature(_lire(d["recu"])) if d.get("recu") else None
             self.ids, self.nom = d.get("ids") or [], d.get("nom") or "dessin"
             self.attente = [tuple(op) for op in d.get("attente") or []]
+            self.reserve = {k: [tuple(op) for op in v] for k, v in (d.get("reserve") or {}).items()}
             self.version = 1
 
     # --- état -------------------------------------------------------------
@@ -108,6 +110,7 @@ class Session:
         sorties = sorted({c["format"] for c in M.CATALOGUE["commandes"] if c["type"] == "output" and c["format"]})
         return {"objets": [M.decrire(o) for o in objs], "selection": self.ids, "nom": self.nom,
                 "attente": len(self.attente), "version": self.version,
+                "reserve": {k: len(v) for k, v in self.reserve.items()},
                 "moteur": {"chemin": E.binaire(), "version": E.version()},
                 "commandes": cmds, "formats": sorties, "journal": self.journal[-20:]}
 
@@ -123,6 +126,17 @@ class Session:
             doc = _lire(recu)
             E.versionner(doc)
             renvoi = None
+            # les modifications en attente appartiennent à un dessin : changement de dessin → mises de côté
+            nom = d.get("nom") or self.nom
+            if nom != self.nom:
+                if self.attente:
+                    self.reserve[self.nom] = self.attente
+                    self.log("%d modification(s) gardée(s) pour « %s » : elles seront appliquées quand ce dessin "
+                             "sera de nouveau ouvert." % (len(self.attente), self.nom))
+                self.attente = self.reserve.pop(nom, [])
+                if self.attente:
+                    self.base = None              # rejouées sur le dessin rouvert
+                    self.log("%d modification(s) en attente pour « %s » appliquées." % (len(self.attente), nom))
             if self.attente:
                 commandes = [op for op in self.attente if op[0] == "commande"]
                 if commandes and self.base is not None and signature(doc) == self.base and self.document is not None:

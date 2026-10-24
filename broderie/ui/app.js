@@ -557,6 +557,8 @@ function rendreAttente() {
   i.className = 'small' + (n ? ' on' : '');
   i.textContent = n ? `${n} modification(s) à envoyer` : '✓ À jour avec Inkscape';
   $('#bAbandonner').hidden = !n;
+  const r = Object.entries(S.etat.reserve || {});
+  if (r.length) i.title = 'Modifications gardées pour d\'autres dessins : ' + r.map(([k, v]) => `« ${k} » (${v})`).join(', ');
   if (S.etat.sans_dessin) i.textContent = 'Aucun dessin reçu : appuyez sur ⌘⌥B dans Inkscape.';
 }
 
