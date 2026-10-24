@@ -33,14 +33,16 @@
   <!-- Points : simulation de la broderie -->
   <section id="v-points" class="vue" hidden>
     <div id="simu">
-      <canvas id="simuCanvas"></canvas>
-      <div class="simu-barre">
-        <button id="sJouer" class="rond" title="Lecture / pause">▶</button>
-        <input id="sPos" type="range" min="0" max="0" value="0">
+      <div class="simu-vue">
+        <canvas id="simuCanvas"></canvas>
+        <div id="simuCmd" class="simu-cmd"></div>
+        <div id="simuInfo" class="simu-info" hidden></div>
+        <div id="simuReglages" class="simu-info" hidden></div>
       </div>
-      <div class="simu-barre" id="simuOptions"></div>
-      <div class="simu-barre"><span id="sInfo" class="muted small"></span>
-        <label class="small muted vitesse">Vitesse <input id="sVitesse" type="range" min="1" max="10" value="5"></label></div>
+      <div class="simu-piste"><canvas id="sMarques"></canvas><input id="sPos" type="range" min="0" max="0" value="0"></div>
+      <div class="simu-barre controles" id="simuControles"></div>
+      <div class="simu-barre vues" id="simuVues"></div>
+      <div class="simu-barre"><span id="sInfo" class="muted small"></span></div>
     </div>
   </section>
   <!-- Aperçu : rendu des points, légende et statistiques -->

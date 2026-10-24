@@ -112,7 +112,7 @@ details.theme summary .nb { color: var(--muted); font-weight: 400; margin-left: 
 .legende i { width: 14px; height: 4px; border-radius: 2px; display: inline-block; }
 /* simulation */
 #simu { flex: 1; display: flex; flex-direction: column; background: var(--carte); border: 1px solid var(--bord); border-radius: 10px; overflow: hidden; min-height: 320px; }
-#simuCanvas { flex: 1; width: 100%; min-height: 0; background: #fff; }
+#simuCanvas { width: 100%; height: 100%; display: block; }
 .simu-barre { display: flex; align-items: center; gap: 10px; padding: 6px 10px; }
 .simu-barre #sPos { flex: 1; accent-color: var(--accent); }
 .vitesse { margin-left: auto; display: flex; align-items: center; gap: 4px; }
@@ -177,3 +177,21 @@ dialog { border: 1px solid var(--bord); border-radius: 12px; background: var(--p
 .motif { padding: 2px; background: #fff; border: 2px solid transparent; border-radius: 6px; height: 52px; }
 .motif img { width: 100%; height: 100%; object-fit: contain; }
 .motif.on { border-color: var(--accent); }
+
+.simu-vue { flex: 1; min-height: 0; position: relative; }
+.simu-cmd { position: absolute; left: 10px; top: 10px; background: rgba(20,22,27,.8); color: #fff; padding: 3px 9px; border-radius: 6px; font-size: 12px; }
+.simu-cmd:empty, .simu-cmd[hidden] { display: none; }
+.simu-info { position: absolute; right: 10px; top: 10px; background: var(--panneau); border: 1px solid var(--bord); border-radius: 9px; padding: 8px 12px; font-size: 12px; min-width: 220px; box-shadow: 0 4px 14px rgba(0,0,0,.3); }
+.simu-info[hidden] { display: none; }
+.simu-info table { border-collapse: collapse; margin-top: 4px; width: 100%; }
+.simu-info td { padding: 2px 0; } .simu-info td:last-child { text-align: right; font-weight: 600; }
+#simuReglages { top: auto; bottom: 10px; }
+.simu-piste { position: relative; padding: 0 10px; }
+#sMarques { width: 100%; height: 16px; display: block; }
+.simu-piste #sPos { width: 100%; margin: 0; accent-color: var(--accent); }
+.simu-barre.controles, .simu-barre.vues { justify-content: center; gap: 4px; flex-wrap: wrap; }
+.ico-btn { width: 32px; height: 32px; padding: 4px; display: inline-flex; align-items: center; justify-content: center; border-radius: 7px; background: var(--tuile); border: 1px solid var(--bord); cursor: pointer; }
+.ico-btn img { width: 20px; height: 20px; }
+.ico-btn.bascule { opacity: .45; } .ico-btn.bascule.on, .ico-btn.on { opacity: 1; background: var(--sel); border-color: var(--accent); }
+.ico-btn input[type=color] { width: 22px; height: 22px; border: none; padding: 0; background: none; cursor: pointer; }
+.simu-barre.vues .ico-btn:nth-child(6) { margin-left: 10px; }

@@ -535,7 +535,7 @@ async function apercu() {
     svg.removeAttribute('width'); svg.removeAttribute('height');
     const v = (svg.getAttribute('viewBox') || '0 0 100 100').split(/[ ,]+/).map(Number);
     vb0 = v; if (!garder) vb = v.slice();
-    if (MODE !== 'points') habiller(svg, v);
+    if (MODE !== 'points') habiller(svg, v); else pointsAiguille(svg);
     appliquerVue();
     afficherSelection(true);
     message('Molette : zoom · glisser : déplacer · double-clic : tout voir');
@@ -568,6 +568,26 @@ function habiller(svg, v) {
   majTissu();
 }
 function majTissu() { $$('#apercu .tissu-fond').forEach((r) => r.setAttribute('fill', TISSU)); }
+
+// Points d'aiguille de l'aperçu : Ink/Stitch les dessine en « marqueurs » prévus pour Inkscape ; le navigateur
+// les rogne presque entièrement (markerWidth 0,1) et ignore « context-stroke ». On les refait, un par couleur de fil.
+function pointsAiguille(svg) {
+  const NS = 'http://www.w3.org/2000/svg';
+  const defs = svg.querySelector('defs') || svg.insertBefore(document.createElementNS(NS, 'defs'), svg.firstChild);
+  const faits = {};
+  for (const ch of svg.querySelectorAll('path')) {
+    const st = ch.getAttribute('style') || '';
+    if (!/needle-point-marker/.test(st)) continue;
+    const coul = ((st.match(/stroke:\s*(#[0-9a-fA-F]{3,8})/) || [])[1] || '#000000').toLowerCase();
+    const id = 'npp-' + coul.slice(1);
+    if (!faits[id]) {
+      defs.insertAdjacentHTML('beforeend', `<marker id="${id}" markerUnits="strokeWidth" markerWidth="4" markerHeight="4"
+        viewBox="-2 -2 4 4" refX="0" refY="0" overflow="visible"><circle r="1.5" fill="${coul}" stroke="rgba(0,0,0,.65)" stroke-width="0.35"/></marker>`);
+      faits[id] = true;
+    }
+    ch.setAttribute('style', st.replace(/url\(#inkstitch-needle-point-marker\)/g, `url(#${id})`));
+  }
+}
 
 function appliquerVue() { const s = $('#apercu svg'); if (s && vb) s.setAttribute('viewBox', vb.join(' ')); }
 function versDessin(e) {
@@ -693,20 +713,48 @@ function verifierCadre() {
     : `<span style="color:#f2b45a">⚠ Le motif (${w.toFixed(0)} × ${h.toFixed(0)} mm) dépasse ce cadre.</span>`;
 }
 
-// ---------------------------------------------------------------- simulation intégrée (points d'Ink/Stitch)
-const SIM = { pts: null, fils: [], i: 0, lecture: false, raf: 0, vue: { k: 1, x: 0, y: 0 } };
+// ---------------------------------------------------------------- simulation intégrée (comme le simulateur d'Ink/Stitch)
+// Points calculés par Ink/Stitch (export JSON, unités 0,1 mm centrées sur le motif) ; mêmes commandes,
+// mêmes affichages et mêmes raccourcis clavier que son simulateur, avec ses icônes.
+const SIM = { pts: null, fils: [], i: 0, lecture: false, raf: 0, sens: 1, niveau: 5, dernier: 0, reste: 0,
+  vue: { k: 1, x: 0, y: 0 }, cmds: [], couleurs: [], page: null };
+const SIM_AFF = { npp: false, sauts: true, coupes: true, arrets: true, couleurs: true, mire: true, page: false, info: false, fond: '#ffffff' };
+const SIM_PREF = { epaisseur: 0.3, npp: 0.5, mireRayon: 12, mireEpaisseur: 2, mireCouleur: '#e74c3c', adapter: true };
+try {
+  Object.assign(SIM_AFF, JSON.parse(localStorage.getItem('broderie.simAff') || '{}'));
+  Object.assign(SIM_PREF, JSON.parse(localStorage.getItem('broderie.simPref') || '{}'));
+} catch (e) { /* valeurs par défaut */ }
+const memoriser = () => { try { localStorage.setItem('broderie.simAff', JSON.stringify(SIM_AFF)); localStorage.setItem('broderie.simPref', JSON.stringify(SIM_PREF)); } catch (e) { /* rien */ } };
+const NOM_CMD = { JUMP: 'Saut', TRIM: 'Coupe', STOP: 'Arrêt', COLOR_CHANGE: 'Changement de couleur', END: 'Fin' };
+const ICONES = {};
+for (const n of ['jump', 'trim', 'stop', 'color_change']) { const im = new Image(); im.src = `/icone/${n}.png`; ICONES[n] = im; }
+const icone = (n) => `<img src="/icone/${n}_dark.png" alt="">`;
+
 async function chargerSimulation() {
   if (!S.simu || SIM.pts !== S.simu.points) {
     try { await donneesPoints(); } catch (e) { message(e.message, true); return; }
-    SIM.pts = S.simu.points; SIM.fils = S.simu.fils; SIM.i = SIM.pts.length;
+    SIM.pts = S.simu.points; SIM.fils = S.simu.fils; SIM.page = S.simu.page; SIM.i = SIM.pts.length;
+    SIM.cmds = []; SIM.couleurs = [];
+    let fil = 0;
+    SIM.pts.forEach((p, i) => {
+      if (p[2] === 'COLOR_CHANGE') fil++;
+      SIM.couleurs.push(fil);
+      if (p[2] !== 'STITCH') SIM.cmds.push(i);
+    });
     $('#sPos').max = SIM.pts.length; $('#sPos').value = SIM.i;
-    message('▶ pour voir la machine broder · molette : zoom · glisser : déplacer · double-clic : tout voir');
+    dessinerPiste(); rendreInfoSimu();
+    message('P : lecture · R : recommencer · ↑↓ : vitesse · ←→ : sens · + / − : un point · Pg↑ Pg↓ : une commande · O : pénétrations');
   }
   dessinerSimulation();
 }
 function cadreSimulation(cv) {
   let x0 = Infinity, x1 = -Infinity, y0 = Infinity, y1 = -Infinity;
   for (const [x, y] of SIM.pts) { if (x < x0) x0 = x; if (x > x1) x1 = x; if (y < y0) y0 = y; if (y > y1) y1 = y; }
+  if (SIM_AFF.page && SIM.page) {                     // la page entière doit tenir dans la vue
+    const p = SIM.page;
+    x0 = Math.min(x0, -p.cx * 10); x1 = Math.max(x1, (p.largeur - p.cx) * 10);
+    y0 = Math.min(y0, -p.cy * 10); y1 = Math.max(y1, (p.hauteur - p.cy) * 10);
+  }
   const k = Math.min((cv.width - 40) / Math.max(1, x1 - x0), (cv.height - 40) / Math.max(1, y1 - y0));
   return { k, ox: (cv.width - (x1 - x0) * k) / 2 - x0 * k, oy: (cv.height - (y1 - y0) * k) / 2 - y0 * k };
 }
@@ -715,93 +763,217 @@ function dessinerSimulation() {
   const dpr = window.devicePixelRatio || 1;
   cv.width = cv.clientWidth * dpr; cv.height = cv.clientHeight * dpr;
   const g = cv.getContext('2d');
-  g.fillStyle = '#fff'; g.fillRect(0, 0, cv.width, cv.height);
+  g.fillStyle = SIM_AFF.fond; g.fillRect(0, 0, cv.width, cv.height);
   if (!SIM.pts || !SIM.pts.length) return;
   const { k, ox, oy } = cadreSimulation(cv);
-  g.setTransform(SIM.vue.k, 0, 0, SIM.vue.k, SIM.vue.x, SIM.vue.y);      // zoom et déplacement
-  g.lineWidth = Math.max(1 / SIM.vue.k, 2.2 * k); g.lineCap = 'round'; g.lineJoin = 'round';   // fil ≈ 0,22 mm (unités 0,1 mm)
-  g.globalAlpha = 0.9;
-  const trous = [];                                 // pénétrations de l'aiguille, visibles en zoomant
-  const sauts = [], marques = [];                   // sauts, coupes, arrêts, changements de couleur
-  let nSauts = 0;
-  let fil = 0, prec = null, nPoints = 0;
+  g.setTransform(SIM.vue.k, 0, 0, SIM.vue.k, SIM.vue.x, SIM.vue.y);
+  const px = 1 / SIM.vue.k;                          // un pixel écran
+  if (SIM_AFF.page && SIM.page) {
+    const p = SIM.page;
+    g.strokeStyle = '#888'; g.lineWidth = dpr * px; g.setLineDash([]);
+    g.strokeRect(ox - p.cx * 10 * k, oy - p.cy * 10 * k, p.largeur * 10 * k, p.hauteur * 10 * k);
+  }
+  const X = (x) => ox + x * k, Y = (y) => oy + y * k;
+  const fin = Math.min(SIM.i, SIM.pts.length);
+  // fil brodé, couleur par couleur
+  g.lineWidth = Math.max(dpr * px * 0.6, SIM_PREF.epaisseur * 10 * k); g.lineCap = 'round'; g.lineJoin = 'round';
+  let fil = 0, prec = null, saut = false;
+  const sauts = [], marques = [], trous = [];
   g.strokeStyle = SIM.fils[0] || '#000'; g.beginPath();
-  for (let i = 0; i < SIM.i && i < SIM.pts.length; i++) {
+  for (let i = 0; i < fin; i++) {
     const [x, y, c] = SIM.pts[i];
-    const X = ox + x * k, Y = oy + y * k;
-    if (c === 'COLOR_CHANGE') { g.stroke(); fil++; g.strokeStyle = SIM.fils[fil] || '#000'; g.beginPath(); prec = null; marques.push(['couleur', X, Y]); continue; }
     if (c === 'STITCH') {
       if (prec) {
-        if (prec[2]) sauts.push(prec[0], prec[1], X, Y);   // arrivée d'un saut
-        else { g.moveTo(prec[0], prec[1]); g.lineTo(X, Y); }
+        if (saut) sauts.push(prec[0], prec[1], X(x), Y(y));
+        else { g.moveTo(prec[0], prec[1]); g.lineTo(X(x), Y(y)); }
       }
-      prec = [X, Y, false]; nPoints++;
-      if (AFF.penetrations && k * SIM.vue.k > 3) trous.push(X, Y);
-    } else {                    // saut, coupe, arrêt : pas de fil brodé
-      if (prec && c === 'JUMP') sauts.push(prec[0], prec[1], X, Y);
-      if (c === 'TRIM') marques.push(['coupe', X, Y]);
-      if (c === 'STOP') marques.push(['arret', X, Y]);
-      prec = [X, Y, c === 'JUMP'];
-      if (c === 'JUMP') nSauts++;
+      prec = [X(x), Y(y)]; saut = false;
+      if (SIM_AFF.npp) trous.push(X(x), Y(y));
+      continue;
     }
+    if (c === 'COLOR_CHANGE') {
+      g.stroke(); fil++; g.strokeStyle = SIM.fils[fil] || '#000'; g.beginPath();
+      marques.push(['color_change', X(x), Y(y)]); saut = true; continue;   // nouveau fil : la liaison est un déplacement
+    }
+    if (c === 'JUMP') {
+      if (!saut) marques.push(['jump', prec ? prec[0] : X(x), prec ? prec[1] : Y(y)]);   // grenouille au départ du saut
+      if (prec) sauts.push(prec[0], prec[1], X(x), Y(y));
+      saut = true;
+    }
+    if (c === 'TRIM') { marques.push(['trim', X(x), Y(y)]); }
+    if (c === 'STOP') { marques.push(['stop', X(x), Y(y)]); }
+    prec = [X(x), Y(y)];
   }
   g.stroke();
-  g.globalAlpha = 1;
-  if (trous.length) {
-    g.fillStyle = 'rgba(0,0,0,.55)';
-    const r = Math.max(0.6 * k, 1.2 / SIM.vue.k);
-    for (let j = 0; j < trous.length; j += 2) { g.beginPath(); g.arc(trous[j], trous[j + 1], r, 0, 7); g.fill(); }
-  }
-  const px = 1 / SIM.vue.k;                        // un pixel écran, quelle que soit la loupe
-  if (AFF.sauts && sauts.length) {
-    g.save(); g.strokeStyle = 'rgba(120,120,130,.9)'; g.lineWidth = 1.2 * dpr * px; g.setLineDash([5 * dpr * px, 4 * dpr * px]);
-    g.beginPath();
-    for (let j = 0; j < sauts.length; j += 4) { g.moveTo(sauts[j], sauts[j + 1]); g.lineTo(sauts[j + 2], sauts[j + 3]); }
+  if (SIM_AFF.sauts && sauts.length) {
+    g.save(); g.strokeStyle = 'rgba(90,90,100,.85)'; g.lineWidth = 1.2 * dpr * px; g.setLineDash([5 * dpr * px, 4 * dpr * px]);
+    g.beginPath(); for (let j = 0; j < sauts.length; j += 4) { g.moveTo(sauts[j], sauts[j + 1]); g.lineTo(sauts[j + 2], sauts[j + 3]); }
     g.stroke(); g.restore();
   }
-  if (AFF.coupes) {
-    g.save(); g.font = `${13 * dpr * px}px -apple-system, sans-serif`; g.textAlign = 'center'; g.textBaseline = 'middle';
-    for (const [t, x, y] of marques) {
-      const sym = t === 'coupe' ? '✂' : t === 'arret' ? '⏸' : '◆';
-      g.fillStyle = t === 'coupe' ? '#d33' : t === 'arret' ? '#d80' : '#36c';
-      g.fillText(sym, x + 8 * dpr * px, y - 8 * dpr * px);
-    }
-    g.restore();
+  if (trous.length) {                                  // pénétrations de l'aiguille
+    g.fillStyle = 'rgba(0,0,0,.75)';
+    const r = Math.max(SIM_PREF.npp * 10 * k / 2, 1.2 * dpr * px);
+    for (let j = 0; j < trous.length; j += 2) { g.beginPath(); g.arc(trous[j], trous[j + 1], r, 0, 7); g.fill(); }
   }
-  const cur = SIM.pts[Math.min(SIM.i, SIM.pts.length) - 1];
-  if (cur && SIM.i < SIM.pts.length) {
-    g.fillStyle = '#e74c3c'; g.beginPath(); g.arc(ox + cur[0] * k, oy + cur[1] * k, 4 * dpr / SIM.vue.k, 0, 7); g.fill();
+  const montre = { jump: SIM_AFF.sauts, trim: SIM_AFF.coupes, stop: SIM_AFF.arrets, color_change: SIM_AFF.couleurs };
+  const t = 20 * dpr * px;
+  for (const [n, x, y] of marques) {
+    if (!montre[n] || !ICONES[n].complete) continue;
+    g.fillStyle = 'rgba(255,255,255,.85)'; g.beginPath(); g.arc(x + t * 0.6, y - t * 0.6, t * 0.62, 0, 7); g.fill();
+    g.drawImage(ICONES[n], x + t * 0.1, y - t * 1.1, t, t);
   }
+  // aiguille : mire
+  const cur = SIM.pts[fin - 1];
+  if (cur && SIM_AFF.mire) {
+    const cx = X(cur[0]), cy = Y(cur[1]), rr = SIM_PREF.mireRayon * dpr * px;
+    g.strokeStyle = SIM_PREF.mireCouleur; g.lineWidth = SIM_PREF.mireEpaisseur * dpr * px;
+    g.beginPath(); g.arc(cx, cy, rr, 0, 7); g.moveTo(cx - rr * 1.5, cy); g.lineTo(cx + rr * 1.5, cy); g.moveTo(cx, cy - rr * 1.5); g.lineTo(cx, cy + rr * 1.5); g.stroke();
+  }
+  // texte : point en cours et commande
+  const nPoints = SIM.pts.slice(0, fin).filter((p) => p[2] === 'STITCH').length;
   const total = SIM.pts.filter((p) => p[2] === 'STITCH').length;
-  const nCoupes = marques.filter((m) => m[0] === 'coupe').length;
-  $('#sInfo').textContent = `${nPoints.toLocaleString('fr')} / ${total.toLocaleString('fr')} points · fil ${Math.min(fil + 1, Math.max(1, SIM.fils.length))} / ${Math.max(1, SIM.fils.length)} · ${nSauts} saut(s) · ${nCoupes} coupe(s)`;
+  $('#sInfo').textContent = `Point ${nPoints.toLocaleString('fr')} / ${total.toLocaleString('fr')} · fil ${(SIM.couleurs[fin - 1] || 0) + 1} / ${Math.max(1, SIM.fils.length)} · vitesse ${vitesse()} points/s`;
+  const c = cur && cur[2] !== 'STITCH' ? NOM_CMD[cur[2]] : '';
+  $('#simuCmd').textContent = c ? 'Commande : ' + c : ''; $('#simuCmd').hidden = !c;
   $('#sPos').value = SIM.i;
 }
-function boucle() {
+// marques des commandes sous la barre de progression (comme le curseur d'Ink/Stitch)
+function dessinerPiste() {
+  const cv = $('#sMarques'), dpr = window.devicePixelRatio || 1;
+  cv.width = cv.clientWidth * dpr; cv.height = cv.clientHeight * dpr;
+  const g = cv.getContext('2d'); g.clearRect(0, 0, cv.width, cv.height);
+  if (!SIM.pts) return;
+  const n = SIM.pts.length;
+  // bandeau des couleurs de fil
+  let debut = 0;
+  for (let i = 1; i <= n; i++) {
+    if (i === n || SIM.couleurs[i] !== SIM.couleurs[debut]) {
+      g.fillStyle = SIM.fils[SIM.couleurs[debut]] || '#999';
+      g.fillRect(debut / n * cv.width, cv.height - 4 * dpr, Math.max(1, (i - debut) / n * cv.width), 4 * dpr);
+      debut = i;
+    }
+  }
+  const couleur = { JUMP: '#888', TRIM: '#d33', STOP: '#d80', COLOR_CHANGE: '#36c' };
+  const montre = { JUMP: SIM_AFF.sauts, TRIM: SIM_AFF.coupes, STOP: SIM_AFF.arrets, COLOR_CHANGE: SIM_AFF.couleurs };
+  for (const i of SIM.cmds) {
+    const c = SIM.pts[i][2];
+    if (!montre[c]) continue;
+    g.fillStyle = couleur[c]; g.fillRect(i / n * cv.width, 0, Math.max(1, dpr), cv.height - 5 * dpr);
+  }
+}
+function rendreInfoSimu() {
+  const d = $('#simuInfo');
+  d.hidden = !SIM_AFF.info;
+  if (!SIM.pts) return;
+  const s = calculerStats(S.simu);
+  const nb = (c) => SIM.pts.filter((p) => p[2] === c).length;
+  d.innerHTML = `<b>Informations</b><table>
+    <tr><td>Dimensions</td><td>${s.larg.toFixed(2)} × ${s.haut.toFixed(2)} mm</td></tr>
+    <tr><td>Points</td><td>${s.n.toLocaleString('fr')}</td></tr><tr><td>Changements de couleur</td><td>${nb('COLOR_CHANGE')}</td></tr>
+    <tr><td>Sauts</td><td>${nb('JUMP')}</td></tr><tr><td>Coupes</td><td>${nb('TRIM')}</td></tr><tr><td>Arrêts</td><td>${nb('STOP')}</td></tr></table>`;
+}
+function rendreReglagesSimu(ouvert) {
+  const d = $('#simuReglages'); d.hidden = !ouvert;
+  if (!ouvert) return;
+  d.innerHTML = `<b>Préférences du simulateur</b>
+    <label class="interrupteur"><span>Adapter la vitesse au nombre de points</span><input type="checkbox" id="spAdapt" ${SIM_PREF.adapter ? 'checked' : ''}></label>
+    <div class="champ"><label>Épaisseur du fil (mm)</label><input type="number" step="0.05" min="0.05" id="spEp" value="${SIM_PREF.epaisseur}"></div>
+    <div class="champ"><label>Taille des pénétrations (mm)</label><input type="number" step="0.1" min="0.1" id="spNpp" value="${SIM_PREF.npp}"></div>
+    <div class="champ"><label>Rayon de la mire (px)</label><input type="number" step="1" min="2" id="spMr" value="${SIM_PREF.mireRayon}"></div>
+    <div class="champ"><label>Épaisseur de la mire (px)</label><input type="number" step="1" min="1" id="spMe" value="${SIM_PREF.mireEpaisseur}"></div>
+    <div class="champ"><label>Couleur de la mire</label><input type="color" id="spMc" value="${SIM_PREF.mireCouleur}"></div>`;
+  const lier = (id, cle, num = true) => { $(id).onchange = (e) => { SIM_PREF[cle] = e.target.type === 'checkbox' ? e.target.checked : (num ? +e.target.value : e.target.value); memoriser(); dessinerSimulation(); }; };
+  lier('#spAdapt', 'adapter'); lier('#spEp', 'epaisseur'); lier('#spNpp', 'npp'); lier('#spMr', 'mireRayon'); lier('#spMe', 'mireEpaisseur'); lier('#spMc', 'mireCouleur', false);
+}
+// vitesse : niveaux comme Ink/Stitch ; « adapter » vise une broderie complète en une minute environ
+function vitesse() {
+  const base = SIM_PREF.adapter && SIM.pts ? Math.max(10, SIM.pts.length / 60) : 30;
+  return Math.max(1, Math.round(base * Math.pow(1.6, SIM.niveau - 5)));
+}
+function boucle(t) {
   if (!SIM.lecture) return;
-  SIM.i = Math.min(SIM.pts.length, SIM.i + Math.ceil(Math.pow(2, +$('#sVitesse').value - 1)));
+  const dt = SIM.dernier ? (t - SIM.dernier) / 1000 : 0; SIM.dernier = t;
+  SIM.reste += dt * vitesse();
+  const pas = Math.floor(SIM.reste); SIM.reste -= pas;
+  SIM.i = Math.max(0, Math.min(SIM.pts.length, SIM.i + pas * SIM.sens));
   dessinerSimulation();
-  if (SIM.i >= SIM.pts.length) { arreterSimulation(); return; }
+  if ((SIM.sens > 0 && SIM.i >= SIM.pts.length) || (SIM.sens < 0 && SIM.i <= 0)) { arreterSimulation(); return; }
   SIM.raf = requestAnimationFrame(boucle);
 }
-function arreterSimulation() { SIM.lecture = false; cancelAnimationFrame(SIM.raf); $('#sJouer').textContent = '▶'; }
-$('#simuOptions').appendChild(interrupteursAffichage([
-  ['sauts', 'Sauts', 'Déplacements du fil sans broder'], ['coupes', 'Coupes et arrêts', 'Coupes de fil ✂, arrêts machine ⏸, changements de couleur ◆'],
-  ['penetrations', 'Pénétrations', 'Points d\'entrée de l\'aiguille (en zoomant)']], () => dessinerSimulation()));
-$('#sJouer').onclick = () => {
+function jouer() {
   if (!SIM.pts) return;
   if (SIM.lecture) { arreterSimulation(); return; }
-  if (SIM.i >= SIM.pts.length) SIM.i = 0;
-  SIM.lecture = true; $('#sJouer').textContent = '❚❚'; boucle();
+  if (SIM.sens > 0 && SIM.i >= SIM.pts.length) SIM.i = 0;
+  if (SIM.sens < 0 && SIM.i <= 0) SIM.i = SIM.pts.length;
+  SIM.lecture = true; SIM.dernier = 0; SIM.reste = 0; majBoutonsSimu(); SIM.raf = requestAnimationFrame(boucle);
+}
+function arreterSimulation() { SIM.lecture = false; cancelAnimationFrame(SIM.raf); majBoutonsSimu(); }
+function allerA(i) { arreterSimulation(); SIM.i = Math.max(0, Math.min(SIM.pts ? SIM.pts.length : 0, i)); dessinerSimulation(); }
+function commandeVoisine(sens) {
+  if (!SIM.pts) return;
+  const liste = SIM.cmds.map((i) => i + 1);
+  const cible = sens > 0 ? liste.find((i) => i > SIM.i) : [...liste].reverse().find((i) => i < SIM.i);
+  allerA(cible ?? (sens > 0 ? SIM.pts.length : 0));
+}
+const ACTIONS_SIMU = {
+  restart: ['Recommencer (R)', () => { SIM.i = 0; if (!SIM.lecture) jouer(); else dessinerSimulation(); }],
+  backward_command: ['Commande précédente (Pg↓)', () => commandeVoisine(-1)],
+  backward_stitch: ['Point précédent (−)', () => allerA(SIM.i - 1)],
+  play: ['Lecture / pause (P)', jouer],
+  forward_stitch: ['Point suivant (+)', () => allerA(SIM.i + 1)],
+  forward_command: ['Commande suivante (Pg↑)', () => commandeVoisine(1)],
+  direction: ['Changer le sens de l\'animation (← →)', () => { SIM.sens = -SIM.sens; majBoutonsSimu(); }],
+  slower: ['Plus lent (↓)', () => { SIM.niveau = Math.max(1, SIM.niveau - 1); dessinerSimulation(); }],
+  faster: ['Plus rapide (↑)', () => { SIM.niveau = Math.min(15, SIM.niveau + 1); dessinerSimulation(); }],
 };
-$('#sPos').oninput = (e) => { arreterSimulation(); SIM.i = +e.target.value; dessinerSimulation(); };
-window.addEventListener('resize', () => { if (S.vue === 'points') dessinerSimulation(); });
+const VUES_SIMU = [['npp', 'npp', 'Pénétrations de l\'aiguille (O)'], ['sauts', 'jump', 'Sauts'], ['coupes', 'trim', 'Coupes'],
+  ['arrets', 'stop', 'Arrêts'], ['couleurs', 'color_change', 'Changements de couleur'], ['mire', 'cursor', 'Mire sur l\'aiguille'],
+  ['page', 'page', 'Afficher la page'], ['info', 'info', 'Informations sur le motif']];
+function construireBarresSimu() {
+  const c = $('#simuControles'); c.innerHTML = '';
+  for (const [k, [titre, f]] of Object.entries(ACTIONS_SIMU)) {
+    const b = document.createElement('button'); b.className = 'ico-btn'; b.dataset.action = k; b.title = titre;
+    b.innerHTML = icone(k); b.onclick = f; c.appendChild(b);
+  }
+  const v = $('#simuVues'); v.innerHTML = '';
+  for (const [k, ic, titre] of VUES_SIMU) {
+    const b = document.createElement('button'); b.className = 'ico-btn bascule' + (SIM_AFF[k] ? ' on' : ''); b.title = titre;
+    b.innerHTML = icone(ic);
+    b.onclick = () => { SIM_AFF[k] = !SIM_AFF[k]; b.classList.toggle('on', SIM_AFF[k]); memoriser(); dessinerPiste(); rendreInfoSimu(); dessinerSimulation(); };
+    v.appendChild(b);
+  }
+  const fond = document.createElement('label'); fond.className = 'ico-btn'; fond.title = 'Couleur du fond';
+  fond.innerHTML = `<input type="color" value="${SIM_AFF.fond}">`;
+  $('input', fond).oninput = (e) => { SIM_AFF.fond = e.target.value; memoriser(); dessinerSimulation(); };
+  v.appendChild(fond);
+  const reg = document.createElement('button'); reg.className = 'ico-btn bascule'; reg.title = 'Préférences du simulateur';
+  reg.innerHTML = icone('settings');
+  reg.onclick = () => { const o = $('#simuReglages').hidden; reg.classList.toggle('on', o); rendreReglagesSimu(o); };
+  v.appendChild(reg);
+}
+function majBoutonsSimu() {
+  const p = $('#simuControles [data-action=play]');
+  if (p) p.innerHTML = icone(SIM.lecture ? 'stop' : 'play');
+  const d = $('#simuControles [data-action=direction]');
+  if (d) d.classList.toggle('on', SIM.sens < 0);
+}
+construireBarresSimu();
+$('#sPos').oninput = (e) => allerA(+e.target.value);
+window.addEventListener('resize', () => { if (S.vue === 'points') { dessinerPiste(); dessinerSimulation(); } });
+document.addEventListener('keydown', (e) => {
+  if (S.vue !== 'points' || /input|textarea|select/i.test(e.target.tagName)) return;
+  const touches = { p: 'play', P: 'play', r: 'restart', R: 'restart', ArrowUp: 'faster', ArrowDown: 'slower', '+': 'forward_stitch',
+    '=': 'forward_stitch', '-': 'backward_stitch', PageUp: 'forward_command', PageDown: 'backward_command' };
+  if (e.key === 'ArrowLeft' || e.key === 'ArrowRight') { SIM.sens = e.key === 'ArrowLeft' ? -1 : 1; majBoutonsSimu(); e.preventDefault(); return; }
+  if (e.key === 'o' || e.key === 'O') { SIM_AFF.npp = !SIM_AFF.npp; memoriser(); construireBarresSimu(); dessinerSimulation(); return; }
+  if (touches[e.key]) { ACTIONS_SIMU[touches[e.key]][1](); e.preventDefault(); }
+});
 // molette : zoom autour du pointeur · glisser : déplacer · double-clic : tout voir
 $('#simuCanvas').addEventListener('wheel', (e) => {
   if (!SIM.pts) return; e.preventDefault();
   const r = e.currentTarget.getBoundingClientRect(), dpr = window.devicePixelRatio || 1;
   const mx = (e.clientX - r.left) * dpr, my = (e.clientY - r.top) * dpr, f = e.deltaY < 0 ? 1.2 : 1 / 1.2;
-  const k = Math.max(0.5, Math.min(60, SIM.vue.k * f)), q = k / SIM.vue.k;
+  const k = Math.max(0.5, Math.min(80, SIM.vue.k * f)), q = k / SIM.vue.k;
   SIM.vue = { k, x: mx - (mx - SIM.vue.x) * q, y: my - (my - SIM.vue.y) * q };
   dessinerSimulation();
 }, { passive: false });

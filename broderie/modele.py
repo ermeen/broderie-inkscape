@@ -373,3 +373,56 @@ def assembler_satin(svg, ids):
     for e in els[1:]:
         e.getparent().remove(e)
     return premier.get("id")
+
+
+def _tracé(el):
+    """Contour d'une forme SVG simple sous forme de tracé (pour calculer son encombrement)."""
+    n, f = local(el), lambda k: float(el.get(k) or 0)
+    if n == "path":
+        return el.get("d") or ""
+    if n == "rect":
+        x, y, w, h = f("x"), f("y"), f("width"), f("height")
+        return "M %g,%g h %g v %g h %g Z" % (x, y, w, h, -w)
+    if n in ("circle", "ellipse"):
+        cx, cy = f("cx"), f("cy")
+        rx = f("r") or f("rx")
+        ry = f("r") or f("ry")
+        return "M %g,%g h %g v %g h %g Z" % (cx - rx, cy - ry, 2 * rx, 2 * ry, -2 * rx)
+    if n in ("polygon", "polyline"):
+        return "M " + (el.get("points") or "0,0")
+    if n == "line":
+        return "M %g,%g L %g,%g" % (f("x1"), f("y1"), f("x2"), f("y2"))
+    return ""
+
+
+def page_et_centre(svg, ids=None):
+    """Taille de la page (mm) et centre des objets brodés : Ink/Stitch exporte les points centrés sur le motif,
+    ceci permet de replacer la page autour d'eux (« Afficher la page » du simulateur)."""
+    ix = _inkex()
+    racine = svg.getroot() if hasattr(svg, "getroot") else svg
+    vb = [float(x) for x in (racine.get("viewBox") or "0 0 0 0").replace(",", " ").split()]
+    def mm(v):
+        try:
+            return ix.units.convert_unit(v, "mm") if v else None
+        except Exception:
+            return None
+    w, h = mm(racine.get("width")), mm(racine.get("height"))
+    kx = (w / vb[2]) if w and len(vb) == 4 and vb[2] else 1.0
+    ky = (h / vb[3]) if h and len(vb) == 4 and vb[3] else kx
+    boite = None
+    for el in objets(svg, ids):
+        try:
+            t = ix.transforms.Transform()
+            for a in reversed(list(el.iterancestors())):
+                if a.get("transform"):
+                    t = t @ ix.transforms.Transform(a.get("transform"))
+            b = ix.paths.Path(_tracé(el)).transform(t @ ix.transforms.Transform(el.get("transform") or "")).bounding_box()
+            boite = b if boite is None else boite + b
+        except Exception:
+            continue
+    if boite is None:
+        return None
+    x0 = vb[0] if len(vb) == 4 else 0
+    y0 = vb[1] if len(vb) == 4 else 0
+    return {"largeur": w or (vb[2] if len(vb) == 4 else 0), "hauteur": h or (vb[3] if len(vb) == 4 else 0),
+            "cx": ((boite.left + boite.right) / 2 - x0) * kx, "cy": ((boite.top + boite.bottom) / 2 - y0) * ky}

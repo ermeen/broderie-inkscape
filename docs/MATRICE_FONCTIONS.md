@@ -18,10 +18,14 @@ Vérification faite le 24/10/2026 sur Ink/Stitch v3.3.0.
 | Paramètres (139 réglages : remplissage, satin, trait, clone, généraux) | Objets › tuiles « Type de point », curseurs essentiels, « Plus de réglages » par thèmes (tous les réglages, aucun masqué hors condition de méthode) | testé (types, densité, angle, longueur, sous-couches, coupe/arrêt) ; accessible (les autres) |
 | Motifs de méandre (75) | Objets › Méandre › grille d'images | testé (liste) |
 | Fenêtre Paramètres d'origine | Export › Toutes les commandes › Paramètres | accessible |
-| Aperçu du plan de broderie : points, sauts, pénétrations, symboles de commande | Aperçu (Objets et Aperçu) › Points + cases Sauts / Pénétrations / Symboles | testé |
+| Aperçu du plan de broderie : points, sauts, pénétrations (gros points de la couleur du fil), symboles de commande | Aperçu (Objets et Aperçu) › Points + cases Sauts / Pénétrations / Symboles | testé |
 | Rendu réaliste (image 300/600 ppp) | Aperçu › Réaliste (600 ppp), tissu et ombre | testé |
 | Rendu réaliste vectoriel | retiré (trop de mémoire sur 8 Go) | — |
-| Simulateur (lecture, vitesse, position, sauts, coupes, arrêts, changements de couleur, pénétrations) | onglet Points : lecture, curseur, vitesse, zoom, cases Sauts / Coupes et arrêts / Pénétrations, compteur de sauts et coupes | testé |
+| Simulateur : lecture, recommencer, plus lent / plus rapide, point précédent / suivant, commande précédente / suivante, sens de l'animation | onglet Points : mêmes boutons et icônes qu'Ink/Stitch, mêmes raccourcis (P, R, ↑↓, ←→, + −, Pg↑ Pg↓, O) | testé |
+| Simulateur : affichage pénétrations (!), sauts (grenouille), coupes (ciseaux), arrêts, changements de couleur (bobine), mire, page, couleur du fond | onglet Points : boutons à bascule avec les icônes d'Ink/Stitch, repères des commandes sur la barre de progression | testé (sauts, changements de couleur, mire, infos) |
+| Simulateur : informations (dimensions, points, changements de couleur, sauts, coupes, arrêts) et commande en cours | onglet Points › ⓘ, étiquette « Commande : … » | testé |
+| Simulateur : préférences (vitesse adaptée au nombre de points, épaisseur du fil, taille des pénétrations, rayon / épaisseur / couleur de la mire) | onglet Points › ⚙ | accessible |
+| Simulateur : fenêtre détachable | sans objet (le panneau est déjà une fenêtre à part) | — |
 | Lettrage (texte, police, échelle, alignement, espacements, interligne, coupes, tri des couleurs, symboles) | Objets › + Texte (140 polices avec aperçu) | testé (texte multiligne, police, échelle, espacements, coupes) |
 | Lettrage le long d'un chemin | Texte choisi › Texte courbé | testé |
 | Autres outils de lettrage (gestion des polices, JSON, kerning…) | Export › Toutes les commandes | accessible |

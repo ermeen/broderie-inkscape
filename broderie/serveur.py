@@ -223,6 +223,11 @@ class Session:
                 return {"svg": M.contour_svg(self.document, d["id"]) if self.document is not None else None}
             if nom == "points":
                 r, err = E.points(self.document, d.get("ids") or None)
+                if r:
+                    try:
+                        r["page"] = M.page_et_centre(self.document, d.get("ids") or None)
+                    except Exception:
+                        r["page"] = None
                 return r or {"erreur": _message(err) or "Aucun point."}
             if nom == "polices":
                 return {"polices": E.polices()}
@@ -376,6 +381,12 @@ def _gestionnaire(session):
                     return self._envoyer(500, err or "Export impossible", "text/plain; charset=utf-8")
                 return self._envoyer(200, data, "application/octet-stream",
                                      {"Content-Disposition": 'attachment; filename="%s.%s"' % (session.nom, fmt)})
+            if u.path.startswith("/icone/"):
+                f = E.icone(u.path.split("/")[2])
+                if not f:
+                    return self._envoyer(404, "introuvable", "text/plain")
+                with open(f, "rb") as fh:
+                    return self._envoyer(200, fh.read(), "image/png")
             if u.path.startswith("/motif/"):
                 f = E.apercu_motif(u.path.split("/")[2])
                 if not f:

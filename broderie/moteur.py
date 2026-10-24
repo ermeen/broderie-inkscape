@@ -244,3 +244,10 @@ def apercu_motif(dossier):
     r = _ressources()
     f = os.path.normpath(os.path.join(r or "", "tiles", dossier, "preview.png"))
     return f if r and f.startswith(os.path.join(r, "tiles")) and os.path.exists(f) else None
+
+
+def icone(nom):
+    """Icônes du simulateur d'Ink/Stitch (saut = grenouille, coupe = ciseaux, arrêt, bobine…)."""
+    r = _ressources()
+    f = os.path.normpath(os.path.join(r or "", "icons", nom))
+    return f if r and f.startswith(os.path.join(r, "icons")) and f.endswith(".png") and os.path.exists(f) else None
