@@ -151,3 +151,64 @@ def apercu(document, ids=None):
 def exporter(document, fmt, ids=None):
     code, out, err = executer(document, "output", ids, {"format": fmt})
     return (out if code == 0 and out else None), err
+
+
+def points(document, ids=None):
+    """Liste des points calculés par Ink/Stitch (export JSON) : pour le simulateur intégré au panneau.
+    Coordonnées en 0,1 mm centrées sur le dessin ; commandes STITCH, JUMP, TRIM, COLOR_CHANGE, STOP, END."""
+    import json
+    data, err = exporter(document, "json", ids)
+    if not data:
+        return None, err
+    d = json.loads(data)
+    return {"fils": [t.get("color") or "#000000" for t in d.get("threadlist", [])],
+            "points": [[round(x, 1), round(y, 1), c.split()[0]] for x, y, c in d.get("stitches", [])]}, err
+
+
+def polices():
+    """Polices de lettrage fournies avec Ink/Stitch (nom, description, échelle permise, aperçu)."""
+    import json
+    import lzma
+    r = _ressources()
+    out = []
+    if not r:
+        return out
+    base = os.path.join(r, "fonts", "src")
+    for d in sorted(os.listdir(base)) if os.path.isdir(base) else []:
+        f = os.path.join(base, d, "font.json.xz")
+        if not os.path.exists(f):
+            f = os.path.join(base, d, "font.json")
+            if not os.path.exists(f):
+                continue
+        try:
+            with (lzma.open(f, "rt", encoding="utf-8") if f.endswith(".xz") else open(f, encoding="utf-8")) as fh:
+                j = json.load(fh)
+        except (OSError, ValueError, lzma.LZMAError):
+            continue
+        out.append({"id": d, "nom": j.get("name") or d, "description": j.get("description") or "",
+                    "min": j.get("min_scale", 1), "max": j.get("max_scale", 1), "taille": j.get("size"),
+                    "apercu": os.path.exists(os.path.join(base, d, "preview.png"))})
+    return out
+
+
+def apercu_police(ident):
+    r = _ressources()
+    f = os.path.normpath(os.path.join(r or "", "fonts", "src", ident, "preview.png"))
+    return f if r and f.startswith(os.path.join(r, "fonts", "src")) and os.path.exists(f) else None
+
+
+def lettrage(document, params):
+    """Texte brodé sans fenêtre : commande « Lettrage par lots » d'Ink/Stitch, sortie SVG, qui renvoie
+    le dessin complété du groupe de lettrage (même format que l'outil Lettrage)."""
+    import io
+    import zipfile
+    p = dict(params)
+    p["file-formats"] = "svg"
+    code, out, err = executer(document, "batch_lettering", None, p)
+    if not out or not out.startswith(b"PK"):
+        return None, err
+    with zipfile.ZipFile(io.BytesIO(out)) as z:
+        noms = [n for n in z.namelist() if n.endswith(".svg")]
+        if not noms:
+            return None, err
+        return etree.ElementTree(etree.fromstring(z.read(noms[0]), etree.XMLParser(huge_tree=True))), err

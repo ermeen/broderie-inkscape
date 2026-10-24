@@ -158,12 +158,44 @@ class Session:
                 return {"ok": True}
             if nom == "commande":
                 return self._commande(d)
+            if nom == "points":
+                r, err = E.points(self.document, d.get("ids") or None)
+                return r or {"erreur": _message(err) or "Aucun point."}
+            if nom == "polices":
+                return {"polices": E.polices()}
+            if nom == "lettrage":
+                return self._lettrage(d)
             if nom == "choisir":
                 return {"chemin": choisir(d.get("mode") or "file")}
             if nom == "quitter":
                 threading.Timer(0.3, os._exit, (0,)).start()
                 return {"ok": True}
             raise ValueError("action inconnue : %s" % nom)
+
+    def _lettrage(self, d):
+        """Ajoute (ou remplace) un texte brodé, sans fenêtre d'Ink/Stitch."""
+        doc = _lire(etree.tostring(self.document.getroot()))
+        ancien = M.par_id(doc, d["remplacer"]) if d.get("remplacer") else None
+        transform = ancien.get("transform") if ancien is not None else None
+        if ancien is not None:
+            ancien.getparent().remove(ancien)
+        avant = {el.get("id") for el in doc.getroot().iter() if isinstance(el.tag, str) and el.get("id")}
+        res, err = E.lettrage(doc, d.get("params") or {})
+        if res is None:
+            raise ValueError(_message(err) or "Lettrage impossible.")
+        groupes = [g for g in res.getroot().iter("{http://www.w3.org/2000/svg}g")
+                   if g.get("{%s}lettering" % M.INKSTITCH_NS) is not None and g.get("id") not in avant]
+        for k, g in enumerate(groupes):                       # identifiant pour le retrouver ensuite
+            if not g.get("id"):
+                g.set("id", "lettrage_%d_%d" % (int(time.time()), k))
+        if groupes and transform:
+            groupes[-1].set("transform", transform)          # le texte modifié reste à sa place
+        self.document = res
+        self.ids = [groupes[-1].get("id")] if groupes and groupes[-1].get("id") else []
+        self.version += 1
+        self.attente.append(("commande", "batch_lettering"))
+        self.log("Texte brodé ajouté")
+        return {"id": self.ids[0] if self.ids else None}
 
     def _commande(self, d):
         """Commande Ink/Stitch quelconque (catalogue complet), lancée en arrière-plan : certaines ouvrent
@@ -280,6 +312,12 @@ def _gestionnaire(session):
                     return self._envoyer(500, err or "Export impossible", "text/plain; charset=utf-8")
                 return self._envoyer(200, data, "application/octet-stream",
                                      {"Content-Disposition": 'attachment; filename="%s.%s"' % (session.nom, fmt)})
+            if u.path.startswith("/police/"):
+                f = E.apercu_police(u.path.split("/")[2])
+                if not f:
+                    return self._envoyer(404, "introuvable", "text/plain")
+                with open(f, "rb") as fh:
+                    return self._envoyer(200, fh.read(), "image/png")
             nom = "index.html" if u.path in ("/", "") else u.path.lstrip("/")
             f = os.path.normpath(os.path.join(UI, nom))
             if not f.startswith(UI) or not os.path.isfile(f):

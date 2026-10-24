@@ -77,26 +77,48 @@ def navigateur_par_defaut():
     return "com.apple.Safari"
 
 
-SAFARI = """
-tell application "Safari"
-    repeat with w in windows
-        repeat with t in tabs of w
-            if (URL of t as text) starts with "%s" then
-                set current tab of w to t
-                set index of w to 1
-                activate
-                return "trouve"
-            end if
-        end repeat
-    end repeat
-end tell
-return "absent"
+LARGEUR = 440      # largeur du panneau, collé au bord droit de l'écran
+
+# Script JXA (JavaScript pour l'automatisation de macOS) : retrouve l'onglet du panneau dans Safari,
+# le met dans sa propre fenêtre étroite contre le bord droit de l'écran et l'affiche au premier plan.
+SAFARI = r"""
+ObjC.import('AppKit');
+function run(argv) {
+  const url = argv[0], larg = parseInt(argv[1]);
+  const ecran = $.NSScreen.mainScreen, f = ecran.frame, v = ecran.visibleFrame;
+  const haut = f.size.height - (v.origin.y + v.size.height);
+  const cadre = { x: v.origin.x + v.size.width - larg, y: haut, width: larg, height: v.size.height };
+  const safari = Application('Safari');
+  let fen = null;
+  for (const w of safari.windows()) {
+    let tabs; try { tabs = w.tabs(); } catch (e) { continue; }
+    for (const t of tabs) {
+      let u = ''; try { u = t.url() || ''; } catch (e) { }
+      if (u.indexOf(url) === 0) {
+        if (tabs.length === 1) { fen = w; } else { t.close(); }
+        break;
+      }
+    }
+    if (fen) break;
+  }
+  if (!fen) {
+    safari.Document().make();
+    fen = safari.windows[0];
+    fen.currentTab.url = url + '/';
+  }
+  fen.bounds = cadre;
+  delay(0.6);                       // une fenêtre neuve se redimensionne en chargeant : on recommence
+  fen.bounds = cadre;
+  fen.index = 1;
+  safari.activate();
+  return 'ok';
+}
 """
 
 
 def ouvrir_navigateur(deja_ouvert=False):
-    """Montre le panneau au premier plan : dans Safari, l'onglet existant est retrouvé et affiché
-    (sinon un onglet est ouvert) ; avec un autre navigateur, le panneau est ouvert par `open`.
+    """Montre le panneau au premier plan : dans Safari, il a sa propre fenêtre étroite contre le bord
+    droit de l'écran (comme un panneau ancré) ; avec un autre navigateur, il est ouvert par `open`.
     `open` de macOS plutôt que le module webbrowser (AppleScript, que macOS peut bloquer sans rien dire)."""
     if sys.platform != "darwin":
         webbrowser.open(URL)
@@ -104,10 +126,10 @@ def ouvrir_navigateur(deja_ouvert=False):
     nav = navigateur_par_defaut()
     if nav.lower() == "com.apple.safari":
         try:
-            p = subprocess.run(["/usr/bin/osascript", "-e", SAFARI % URL.rstrip("/")], capture_output=True,
-                               text=True, timeout=15, stdin=subprocess.DEVNULL)
+            p = subprocess.run(["/usr/bin/osascript", "-l", "JavaScript", "-e", SAFARI, URL.rstrip("/"), str(LARGEUR)],
+                               capture_output=True, text=True, timeout=20, stdin=subprocess.DEVNULL)
             note("Safari : %s %s" % (p.stdout.strip(), p.stderr.strip()[:200]))
-            if p.stdout.strip() == "trouve":
+            if p.stdout.strip() == "ok":
                 return
         except (OSError, subprocess.SubprocessError) as e:
             note("Safari : %s" % e)

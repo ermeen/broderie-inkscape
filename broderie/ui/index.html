@@ -1,63 +1,84 @@
 <!doctype html>
-<html lang="fr">
+<html lang="fr" data-theme="dark">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Panneau de broderie</title>
+<title>Ink/Stitch – Broderie</title>
 <link rel="stylesheet" href="style.css">
 </head>
 <body>
 <header>
-  <div class="titre">Broderie <span id="moteur" class="muted"></span></div>
-  <nav class="outils">
-    <button id="bApercu" title="Calculer les points avec Ink/Stitch et les afficher">Aperçu des points</button>
-    <button id="bSimu" title="Ouvrir le simulateur d'Ink/Stitch (animation de la broderie)">Simulateur</button>
-    <button id="bLettrage" title="Ouvrir l'outil Lettrage d'Ink/Stitch">Lettrage</button>
-    <button id="bParams" title="Fenêtre Paramètres d'origine d'Ink/Stitch (avec son aperçu)">Paramètres Ink/Stitch</button>
-    <span class="sep"></span>
-    <select id="fFormat" title="Format de broderie"></select>
-    <button id="bExport" title="Enregistrer le fichier de broderie dans Téléchargements">Exporter</button>
-    <span class="sep"></span>
-    <button id="bCommandes" title="Toutes les commandes d'Ink/Stitch">Toutes les commandes…</button>
+  <div class="titre"><span class="logo">✎</span> Ink/Stitch – Broderie</div>
+  <nav class="onglets" id="vues">
+    <button data-vue="objets" class="on"><svg viewBox="0 0 24 24"><path d="M5 5l14 14M19 5L5 19M12 3v18M3 12h18"/></svg>Objets</button>
+    <button data-vue="points"><svg viewBox="0 0 24 24"><path d="M4 7h16M4 12h16M4 17h16"/><circle cx="9" cy="7" r="2"/><circle cx="15" cy="12" r="2"/><circle cx="8" cy="17" r="2"/></svg>Points</button>
+    <button data-vue="apercu"><svg viewBox="0 0 24 24"><path d="M2 12s4-7 10-7 10 7 10 7-4 7-10 7S2 12 2 12z"/><circle cx="12" cy="12" r="3"/></svg>Aperçu</button>
+    <button data-vue="export"><svg viewBox="0 0 24 24"><path d="M12 3v12M7 10l5 5 5-5M5 20h14"/></svg>Export</button>
   </nav>
 </header>
 <main>
-  <aside id="gauche">
-    <h2>Objets <span class="muted small">(ordre de couture)</span></h2>
-    <ul id="liste"></ul>
-    <h2>Couleurs</h2>
-    <div id="couleurs"></div>
-  </aside>
-  <section id="centre">
-    <div id="apercu" class="vide">L'aperçu des points s'affiche ici.</div>
-    <div id="tache" hidden></div>
-    <div id="journal" class="muted small"></div>
-  </section>
-  <aside id="droite">
-    <div class="entete-props">
-      <h2>Propriétés</h2>
-      <label class="bascule"><input type="checkbox" id="avance"> Mode avancé</label>
+  <!-- Objets : liste + réglages de l'objet choisi -->
+  <section id="v-objets" class="vue">
+    <div class="carte">
+      <div class="carte-titre"><span>Calques et objets</span><button id="bTexte" class="petit" title="Ajouter un texte brodé">＋ Texte</button></div>
+      <ul id="liste"></ul>
     </div>
-    <div id="props"><p class="muted">Sélectionnez un objet.</p></div>
-  </aside>
+    <div id="props" class="carte"></div>
+    <div id="texte" class="carte" hidden></div>
+  </section>
+  <!-- Points : simulation de la broderie -->
+  <section id="v-points" class="vue" hidden>
+    <div id="simu">
+      <canvas id="simuCanvas"></canvas>
+      <div class="simu-barre">
+        <button id="sJouer" class="rond" title="Lecture / pause">▶</button>
+        <input id="sPos" type="range" min="0" max="0" value="0">
+      </div>
+      <div class="simu-barre"><span id="sInfo" class="muted small"></span>
+        <label class="small muted vitesse">Vitesse <input id="sVitesse" type="range" min="1" max="10" value="5"></label></div>
+    </div>
+  </section>
+  <!-- Aperçu : rendu des points, légende et statistiques -->
+  <section id="v-apercu" class="vue" hidden>
+    <div id="apercu" class="vide">L'aperçu des points s'affiche ici.</div>
+    <div class="carte" id="stats"></div>
+  </section>
+  <!-- Export -->
+  <section id="v-export" class="vue" hidden>
+    <div class="carte">
+      <div class="carte-titre"><span>Exporter</span></div>
+      <label class="etiquette">Fichier de broderie</label>
+      <select id="fFormat"></select>
+      <label class="etiquette">Taille du cadre</label>
+      <select id="fCadre"></select>
+      <div id="cadreInfo" class="small"></div>
+      <button id="bExport" class="principal large">Exporter</button>
+      <p class="muted small">Le fichier est calculé par Ink/Stitch et enregistré dans Téléchargements.</p>
+    </div>
+    <div class="carte" id="statsExport"></div>
+    <div class="carte">
+      <div class="carte-titre"><span>Outils avancés</span></div>
+      <button id="bPlus">Toutes les commandes Ink/Stitch…</button>
+    </div>
+  </section>
+  <div id="tache" hidden></div>
+  <div id="journal" class="muted small"></div>
 </main>
 <footer>
-  <span id="etat" class="muted small"></span>
   <span id="attenteInfo" class="small"></span>
-  <button id="bAbandonner" title="Oublier les modifications pas encore appliquées dans Inkscape">Abandonner les modifications</button>
+  <button id="bAbandonner" class="petit" hidden>Annuler</button>
 </footer>
 <dialog id="dlgCmd">
   <form method="dialog" class="dlg">
-    <h2>Toutes les commandes Ink/Stitch</h2>
+    <div class="dlg-titre"><h2>Toutes les commandes Ink/Stitch</h2><button value="fermer">Fermer</button></div>
     <input id="cmdRecherche" type="search" placeholder="Rechercher une commande…">
     <div class="dlg-corps">
       <ul id="cmdListe"></ul>
       <div id="cmdForm"><p class="muted">Choisissez une commande.</p></div>
     </div>
-    <div class="dlg-pied"><button value="fermer">Fermer</button></div>
   </form>
 </dialog>
-<div id="attente" hidden><div>Ink/Stitch travaille…<br><span class="muted small" id="attenteMsg"></span></div></div>
+<div id="attente" hidden><div><span id="attenteMsg">Ink/Stitch travaille…</span></div></div>
 <script src="app.js"></script>
 </body>
 </html>
