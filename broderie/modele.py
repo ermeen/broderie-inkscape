@@ -161,7 +161,7 @@ def decrire(el):
     t = types(el)
     return {
         "id": el.get("id"),
-        "nom": el.get("{%s}label" % INKSCAPE_NS) or el.get("id"),
+        "nom": (el.get("{%s}label" % INKSCAPE_NS) or "").strip() not in ("", "None") and el.get("{%s}label" % INKSCAPE_NS).strip() or el.get("id"),
         "balise": local(el),
         "types": t,
         "couleur": couleur(el),
@@ -277,3 +277,30 @@ def deplacer(el, sens):
             cible.addnext(el)
         return True
     return False
+
+
+def contour_svg(svg, i):
+    """Contour de l'objet i (avec les transformations de ses groupes parents), à superposer à l'aperçu
+    des points pour montrer ce qui est sélectionné."""
+    import copy
+    el = par_id(svg, i)
+    if el is None:
+        return None
+    c = copy.deepcopy(el)
+    for x in c.iter():
+        if isinstance(x.tag, str):
+            for k in [k for k in x.attrib if k.startswith("{%s}" % INKSTITCH_NS) or k in ("style", "fill", "stroke", "id")]:
+                del x.attrib[k]
+    racine = svg.getroot() if hasattr(svg, "getroot") else svg
+    for parent in el.iterancestors():
+        if parent is racine:
+            break
+        if parent.get("transform"):
+            g = etree.Element("{%s}g" % SVG_NS)
+            g.set("transform", parent.get("transform"))
+            g.append(c)
+            c = g
+    g = etree.Element("{%s}g" % SVG_NS, nsmap={None: SVG_NS})
+    g.set("class", "selection-panneau")
+    g.append(c)
+    return etree.tostring(g, encoding="unicode")

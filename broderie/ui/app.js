@@ -215,12 +215,21 @@ function sectionType(o, typ) {
   } else actif = valeur(o, parNom(typ, T.param)) ?? T.choix[0][0];
   const choix = typ === 'stroke' && o.balise === 'path' ? [...T.choix, ['satin', 'Satin']] : T.choix;
   out.push(bloc('Type de point', tuiles(choix, actif, (k) => {
-    if (k === 'satin') return envoyer(o, { satin_column: true });
+    if (k === 'satin') {
+      if (o.balise === 'path' && o.sous_chemins >= 2) return envoyer(o, { satin_column: true });
+      S.apresSatin = true;
+      return commande('stroke_to_satin', {}, [o.id]);   // la largeur du trait devient la largeur du satin
+    }
     if (k === 'triple') return envoyer(o, { stroke_method: 'running_stitch', bean_stitch_repeats: '1' });
     const v = { [T.param]: k };
     if (typ === 'stroke' && k === 'running_stitch') v.bean_stitch_repeats = null;
     envoyer(o, v);
   })));
+  if (typ === 'stroke') {
+    const a = document.createElement('div'); a.className = 'aide';
+    a.innerHTML = '<b>Colonne satin :</b> donnez au trait, dans Inkscape, l\'épaisseur voulue (la largeur du satin), puis choisissez la tuile <b>Satin</b> : le trait est transformé en colonne satin.';
+    out.push(bloc(null, a));
+  }
   if (typ === 'satin_column') {
     const b = document.createElement('button'); b.textContent = 'Revenir à un trait simple';
     b.onclick = () => envoyer(o, { satin_column: null });
@@ -291,6 +300,44 @@ function outils(o) {
   return bloc('Outils', d);
 }
 
+// copier / coller les réglages d'une forme à l'autre
+const NON_COPIES = new Set(['lettering', 'satin_column']);
+function boutonsCopie(o) {
+  const d = document.createElement('div'); d.className = 'boutons-objet';
+  const b = document.createElement('button'); b.textContent = '⧉ Copier les réglages';
+  b.onclick = () => {
+    S.copie = { de: o.nom, type: typePrincipal(o), valeurs: Object.fromEntries(Object.entries(o.valeurs).filter(([k]) => !NON_COPIES.has(k))) };
+    rendreProps(); message(`Réglages de « ${o.nom} » copiés : choisissez une autre forme puis « Coller ».`);
+  };
+  d.appendChild(b);
+  if (S.copie && S.copie.type === typePrincipal(o)) {      // coller seulement entre formes du même type
+    const memes = S.etat.objets.filter((x) => typePrincipal(x) === S.copie.type);
+    if (S.copie.de !== o.nom) {
+      const c = document.createElement('button'); c.className = 'principal'; c.textContent = `Coller (de « ${S.copie.de} »)`;
+      c.onclick = () => coller([o]);
+      d.appendChild(c);
+    }
+    if (memes.length > 1) {
+      const t = document.createElement('button');
+      t.textContent = `Coller sur tous les ${NOM_TYPE[S.copie.type].toLowerCase()}s (${memes.length})`;
+      t.onclick = () => coller(memes);
+      d.appendChild(t);
+    }
+  }
+  return d;
+}
+async function coller(cibles) {
+  try {
+    for (const o of cibles) {
+      const v = { ...S.copie.valeurs };
+      for (const k of Object.keys(o.valeurs)) if (!(k in v) && !NON_COPIES.has(k)) v[k] = null;   // même réglages, pas un mélange
+      S.etat = await api('params', { id: o.id, valeurs: v });
+    }
+    rendreTout(); apercuBientot();
+    message(`Réglages collés sur ${cibles.length} forme(s).`);
+  } catch (e) { message(e.message, true); }
+}
+
 function rendreProps() {
   const div = $('#props'); div.innerHTML = '';
   const o = S.etat.objets.find((x) => x.id === S.sel);
@@ -300,6 +347,7 @@ function rendreProps() {
   ent.innerHTML = `<div class="vignette" style="color:${esc(o.couleur)}">${picto(ICO_TYPE[t])}</div>
     <div><h3>${esc(o.nom)}</h3><span class="muted small">${esc(NOM_TYPE[t] || t)} · ${esc(o.balise === 'path' ? 'chemin' : o.balise)}</span></div>`;
   div.appendChild(ent);
+  div.appendChild(boutonsCopie(o));
   const hexa = (c) => (/^#[0-9a-f]{3}$/i.test(c) ? '#' + [...c.slice(1)].map((x) => x + x).join('') : (c || '#000000').slice(0, 7));
   const coul = document.createElement('div'); coul.className = 'ligne';
   coul.innerHTML = `<label>Couleur</label><span class="couleur"><input type="color" value="${hexa(o.couleur)}"><span class="muted small">${esc(o.couleur)}</span></span>`;
@@ -331,7 +379,7 @@ function rendreProps() {
 function rendreTout() {
   if (S.sel && !S.etat.objets.some((o) => o.id === S.sel)) S.sel = null;
   if (!S.sel && S.etat.objets.length) S.sel = (S.etat.objets.find((o) => S.etat.selection.includes(o.id)) || S.etat.objets[0]).id;
-  rendreListe(); rendreProps(); rendreAttente();
+  rendreListe(); rendreProps(); rendreAttente(); afficherSelection();
   $('#props').hidden = S.texte; $('#texte').hidden = !S.texte;
   if (S.texte) rendreTexte();
   if (S.vue === 'export') rendreExport();
@@ -350,7 +398,7 @@ function changerVue(v) {
   $$('#vues button').forEach((b) => b.classList.toggle('on', b.dataset.vue === v));
   for (const k of ['objets', 'points', 'apercu', 'export']) $('#v-' + k).hidden = k !== v;
   // un seul aperçu, déplacé dans l'onglet affiché : en haut des Objets pour voir l'effet des réglages
-  if (v === 'objets') { $('#emplApercuObjets').appendChild($('#apercu')); apercu(); }
+  if (v === 'objets') { $('#emplApercuObjets').insertBefore($('#apercu'), $('#poignee')); apercu(); }
   if (v === 'apercu') $('#emplApercu').appendChild($('#apercu'));
   if (v === 'points') chargerSimulation(); else arreterSimulation();
   if (v === 'apercu') { apercu(); rendreStats('#stats'); }
@@ -378,6 +426,7 @@ async function apercu() {
     const v = (svg.getAttribute('viewBox') || '0 0 100 100').split(/[ ,]+/).map(Number);
     vb0 = v; if (!garder) vb = v.slice();
     appliquerVue();
+    afficherSelection(true);
     message('Molette : zoom · glisser : déplacer · double-clic : tout voir');
   } catch (e) { message(e.message, true); } finally {
     apercuEnCours = false; badge.remove();
@@ -404,6 +453,41 @@ $('#apercu').addEventListener('pointerdown', (e) => {
   const up = () => { document.removeEventListener('pointermove', mv); document.removeEventListener('pointerup', up); };
   document.addEventListener('pointermove', mv); document.addEventListener('pointerup', up);
 });
+// poignée : hauteur de l'aperçu dans l'onglet Objets (retenue d'une fois sur l'autre)
+try { const h = localStorage.getItem('broderie.hauteur'); if (h) document.documentElement.style.setProperty('--hauteur-apercu', h + 'px'); } catch (e) { /* sans stockage */ }
+$('#poignee').addEventListener('pointerdown', (e) => {
+  e.preventDefault();
+  const a = $('#apercu'), h0 = a.getBoundingClientRect().height, y0 = e.clientY;
+  let h = h0;
+  const mv = (ev) => {
+    h = Math.max(100, Math.min(window.innerHeight * 0.8, h0 + ev.clientY - y0));
+    document.documentElement.style.setProperty('--hauteur-apercu', h + 'px');
+  };
+  const up = () => {
+    document.removeEventListener('pointermove', mv); document.removeEventListener('pointerup', up);
+    try { localStorage.setItem('broderie.hauteur', Math.round(h)); } catch (x) { /* rien */ }
+  };
+  document.addEventListener('pointermove', mv); document.addEventListener('pointerup', up);
+});
+
+// contour de l'objet choisi, en pointillés bleus par-dessus l'aperçu
+let selAffichee = null;
+async function afficherSelection(force = false) {
+  const svg = $('#apercu svg');
+  if (!svg) return;
+  const cle = S.sel + '|' + S.etat.version + '|' + S.etat.attente;
+  if (!force && selAffichee === cle && $('.selection-panneau', svg)) return;
+  selAffichee = cle;
+  $$('.selection-panneau', svg).forEach((g) => g.remove());
+  if (!S.sel) return;
+  try {
+    const r = await api('contour', { id: S.sel });
+    if (!r.svg || !$('#apercu svg')) return;
+    const doc = new DOMParser().parseFromString(r.svg, 'image/svg+xml');
+    $('#apercu svg').appendChild(document.importNode(doc.documentElement, true));
+  } catch (e) { /* contour indisponible : l'aperçu reste utilisable */ }
+}
+
 let minuterie = null;
 function apercuBientot() {
   clearTimeout(minuterie);
@@ -617,7 +701,13 @@ async function commande(ext, params = {}, ids = null) {
 function rendreTache() { const b = $('#tache'), t = S.tache; b.hidden = !t || t.fini; if (t && !t.fini) b.textContent = `Ink/Stitch : ${t.nom}…`; }
 async function tacheFinie(t) {
   S.tache = null; rendreTache();
-  S.etat = await api('etat'); rendreTout();
+  S.etat = await api('etat');
+  if (S.apresSatin && t.modifie) {                     // montre la nouvelle colonne satin
+    const satins = S.etat.objets.filter((o) => o.types.includes('satin_column'));
+    if (satins.length) S.sel = satins[satins.length - 1].id;
+  }
+  S.apresSatin = false;
+  rendreTout();
   if (t.modifie) { apercuBientot(); message(`« ${t.nom} » appliqué.` + (t.message ? '\n' + t.message : '')); }
   else message(t.erreur || t.message || `« ${t.nom} » : aucune modification.`, !!t.erreur);
 }

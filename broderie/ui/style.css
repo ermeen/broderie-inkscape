@@ -88,7 +88,16 @@ details.theme summary .nb { color: var(--muted); font-weight: 400; margin-left: 
 /* aperçu */
 .empl-apercu { display: flex; flex-direction: column; }
 #emplApercuObjets { flex: none; }
-#emplApercuObjets #apercu { height: 260px; min-height: 140px; max-height: 70vh; resize: vertical; flex: none; }
+#emplApercuObjets #apercu { height: var(--hauteur-apercu, 260px); flex: none; min-height: 100px; }
+#poignee { height: 12px; cursor: ns-resize; display: flex; align-items: center; justify-content: center; touch-action: none; }
+#poignee::before { content: ""; width: 44px; height: 4px; border-radius: 2px; background: var(--bord); }
+#poignee:hover::before { background: var(--accent); }
+.selection-panneau, .selection-panneau * { fill: none !important; stroke: #2f80ed !important; stroke-width: 2px !important;
+  vector-effect: non-scaling-stroke; stroke-dasharray: 6 4; }
+.boutons-objet { display: flex; flex-wrap: wrap; gap: 5px; margin: 4px 0 6px; }
+.boutons-objet button { font-size: 11px; padding: 3px 8px; }
+.aide { background: var(--tuile); border-radius: 8px; padding: 8px 10px; font-size: 12px; line-height: 1.45; }
+.aide b { color: var(--texte); }
 .empl-apercu.grand { flex: 1; }
 .empl-apercu.grand #apercu { flex: 1; min-height: 280px; }
 #apercu { flex: 1; min-height: 140px; background: #fff; border: 1px solid var(--bord); border-radius: 10px; position: relative; overflow: hidden; cursor: grab; }

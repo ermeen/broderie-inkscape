@@ -192,6 +192,8 @@ class Session:
                 return {"ok": True}
             if nom == "commande":
                 return self._commande(d)
+            if nom == "contour":
+                return {"svg": M.contour_svg(self.document, d["id"]) if self.document is not None else None}
             if nom == "points":
                 r, err = E.points(self.document, d.get("ids") or None)
                 return r or {"erreur": _message(err) or "Aucun point."}
