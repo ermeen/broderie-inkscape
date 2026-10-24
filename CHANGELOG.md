@@ -5,6 +5,19 @@ Le numéro de version suit le schéma `MAJEUR.MINEUR.CORRECTIF` :
 - **MINEUR** : nouvelle fonction ;
 - **CORRECTIF** : correction sans nouvelle fonction.
 
+## 1.1.0 — 24 octobre 2026
+
+**Liste des calques et objets**
+- Glisser-déposer pour changer l'ordre, comme dans Inkscape (l'ordre est l'ordre de couture) : un objet avant ou après un autre, dans un autre calque, ou un calque avant un autre.
+- Œil sur chaque objet et chaque calque. Masqué, il n'est pas brodé (Ink/Stitch ignore ce qui est masqué) mais il reste dans la liste pour être réaffiché.
+- Pas de cadenas ni d'opacité : ils ne servent qu'au dessin dans Inkscape et n'ont aucun effet sur la broderie.
+
+**Aperçu**
+- Clic gauche sur un objet pour le choisir (⌘-clic : plusieurs).
+- Glisser, ou bouton du milieu, pour déplacer la vue.
+
+**Sélection multiple** : les outils (agencement automatique des colonnes satin…) s'appliquent à tous les objets choisis.
+
 ## 1.0.0 — 24 octobre 2026
 
 Première version publiée, avec son logo et une notice PDF illustrée (9 pages, astuces de réglages).

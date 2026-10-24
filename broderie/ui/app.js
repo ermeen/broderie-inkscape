@@ -101,6 +101,38 @@ function choisir(ids, ajouter = false) {
   S.texte = false;
   rendreTout();
 }
+const OEIL = (vis) => vis ? '<svg viewBox="0 0 24 24"><path d="M2 12s4-7 10-7 10 7 10 7-4 7-10 7S2 12 2 12z"/><circle cx="12" cy="12" r="3"/></svg>'
+  : '<svg viewBox="0 0 24 24"><path d="M3 3l18 18M10.6 5.1A10 10 0 0 1 12 5c6 0 10 7 10 7a17 17 0 0 1-3.2 3.9M6.6 6.6C3.9 8.4 2 12 2 12s4 7 10 7a9.6 9.6 0 0 0 4.4-1"/></svg>';
+async function basculerVisible(id, visible) {
+  try { S.etat = await api('visible', { id, visible }); rendreTout(); apercuBientot(); } catch (e) { message(e.message, true); }
+}
+
+// glisser-déposer : réordonner objets et calques comme dans Inkscape (l'ordre est l'ordre de couture)
+let glisse = null;
+function glisser(li, id, calque) {
+  li.draggable = true;
+  li.addEventListener('dragstart', (e) => { glisse = { id, calque }; e.dataTransfer.effectAllowed = 'move'; e.dataTransfer.setData('text/plain', id); li.classList.add('glisse'); });
+  li.addEventListener('dragend', () => { li.classList.remove('glisse'); $$('#liste .avant, #liste .apres, #liste .dans').forEach((x) => x.classList.remove('avant', 'apres', 'dans')); });
+  li.addEventListener('dragover', (e) => {
+    if (!glisse || glisse.id === id) return;
+    if (glisse.calque && !calque) return;                       // un calque se dépose sur un autre calque
+    e.preventDefault();
+    const r = li.getBoundingClientRect(), bas = e.clientY > r.top + r.height / 2;
+    li.classList.toggle('dans', calque && !glisse.calque);
+    li.classList.toggle('apres', !(calque && !glisse.calque) && bas);
+    li.classList.toggle('avant', !(calque && !glisse.calque) && !bas);
+  });
+  li.addEventListener('dragleave', () => li.classList.remove('avant', 'apres', 'dans'));
+  li.addEventListener('drop', async (e) => {
+    e.preventDefault();
+    const g = glisse; glisse = null;
+    if (!g || g.id === id) return;
+    const r = li.getBoundingClientRect(), apres = e.clientY > r.top + r.height / 2 && !(calque && !g.calque);
+    try { S.etat = await api('placer', { id: g.id, cible: id, apres }); rendreTout(); apercuBientot(); }
+    catch (x) { message(x.message, true); }
+  });
+}
+
 function rendreListe() {
   const ul = $('#liste'); ul.innerHTML = '';
   if (!S.choix.size && S.sel) S.choix.add(S.sel);
@@ -116,19 +148,31 @@ function rendreListe() {
     if (plusieursCalques || calques.size === 1 && c.objets.length > 1) {
       const h = document.createElement('li'); h.className = 'calque';
       const tous = c.objets.every((o) => S.choix.has(o.id));
-      h.innerHTML = `<span class="nom">▾ ${esc(c.nom)}</span><span class="type">${c.objets.length} objet(s)</span>`;
+      const cm = c.objets[0].calque_masque;
+      h.innerHTML = `<span class="nom">▾ ${esc(c.nom)}</span><span class="type">${c.objets.length} objet(s)</span>`
+        + (c.objets[0].calque ? `<button class="oeil" title="${cm ? 'Calque masqué : non brodé. Cliquer pour l’afficher' : 'Masquer ce calque (il ne sera pas brodé)'}">${OEIL(!cm)}</button>` : '');
+      if (cm) h.classList.add('masque');
+      const bo = h.querySelector('.oeil');
+      if (bo) bo.onclick = (e) => { e.stopPropagation(); basculerVisible(c.objets[0].calque, cm); };
       h.title = 'Choisir tout le calque (⌘-clic : ajouter à la sélection)';
       if (tous && S.choix.size > 1) h.classList.add('on');
       h.onclick = (e) => choisir(c.objets.map((o) => o.id), e.metaKey || e.ctrlKey);
+      if (c.objets[0].calque) glisser(h, c.objets[0].calque, true);
       ul.appendChild(h);
     }
     for (const o of c.objets) {
       const t = typePrincipal(o);
       const li = document.createElement('li');
-      li.className = 'objet' + (S.choix.has(o.id) ? ' on' : '');
+      li.className = 'objet' + (S.choix.has(o.id) ? ' on' : '') + (o.masque ? ' masque' : '');
       li.innerHTML = `<span class="pastille" style="background:${esc(o.couleur)}"></span><span class="nom">${esc(o.nom)}</span>
         <span class="type">${esc(NOM_TYPE[t] || t)}</span>
-        <button class="fl" data-sens="-1" title="Coudre plus tôt">▲</button><button class="fl" data-sens="1" title="Coudre plus tard">▼</button>`;
+        <button class="fl" data-sens="-1" title="Coudre plus tôt">▲</button><button class="fl" data-sens="1" title="Coudre plus tard">▼</button>
+        <button class="oeil" title="${o.masque ? 'Masqué : non brodé. Cliquer pour l’afficher' : 'Masquer (ne pas broder)'}">${OEIL(!o.masque)}</button>`;
+      $('.oeil', li).onclick = (e) => {
+        e.stopPropagation();
+        if (o.calque_masque) { message('Son calque est masqué : cliquez sur l’œil du calque pour l’afficher.'); return; }
+        basculerVisible(o.id, o.masque);
+      };
       li.onclick = async (e) => {
         const b = e.target.closest('[data-sens]');
         if (b) { e.stopPropagation(); S.etat = await api('ordre', { id: o.id, sens: +b.dataset.sens }); rendreTout(); apercuBientot(); return; }
@@ -140,13 +184,14 @@ function rendreListe() {
           choisir(ids.slice(Math.min(a, z), Math.max(a, z) + 1), true);
         } else choisir([o.id]);
       };
+      glisser(li, o.id, false);
       ul.appendChild(li);
       dernier = o;
     }
   }
   if (!S.etat.objets.length) ul.innerHTML = '<li class="muted small" style="cursor:default">Aucun objet. Dessinez une forme dans Inkscape, puis appuyez sur ⌘⌥B.</li>';
   const aide = $('#aideSelection');
-  if (aide) aide.textContent = S.choix.size > 1 ? `${S.choix.size} objets choisis` : '⌘-clic : plusieurs · ⇧-clic : une suite · clic sur un calque : tout le calque';
+  if (aide) aide.textContent = S.choix.size > 1 ? `${S.choix.size} objets choisis` : '⌘-clic : plusieurs · ⇧-clic : une suite · clic sur un calque : tout le calque · glisser : changer l’ordre';
 }
 
 function changerCouleur(o, valeur) {
@@ -345,7 +390,7 @@ function outils(o) {
   for (const e of exts) {
     const c = cmdPar(e);
     const b = document.createElement('button'); b.textContent = c.nom_fr; b.title = c.menu_fr;
-    b.onclick = () => commande(e, {}, [o.id]);
+    b.onclick = () => commande(e, {}, o.ids || [o.id]);
     d.appendChild(b);
   }
   return bloc('Outils', d);
@@ -494,6 +539,7 @@ function rendreMulti(objs) {
     const fin = ['trim_after', 'stop_after'].map((n) => el.params.find((p) => p.name === n)).filter(Boolean);
     div.appendChild(bloc('Après chaque objet', ...fin.map((p) => reglage(o, p, p.name === 'trim_after' ? 'Couper le fil' : 'Arrêter la machine'))));
   }
+  const ou = outils(o); if (ou) div.appendChild(ou);           // auto-satin… sur tous les objets choisis
   div.appendChild(plusDeReglages(o, [...typs, 'element'], montres));
 }
 
@@ -641,9 +687,10 @@ async function apercu() {
     const v = (svg.getAttribute('viewBox') || '0 0 100 100').split(/[ ,]+/).map(Number);
     vb0 = v; if (!garder) vb = v.slice();
     if (MODE !== 'points') habiller(svg, v); else { pointsAiguille(svg); superposerCommandes(svg); }
+    zonesCliquables(svg);
     appliquerVue();
     afficherSelection(true);
-    message('Molette : zoom · glisser : déplacer · double-clic : tout voir');
+    message('Clic : choisir un objet (⌘-clic : plusieurs) · glisser ou bouton du milieu : déplacer · molette : zoom · double-clic : tout voir');
   } catch (e) { message(e.message, true); } finally {
     apercuEnCours = false; badge.remove();
     if (n !== apercuDemande) apercu();
@@ -754,13 +801,45 @@ $('#apercu').addEventListener('wheel', (e) => {
   vb = [p.x - (p.x - vb[0]) * f, p.y - (p.y - vb[1]) * f, vb[2] * f, vb[3] * f]; appliquerVue();
 }, { passive: false });
 $('#apercu').addEventListener('dblclick', () => { if (vb0) { vb = vb0.slice(); appliquerVue(); } });
+$('#apercu').addEventListener('mousedown', (e) => { if (e.button === 1) e.preventDefault(); });   // pas de défilement auto
 $('#apercu').addEventListener('pointerdown', (e) => {
-  if (!vb) return;
+  if (!vb || e.target.closest('.barre-rendu')) return;
   const p0 = versDessin(e), v0 = vb.slice();
-  const mv = (ev) => { vb = [v0[0] - (ev.clientX - e.clientX) * p0.k, v0[1] - (ev.clientY - e.clientY) * p0.k, v0[2], v0[3]]; appliquerVue(); };
-  const up = () => { document.removeEventListener('pointermove', mv); document.removeEventListener('pointerup', up); };
+  let bouge = e.button === 1;                                 // bouton du milieu : toujours déplacer
+  const mv = (ev) => {
+    if (!bouge && Math.hypot(ev.clientX - e.clientX, ev.clientY - e.clientY) < 4) return;
+    bouge = true; $('#apercu').classList.add('deplace');
+    vb = [v0[0] - (ev.clientX - e.clientX) * p0.k, v0[1] - (ev.clientY - e.clientY) * p0.k, v0[2], v0[3]]; appliquerVue();
+  };
+  const up = (ev) => {
+    document.removeEventListener('pointermove', mv); document.removeEventListener('pointerup', up);
+    $('#apercu').classList.remove('deplace');
+    if (bouge || e.button !== 0) return;
+    const cible = document.elementsFromPoint(ev.clientX, ev.clientY).map((x) => x.closest && x.closest('[data-objet]')).find(Boolean);
+    if (cible) choisir([cible.dataset.objet], ev.metaKey || ev.ctrlKey);
+    else if (!(ev.metaKey || ev.ctrlKey)) { S.choix = new Set(); rendreTout(); }
+  };
   document.addEventListener('pointermove', mv); document.addEventListener('pointerup', up);
 });
+// zones cliquables : le contour de chaque objet, invisible, par-dessus l'aperçu (dernier dessiné = devant)
+async function zonesCliquables(svg) {
+  let r;
+  try { r = await api('contours'); } catch (e) { return; }
+  if (!svg.isConnected) return;
+  $$('.cibles-panneau', svg).forEach((x) => x.remove());
+  const NS = 'http://www.w3.org/2000/svg';
+  const g = document.createElementNS(NS, 'g'); g.setAttribute('class', 'cibles-panneau');
+  for (const o of r.objets) {
+    if (!o.svg) continue;
+    const doc = new DOMParser().parseFromString(o.svg, 'image/svg+xml');
+    const n = document.importNode(doc.documentElement, true);
+    n.removeAttribute('class'); n.dataset.objet = o.id;
+    const nom = (S.etat.objets.find((x) => x.id === o.id) || {}).nom || o.id;
+    const t = document.createElementNS(NS, 'title'); t.textContent = nom; n.appendChild(t);
+    g.appendChild(n);
+  }
+  svg.insertBefore(g, $('.selection-panneau', svg) || null);
+}
 // poignée : hauteur de l'aperçu dans l'onglet Objets (retenue d'une fois sur l'autre)
 try { const h = localStorage.getItem('broderie.hauteur'); if (h) document.documentElement.style.setProperty('--hauteur-apercu', h + 'px'); } catch (e) { /* sans stockage */ }
 $('#poignee').addEventListener('pointerdown', (e) => {

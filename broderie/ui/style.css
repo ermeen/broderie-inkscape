@@ -226,3 +226,20 @@ body { display: flex; flex-direction: column; }
 body > main { flex: 1 1 auto; min-height: 0; }
 body > header, body > footer, body > #journal, body > #tache, body > #bandeauAncien { flex: none; }
 .titre img.logo { width: 26px; height: 26px; background: none; border-radius: 6px; }
+/* glisser-déposer dans la liste */
+#liste li[draggable=true] { cursor: grab; }
+#liste li.glisse { opacity: .45; }
+#liste li.avant { box-shadow: inset 0 2px 0 var(--accent); }
+#liste li.apres { box-shadow: inset 0 -2px 0 var(--accent); }
+#liste li.dans { outline: 2px dashed var(--accent); outline-offset: -2px; }
+/* aperçu : zones cliquables invisibles ; repères sans effet sur la souris */
+.cibles-panneau, .cibles-panneau * { fill: transparent !important; stroke: transparent !important; stroke-width: 10px !important;
+  vector-effect: non-scaling-stroke; pointer-events: all; cursor: pointer; }
+.selection-panneau, .selection-panneau *, .commandes-panneau, .commandes-panneau * { pointer-events: none; }
+#apercu.deplace, #apercu.deplace * { cursor: grabbing !important; }
+/* œil : objets et calques brodés ou non */
+#liste .oeil { border: none; background: none; padding: 0 2px; width: 22px; height: 20px; color: var(--muted); flex: none; }
+#liste .oeil svg { width: 16px; height: 16px; fill: none; stroke: currentColor; stroke-width: 1.7; stroke-linecap: round; }
+#liste .oeil:hover { color: var(--texte); }
+#liste li.masque .nom, #liste li.masque .type, #liste li.masque .pastille { opacity: .4; }
+#liste li.masque .oeil { color: #f2b45a; }

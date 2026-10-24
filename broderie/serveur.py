@@ -139,9 +139,9 @@ class Session:
                     "version_panneau": VERSION_PANNEAU,
                     "moteur": {"chemin": E.binaire(), "version": E.version()}, "commandes": [], "formats": [],
                     "journal": self.journal[-20:], "sans_dessin": True}
-        objs = M.objets(self.document, self.ids)
+        objs = M.objets(self.document, self.ids, masques=True)
         if self.ids and not objs:                       # sélection sans objet brodable : tout le document
-            objs = M.objets(self.document)
+            objs = M.objets(self.document, masques=True)
         cmds = M.commandes()
         sorties = sorted({c["format"] for c in M.CATALOGUE["commandes"] if c["type"] == "output" and c["format"]})
         return {"objets": [M.decrire(o) for o in objs], "selection": self.ids, "nom": self.nom,
@@ -199,6 +199,12 @@ class Session:
                     "perime": perime() and not self.attente and not (self.tache and not self.tache.get("fini"))}
 
     def _rejouer(self, doc, op):
+        if op[0] == "visible":
+            M.montrer(doc, op[1], op[2])
+            return
+        if op[0] == "placer":
+            M.placer(doc, op[1], op[2], op[3])
+            return
         if op[0] == "cadre":
             M.appliquer_cadre(doc, *op[1:])
             return
@@ -218,7 +224,7 @@ class Session:
     # --- actions du panneau -------------------------------------------------
     def action(self, nom, d):
         r = self._action(nom, d)
-        if nom in ("params", "couleur", "ordre", "abandonner", "sync", "lettrage", "assembler", "marquer_a_jour", "cadre"):
+        if nom in ("params", "couleur", "ordre", "abandonner", "sync", "lettrage", "assembler", "marquer_a_jour", "cadre", "placer", "visible"):
             self.sauver()
         return r
 
@@ -308,6 +314,18 @@ class Session:
                 self.version += 1
                 self.log("Colonne satin assemblée")
                 return {"id": ident, "etat": self.etat()}
+            if nom == "visible":                      # œil : objet ou calque brodé ou non
+                if M.montrer(self.document, d["id"], bool(d.get("visible"))):
+                    self.attente.append(("visible", d["id"], bool(d.get("visible"))))
+                    self.version += 1
+                return self.etat()
+            if nom == "placer":                       # glisser-déposer dans la liste (objets et calques)
+                if M.placer(self.document, d["id"], d["cible"], bool(d.get("apres"))):
+                    self.attente.append(("placer", d["id"], d["cible"], bool(d.get("apres"))))
+                return self.etat()
+            if nom == "contours":                     # contours de tous les objets : clic dans l'aperçu
+                return {"objets": [{"id": o["id"], "svg": M.contour_svg(self.document, o["id"])}
+                                   for o in self.etat()["objets"]]}
             if nom == "contour":
                 return {"svg": M.contour_svg(self.document, d["id"]) if self.document is not None else None}
             if nom == "points":

@@ -298,11 +298,14 @@ c += [Chapitre(3, "Le geste à retenir", "Un raccourci relie Inkscape et le pann
 
 # ---------------------------------------------------------------- 4. objets
 c += [Chapitre(4, "Onglet Objets", "Régler la broderie de chaque forme"),
-      capture("objets", 132, "L'aperçu des points à gauche ; les calques, les objets et leurs réglages à droite."),
+      capture("objets", 124, "L'aperçu des points à gauche ; les calques, les objets et leurs réglages à droite."),
       p("Choisir", "h2"),
       *puces(touche("clic") + " un objet · " + touche("Cmd") + " " + touche("clic") + " en ajouter ou en retirer · "
              + touche("Maj") + " " + touche("clic") + " toute une suite.",
-             "Un clic sur le <b>nom d'un calque</b> choisit tous ses objets.",
+             "Un clic sur le <b>nom d'un calque</b> choisit tous ses objets ; un <b>clic dans l'aperçu</b> choisit "
+             "l'objet sous la souris.",
+             "<b>Glissez</b> un objet ou un calque dans la liste pour changer l'ordre de couture. L'<b>œil</b> masque "
+             "un objet ou un calque : il n'est plus brodé, mais reste dans la liste.",
              "Plusieurs objets : les réglages s'appliquent à tous ; <b>≠</b> signale une valeur différente d'un objet "
              "à l'autre. Les objets choisis sont entourés de pointillés bleus dans l'aperçu."),
       p("Régler", "h2"),
@@ -316,8 +319,8 @@ c += [Chapitre(4, "Onglet Objets", "Régler la broderie de chaque forme"),
       p("Lire l'aperçu", "h2"),
       *puces("<b>Points</b> : les points d'aiguille, les sauts (pointillés et grenouille), les coupes, les arrêts et les "
              "changements de couleur.",
-             "<b>Réaliste</b> : le fil sur votre tissu (choisissez sa couleur). Molette : zoom · glisser : déplacer · "
-             "double-clic : tout voir."),
+             "<b>Réaliste</b> : le fil sur votre tissu (choisissez sa couleur). Molette : zoom · glisser ou bouton du "
+             "milieu : déplacer · double-clic : tout voir."),
       PageBreak()]
 
 # ---------------------------------------------------------------- 5-6. satin et texte

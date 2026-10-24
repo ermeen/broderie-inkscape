@@ -11,7 +11,7 @@ On **dessine dans Inkscape**, on **règle la broderie dans le panneau**, et **In
 ## Ce que fait le panneau
 
 - **Objets**
-  - Calques et objets, sélection multiple avec réglages communs.
+  - Calques et objets : sélection multiple avec réglages communs, ordre par glisser-déposer, œil pour broder ou non.
   - Types de point en tuiles et réglages essentiels en curseurs ; tous les réglages d'Ink/Stitch rangés par thèmes.
   - Copier et coller des réglages.
   - Colonnes satin : conversion d'un trait, assemblage des rails et traverses.
@@ -35,7 +35,7 @@ Il faut Inkscape 1.4 et Ink/Stitch 3, testés avec Inkscape 1.4.2 et Ink/Stitch 
 3. Quittez puis relancez Inkscape.
 4. Appuyez sur **Cmd+Option+B**.
 
-Mode d'emploi complet et astuces de réglages : [docs/Notice-Broderie-1.0.0.pdf](docs/Notice-Broderie-1.0.0.pdf).
+Mode d'emploi complet et astuces de réglages : [docs/Notice-Broderie-1.1.0.pdf](docs/Notice-Broderie-1.1.0.pdf).
 
 ## Où sont les réglages ?
 

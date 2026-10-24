@@ -97,14 +97,38 @@ def _style_herite(el, cle):
     return None
 
 
-def _cache(el):
+def _cache(el, masques=False):
+    """Hors broderie : définitions, aperçu, connecteurs… et objets masqués (sauf si masques=True)."""
     while el is not None and isinstance(el.tag, str):
         if el.get("id") == PLAN or local(el) in ("defs", "metadata", "symbol", "clipPath", "mask", "marker"):
             return True
-        if (_style(el).get("display") == "none") or el.get(f"{{{INKSTITCH_NS}}}connector-type"):
+        if (not masques and _style(el).get("display") == "none") or el.get(f"{{{INKSTITCH_NS}}}connector-type"):
             return True
         el = el.getparent()
     return False
+
+
+def masque(el):
+    """Masqué dans Inkscape (lui ou un de ses calques) : Ink/Stitch ne le brode pas."""
+    while el is not None and isinstance(el.tag, str):
+        if _style(el).get("display") == "none":
+            return True
+        el = el.getparent()
+    return False
+
+
+def montrer(svg, i, visible):
+    """Œil du panneau : affiche ou masque un objet ou un calque (style display, comme Inkscape)."""
+    el = par_id(svg, i)
+    if el is None:
+        return False
+    st = _style(el)
+    if visible:
+        st.pop("display", None)
+    else:
+        st["display"] = "none"
+    el.set("style", ";".join("%s:%s" % (k, v) for k, v in st.items()))
+    return True
 
 
 def nombre_sous_chemins(el):
@@ -129,8 +153,9 @@ def types(el):
     return out
 
 
-def objets(svg, ids=None):
-    """Objets brodables : la sélection si elle existe, sinon tout le document (ordre de couture)."""
+def objets(svg, ids=None, masques=False):
+    """Objets brodables : la sélection si elle existe, sinon tout le document (ordre de couture).
+    masques=True : y compris les objets masqués (liste du panneau, pour pouvoir les réafficher)."""
     racine = svg.getroot() if hasattr(svg, "getroot") else svg
     out = []
     for el in racine.iter():
@@ -139,7 +164,7 @@ def objets(svg, ids=None):
         nom = local(el)
         if nom not in FORMES and not (nom == "g" and attr(el, "lettering") is not None):
             continue
-        if _cache(el) or any(attr(a, "lettering") is not None for a in el.iterancestors()):
+        if _cache(el, masques) or any(attr(a, "lettering") is not None for a in el.iterancestors()):
             continue
         if ids and el.get("id") not in ids:
             continue
@@ -177,7 +202,8 @@ def decrire(el):
         "remplissage": _style_herite(el, "fill"),
         "contour": _style_herite(el, "stroke"),
         "sous_chemins": nombre_sous_chemins(el) if local(el) == "path" else 1,
-        "calque": cid, "calque_nom": cnom,
+        "calque": cid, "calque_nom": cnom, "masque": masque(el),
+        "calque_masque": bool(cid) and masque(par_id(el.getroottree(), cid)),
         "valeurs": {etree.QName(k).localname: v for k, v in el.attrib.items() if k.startswith("{%s}" % INKSTITCH_NS)},
     }
 
@@ -483,3 +509,22 @@ def appliquer_cadre(svg, largeur, hauteur, centrer=True, page=True):
                 if isinstance(enfant.tag, str) and local(enfant) in FORMES | {"g"} and local(enfant) != "defs":
                     t = enfant.get("transform") or ""
                     enfant.set("transform", ("translate(%g,%g) %s" % (dx, dy, t)).strip())
+
+
+def placer(svg, i, cible, apres=False):
+    """Déplace l'objet ou le calque i juste avant (ou après) cible — même geste que glisser dans Inkscape.
+    L'ordre du document est l'ordre de couture. Si cible est un calque et i un objet, i va au début du calque."""
+    el, ci = par_id(svg, i), par_id(svg, cible)
+    if el is None or ci is None or el is ci or ci in el.iterancestors():
+        return False
+    est_calque = lambda x: x.get("{%s}groupmode" % INKSCAPE_NS) == "layer"
+    if est_calque(ci) and not est_calque(el):
+        el.getparent().remove(el)
+        ci.insert(0, el)
+        return True
+    el.getparent().remove(el)
+    if apres:
+        ci.addnext(el)
+    else:
+        ci.addprevious(el)
+    return True
