@@ -5,7 +5,18 @@ Le numéro de version suit le schéma `MAJEUR.MINEUR.CORRECTIF` :
 - **MINEUR** : nouvelle fonction ;
 - **CORRECTIF** : correction sans nouvelle fonction.
 
-## 1.2.1 — 24 octobre 2026
+## 1.3.0 — 24 octobre 2026
+
+**Bobines (onglet Export)**
+- Choix de la marque de fil parmi les nuanciers d'Ink/Stitch : Madeira, Isacord, Brother, Gütermann, Sulky, DMC, Janome, Mettler…, et vos palettes personnelles installées dans Inkscape.
+- La marque est reconnue d'elle-même quand le dessin en utilise déjà les couleurs exactes.
+- Pour chaque fil, dans l'ordre de couture : la couleur du dessin, la bobine la plus proche (numéro et nom) et un repère d'écart (identique, très proche, approchant, éloigné).
+- « Changer » ouvre le nuancier de la marque : recherche par numéro ou par nom, teintes les plus proches en premier.
+- « Prendre les couleurs exactes des fils » donne aux objets, textes compris, la couleur exacte des bobines, comme « Appliquer une palette » d'Ink/Stitch. Ink/Stitch reconnaît alors la marque, le numéro et le nom des fils. Vérifié dans sa liste de fils, dans le .vp3 (numéro, nom, marque) et dans le .inf (nom) ; les .pes, .jef et .dst ne gardent que la couleur.
+- « Liste des fils (texte) » prépare les bobines avant de broder.
+- Légende des statistiques : « Madeira Rayon 1147 Foxy Red » au lieu de « Fil 1 » quand la couleur est celle d'une bobine.
+
+ — 24 octobre 2026
 
 **Icônes**
 - Barre de l'aperçu : boutons-icônes à la place des cases à cocher. Grenouille pour les sauts, ciseaux pour les coupes et arrêts, carreaux pour la densité, aiguille pour les pénétrations. Le nom s'affiche au survol.

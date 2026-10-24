@@ -959,6 +959,10 @@ function calculerStats(d) {
   const min = n / 650 + chg * 0.5 + coupes * 0.1;
   return { n, sauts, coupes, chg, larg, haut, min, fils: d.fils };
 }
+function nomFil(c, i) {           // « Madeira Rayon 1307 Scarlet » si la couleur est celle d'une bobine
+  const f = BOB.donnees && BOB.donnees.fils.find((x) => x.couleur === String(c).toLowerCase() && x.bobine && x.ecart < 0.5);
+  return f ? `${BOB.donnees.marque} ${f.bobine.numero} ${f.bobine.nom}` : `Fil ${i + 1}`;
+}
 async function rendreStats(sel) {
   const div = $(sel);
   div.innerHTML = '<span class="muted small">Calcul…</span>';
@@ -970,7 +974,7 @@ async function rendreStats(sel) {
       <div><b>${duree}</b><span class="muted small">durée estimée</span></div>
       <div><b>${s.larg.toFixed(1)} × ${s.haut.toFixed(1)}</b><span class="muted small">mm</span></div>
       <div><b>${s.fils.length}</b><span class="muted small">couleur(s) · ${s.coupes} coupe(s)</span></div></div>
-      <div class="legende">${s.fils.map((c, i) => `<span><i style="background:${esc(c)}"></i>Fil ${i + 1}</span>`).join('')}</div>`;
+      <div class="legende">${s.fils.map((c, i) => `<span><i style="background:${esc(c)}"></i>${esc(nomFil(c, i))}</span>`).join('')}</div>`;
     S.dimensions = [s.larg, s.haut];
     return s;
   } catch (e) { div.innerHTML = `<span class="muted small">${esc(e.message)}</span>`; }
@@ -984,8 +988,77 @@ async function rendreExport() {
   let c = 0; try { c = +(localStorage.getItem('broderie.cadreN') || 0); } catch (e) { /* sans stockage */ }
   sel.innerHTML = S.cadres.map((x, i) => `<option value="${i}" ${i === c ? 'selected' : ''}>${esc(x.nom)} — ${x.largeur} × ${x.hauteur} mm</option>`).join('');
   sel.onchange = () => { try { localStorage.setItem('broderie.cadreN', sel.value); } catch (e) { /* rien */ } verifierCadre(); };
+  rendreBobines();
   await rendreStats('#statsExport');
   verifierCadre();
+}
+
+// Bobines : la marque de fil, et pour chaque couleur du dessin la bobine la plus proche (ou choisie à la main)
+const BOB = { marque: null, choix: {}, donnees: null, ouvert: null, nuancier: null };
+try { BOB.marque = localStorage.getItem('broderie.marque'); } catch (e) { /* sans stockage */ }
+const PROCHE = (e) => e < 0.5 ? ['Identique', 'ok'] : e < 3 ? ['Identique à l’œil', 'ok'] : e < 8 ? ['Très proche', 'ok'] : e < 15 ? ['Approchant', 'moy'] : ['Éloigné', 'loin'];
+const nomBobine = (b) => b ? `${BOB.donnees.marque} ${b.numero}` : '—';
+async function rendreBobines() {
+  const div = $('#bobines');
+  try { BOB.donnees = await api('bobines', { marque: BOB.marque, choix: BOB.choix }); } catch (e) { div.innerHTML = `<span class="muted small">${esc(e.message)}</span>`; return; }
+  const d = BOB.donnees; BOB.marque = d.marque;
+  const aChanger = d.fils.filter((f) => f.bobine && f.ecart >= 0.5).length;
+  div.innerHTML = `<div class="carte-titre"><span>Bobines</span><span class="muted small">${d.fils.length} fil(s) · ordre de couture</span></div>
+    <label class="etiquette">Marque de fil</label>
+    <div class="ligne-marque"><select id="bobMarque">${d.marques.map((m) => `<option ${m === d.marque ? 'selected' : ''}>${esc(m)}</option>`).join('')}</select>
+      <span class="muted small">${d.marques.length} nuanciers</span></div>
+    <div id="bobListe">${d.fils.map((f, i) => {
+      const [lib, cl] = f.bobine ? PROCHE(f.ecart) : ['', ''];
+      return `<div class="bob" data-c="${esc(f.couleur)}"><span class="n">${i + 1}</span>
+        <span class="paire"><i class="pastille" style="background:${esc(f.couleur)}"></i>${icone('fleche')}<i class="bobine" style="--c:${esc(f.bobine ? f.bobine.couleur : '#888')}"></i></span>
+        <span class="bob-txt"><b>${esc(nomBobine(f.bobine))}</b>${f.bobine ? ' · ' + esc(f.bobine.nom) : ''}<br><span class="muted small">${esc(f.objets.join(', '))}</span></span>
+        ${lib ? `<span class="pastille-ecart ${cl}">${lib}</span>` : ''}<button class="petit bob-changer">Changer</button></div>
+        ${BOB.ouvert === f.couleur ? '<div class="bob-choix"></div>' : ''}`;
+    }).join('')}</div>
+    <div class="bob-actions"><button class="principal" id="bobAppliquer" ${aChanger ? '' : 'disabled'}>Prendre les couleurs exactes des fils</button>
+      <button id="bobListeFils">Liste des fils (texte)</button></div>
+    <p class="muted small">À gauche la couleur du dessin, à droite la bobine. ${aChanger
+      ? 'Le bouton bleu donne à vos objets la couleur exacte des bobines : Ink/Stitch reconnaît alors la marque, le numéro et le nom (liste des fils, fichiers .vp3 et .inf).'
+      : 'Vos couleurs sont celles des bobines : Ink/Stitch reconnaît la marque, le numéro et le nom (liste des fils, fichiers .vp3 et .inf).'}</p>`;
+  $('#bobMarque').onchange = (e) => { BOB.marque = e.target.value; BOB.choix = {}; BOB.ouvert = null; BOB.nuancier = null;
+    try { localStorage.setItem('broderie.marque', BOB.marque); } catch (x) { /* rien */ } rendreBobines(); };
+  $$('#bobListe .bob-changer').forEach((b) => { b.onclick = () => { const c = b.closest('.bob').dataset.c; BOB.ouvert = BOB.ouvert === c ? null : c; rendreBobines(); }; });
+  if (BOB.ouvert) rendreNuancier($('#bobListe .bob-choix'));
+  $('#bobAppliquer').onclick = async () => {
+    const corr = {};
+    for (const f of BOB.donnees.fils) if (f.bobine && f.ecart >= 0.5) corr[f.couleur] = f.bobine.couleur;
+    try {
+      S.etat = await api('appliquer_fils', { correspondances: corr });
+      BOB.choix = {}; BOB.ouvert = null; S.simu = null;
+      rendreAttente(); rendreBobines(); rendreStats('#statsExport');
+      message(`${Object.keys(corr).length} couleur(s) remplacée(s) par celles des bobines. Synchronisez pour les envoyer à Inkscape.`);
+    } catch (e) { message(e.message, true); }
+  };
+  $('#bobListeFils').onclick = () => {
+    const l = [`Fils pour « ${S.etat.nom || 'dessin'} » — ${BOB.donnees.marque}`, ''];
+    BOB.donnees.fils.forEach((f, i) => l.push(`${i + 1}. ${nomBobine(f.bobine)} ${f.bobine ? f.bobine.nom : ''} (${f.bobine ? f.bobine.couleur : f.couleur}) — ${f.objets.join(', ')}`));
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(new Blob([l.join('\n') + '\n'], { type: 'text/plain;charset=utf-8' }));
+    a.download = `${S.etat.nom || 'dessin'} - fils.txt`; a.click();
+  };
+}
+async function rendreNuancier(div) {
+  if (!BOB.nuancier || BOB.nuancier.marque !== BOB.marque) BOB.nuancier = { marque: BOB.marque, fils: (await api('nuancier', { marque: BOB.marque })).fils };
+  const c = BOB.ouvert;
+  div.innerHTML = `<input type="search" id="bobRecherche" placeholder="Numéro ou nom (ex. 1307, rouge, Scarlet)…"><div class="bob-grille"></div>`;
+  const ecart = (a, b) => { const p = (h) => [1, 3, 5].map((i) => parseInt(h.slice(i, i + 2), 16)); const [x, y] = [p(a), p(b)];
+    return (x[0] - y[0]) ** 2 * 2 + (x[1] - y[1]) ** 2 * 4 + (x[2] - y[2]) ** 2 * 3; };
+  const trie = [...BOB.nuancier.fils].sort((a, b) => ecart(c, a.couleur) - ecart(c, b.couleur));
+  const afficher = (q) => {
+    q = (q || '').toLowerCase().trim();
+    const l = (q ? trie.filter((f) => f.numero.toLowerCase().includes(q) || f.nom.toLowerCase().includes(q)) : trie).slice(0, 60);
+    $('.bob-grille', div).innerHTML = l.map((f) => `<button class="bob-teinte" title="${esc(f.numero + ' · ' + f.nom)}" data-c="${esc(f.couleur)}"><i style="background:${esc(f.couleur)}"></i><span>${esc(f.numero)}</span></button>`).join('')
+      || '<span class="muted small">Aucune bobine.</span>';
+    $$('.bob-teinte', div).forEach((b) => { b.onclick = () => { BOB.choix[c] = b.dataset.c; BOB.ouvert = null; rendreBobines(); }; });
+  };
+  $('#bobRecherche', div).oninput = (e) => afficher(e.target.value);
+  afficher('');
+  $('#bobRecherche', div).focus();
 }
 function verifierCadre() {
   const i = $('#cadreInfo'), c = cadreChoisi();
@@ -1055,6 +1128,7 @@ const SF = {
   play: `<path d="M8 5.8v12.4c0 .8.9 1.3 1.6.8l9.4-6.2a1 1 0 0 0 0-1.6L9.6 5c-.7-.5-1.6 0-1.6.8z" ${F}/>`,
   pause: `<rect x="6.5" y="5" width="3.6" height="14" rx="1.2" ${F}/><rect x="13.9" y="5" width="3.6" height="14" rx="1.2" ${F}/>`,
   forward_stitch: `<path d="M9.5 6l6 6-6 6"/>`,
+  fleche: `<path d="M5 12h14M14 7l5 5-5 5"/>`,
   forward_command: `<path d="M18 5.5v13"/><path d="M6 6.5l8.5 5.5L6 17.5z" ${F}/>`,
   direction: `<path d="M4 8.5h15M15.5 5l3.5 3.5-3.5 3.5M20 15.5H5M8.5 12 5 15.5 8.5 19"/>`,
   slower: `<path d="M4.5 16.5a7.5 7.5 0 1 1 15 0"/><path d="M12 16.5 8 12.5"/><circle cx="12" cy="16.5" r="1.2" ${F}/>`,

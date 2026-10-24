@@ -23,6 +23,7 @@ On **dessine dans Inkscape**, on **règle la broderie dans le panneau**, et **In
 - **Export**
   - 21 formats de machine.
   - Cadres de la brodeuse, motif centré dans le cadre.
+  - Bobines : marque de fil (75 nuanciers), bobine la plus proche pour chaque couleur, couleurs exactes des fils.
   - Durée estimée.
 - **Toutes les commandes Ink/Stitch**, en français.
 
@@ -35,7 +36,7 @@ Il faut Inkscape 1.4 et Ink/Stitch 3, testés avec Inkscape 1.4.2 et Ink/Stitch 
 3. Quittez puis relancez Inkscape.
 4. Appuyez sur **Cmd+Option+B**.
 
-Mode d'emploi complet et astuces de réglages : [docs/Notice-Broderie-1.2.1.pdf](docs/Notice-Broderie-1.2.1.pdf).
+Mode d'emploi complet et astuces de réglages : [docs/Notice-Broderie-1.3.0.pdf](docs/Notice-Broderie-1.3.0.pdf).
 
 ## Où sont les réglages ?
 

@@ -368,10 +368,13 @@ c += [Chapitre(7, "Onglet Points", "Regarder la machine broder avant de lancer")
 
 # ---------------------------------------------------------------- 8-9. aperçu, export
 c += [Chapitre(8, "Onglets Aperçu et Export", "Vérifier, choisir le cadre, envoyer à la machine"),
-      capture("apercu", 112, "Rendu réaliste sur tissu, avec le nombre de points, la durée estimée, la taille et les fils."),
-      capture("export", 112),
+      capture("apercu", 84, "Rendu réaliste sur tissu, avec le nombre de points, la durée estimée, la taille et les fils."),
+      capture("export", 84),
       *puces("<b>Fichier de broderie</b> : le format de votre machine (.pes Brother, .dst Tajima, .jef Janome, .exp Bernina, "
              ".vp3 Husqvarna / Pfaff…), enregistré dans Téléchargements.",
+             "<b>Bobines</b> : choisissez la marque de vos fils ; pour chaque couleur, le panneau propose la bobine la plus "
+             "proche (<b>Changer</b> pour en prendre une autre). <b>Prendre les couleurs exactes des fils</b> : Ink/Stitch "
+             "reconnaît alors marque, numéro et nom (liste des fils, fichiers .vp3 et .inf ; un .pes ou un .dst ne garde que la couleur).",
              "<b>Fiche PDF pour la machine</b> : la fiche d'Ink/Stitch à imprimer (aperçu, fils, ordre des couleurs).",
              "<b>Cadre de la brodeuse</b> : le panneau vérifie que le motif y tient. <b>Ajouter un cadre</b> ou "
              "<b>Supprimer</b> ceux que vous n'avez pas.",

@@ -586,3 +586,105 @@ def mm_par_unite(svg):
     except Exception:
         w = None
     return (w / vb[2]) if w and len(vb) == 4 and vb[2] else 1.0
+
+
+# ---------------------------------------------------------------- bobines : nuanciers des fabricants de fil
+# Les nuanciers d'Ink/Stitch (fichiers .gpl : rouge vert bleu, nom, numéro), ceux installés dans Inkscape
+# (avec les palettes personnelles) en premier.
+def _dossiers_palettes(binaire=None):
+    d = [os.path.expanduser("~/Library/Application Support/org.inkscape.Inkscape/config/inkscape/palettes")]
+    if binaire:
+        d.append(os.path.join(os.path.dirname(os.path.dirname(binaire)), "Resources", "palettes"))
+    return [x for x in d if os.path.isdir(x)]
+
+
+def palettes(binaire=None):
+    """Noms des nuanciers de fil disponibles (« Madeira Rayon », « Isacord Polyester »…) → chemin du fichier."""
+    r = {}
+    for d in _dossiers_palettes(binaire):
+        for f in sorted(os.listdir(d)):
+            if f.startswith("InkStitch ") and f.endswith(".gpl"):
+                r.setdefault(f[len("InkStitch "):-4], os.path.join(d, f))
+    return dict(sorted(r.items(), key=lambda x: x[0].lower()))
+
+
+def lire_palette(chemin):
+    """Bobines d'un nuancier : [{couleur, nom, numero}]."""
+    import re
+    fils = []
+    with open(chemin, encoding="utf-8", errors="replace") as f:
+        for ligne in f:
+            m = re.match(r"\s*(\d+)\s+(\d+)\s+(\d+)\s+(.*?)\s+(\S+)\s*$", ligne)
+            if m:
+                fils.append({"couleur": "#%02x%02x%02x" % tuple(int(v) for v in m.groups()[:3]),
+                             "nom": m.group(4).strip(), "numero": m.group(5)})
+    return fils
+
+
+def _lab(c):
+    """Couleur #rrggbb dans l'espace CIE Lab (écart perçu par l'œil)."""
+    def lin(v):
+        return ((v + 0.055) / 1.055) ** 2.4 if v > 0.04045 else v / 12.92
+    r, g, b = (lin(int(c[i:i + 2], 16) / 255) for i in (1, 3, 5))
+    x = (r * .4124 + g * .3576 + b * .1805) / .95047
+    y = r * .2126 + g * .7152 + b * .0722
+    z = (r * .0193 + g * .1192 + b * .9505) / 1.08883
+
+    def f(t):
+        return t ** (1 / 3) if t > 0.008856 else 7.787 * t + 16 / 116
+    return 116 * f(y) - 16, 500 * (f(x) - f(y)), 200 * (f(y) - f(z))
+
+
+def ecart(c1, c2):
+    import math
+    return math.dist(_lab(c1), _lab(c2))
+
+
+def hex6(c):
+    """« #abc », « #AABBCC », « red »… → « #aabbcc » (None si illisible)."""
+    c = (c or "").strip().lower()
+    noms = {"black": "#000000", "white": "#ffffff", "red": "#ff0000", "green": "#008000", "blue": "#0000ff"}
+    c = noms.get(c, c)
+    if len(c) == 4 and c.startswith("#"):
+        c = "#" + "".join(x * 2 for x in c[1:])
+    return c if len(c) == 7 and c.startswith("#") else None
+
+
+def fils_du_dessin(svg):
+    """Couleurs de fil dans l'ordre de couture (ordre du dessin), avec les objets qui les utilisent."""
+    ordre = {}
+    for el in objets(svg):
+        if local(el) == "g":                         # texte brodé : les couleurs de ses lettres
+            formes = [f for f in el.iter() if isinstance(f.tag, str) and local(f) in FORMES and not _cache(f)]
+        else:
+            formes = [el]
+        for f in formes:
+            c = hex6(couleur(f))
+            if c:
+                o = ordre.setdefault(c, [])
+                nom = decrire(el)["nom"]
+                if nom not in o:
+                    o.append(nom)
+    return [{"couleur": c, "objets": o} for c, o in ordre.items()]
+
+
+def remplacer_couleurs(svg, correspondances):
+    """Remplace des couleurs de fil dans tout le dessin ({ancienne: nouvelle}), styles hérités compris :
+    c'est « Appliquer une palette » d'Ink/Stitch, avec les bobines choisies dans le panneau."""
+    corr = {hex6(a): hex6(n) for a, n in correspondances.items() if hex6(a) and hex6(n)}
+    n = 0
+    racine = svg.getroot() if hasattr(svg, "getroot") else svg
+    for el in racine.iter():
+        if not isinstance(el.tag, str) or _cache(el, masques=True):
+            continue
+        st = _style(el)
+        change = False
+        for k in ("fill", "stroke"):                 # _style lit aussi les attributs fill= et stroke=
+            if hex6(st.get(k)) in corr:
+                st[k] = corr[hex6(st[k])]
+                change = True
+                el.attrib.pop(k, None)
+        if change:
+            el.set("style", ";".join(f"{k}:{v}" for k, v in st.items()))
+            n += 1
+    return n

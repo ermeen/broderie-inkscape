@@ -203,6 +203,9 @@ class Session:
         if op[0] == "visible":
             M.montrer(doc, op[1], op[2])
             return
+        if op[0] == "fils":
+            M.remplacer_couleurs(doc, op[1])
+            return
         if op[0] == "placer":
             M.placer(doc, op[1], op[2], op[3])
             return
@@ -225,7 +228,7 @@ class Session:
     # --- actions du panneau -------------------------------------------------
     def action(self, nom, d):
         r = self._action(nom, d)
-        if nom in ("params", "couleur", "ordre", "abandonner", "sync", "lettrage", "assembler", "marquer_a_jour", "cadre", "placer", "visible"):
+        if nom in ("params", "couleur", "ordre", "abandonner", "sync", "lettrage", "assembler", "marquer_a_jour", "cadre", "placer", "visible", "appliquer_fils"):
             self.sauver()
         return r
 
@@ -237,6 +240,11 @@ class Session:
         if nom == "present":                           # signe de vie (sans verrou : jamais bloqué)
             self.vu = self.actif = time.time()
             return {"version": self.version, "attente": len(self.attente), "tache": self.tache}
+        if nom == "bobines":
+            return self._bobines(d)
+        if nom == "nuancier":
+            chemin = M.palettes(E.binaire()).get(d.get("marque") or "")
+            return {"fils": M.lire_palette(chemin) if chemin else []}
         if nom == "apercu_texte":
             return self._apercu_texte(d)
         if nom in ("apercu", "points", "densite"):     # calculs longs : sur une copie, sans bloquer le panneau
@@ -269,6 +277,12 @@ class Session:
             if nom == "params":
                 M.ecrire(M.par_id(self.document, d["id"]), d.get("valeurs", {}))
                 self.attente.append(("params", d["id"], d.get("valeurs", {})))
+                return self.etat()
+            if nom == "appliquer_fils":                # couleurs exactes des bobines choisies
+                corr = {a: n for a, n in (d.get("correspondances") or {}).items() if M.hex6(a) != M.hex6(n)}
+                if corr and M.remplacer_couleurs(self.document, corr):
+                    self.attente.append(("fils", corr))
+                    self.version += 1
                 return self.etat()
             if nom == "couleur":
                 M.changer_couleur(M.par_id(self.document, d["id"]), d["quoi"], d["valeur"])
@@ -431,6 +445,32 @@ class Session:
         self.attente.append(("commande", "batch_lettering"))
         self.log("Texte brodé ajouté")
         return {"id": g.get("id")}
+
+    def _bobines(self, d):
+        """Fils du dessin (ordre de couture) et bobine de la marque choisie pour chacun : la plus proche,
+        ou celle choisie à la main (d["choix"] : {couleur du dessin: couleur de la bobine})."""
+        with self.verrou:
+            if self.document is None:
+                raise ValueError("Aucun dessin : appuyez sur ⌘⌥B dans Inkscape.")
+            fils = M.fils_du_dessin(self.document)
+        marques = M.palettes(E.binaire())
+        marque = d.get("marque")
+        if marque not in marques:                       # comme Ink/Stitch : le nuancier qui contient presque toutes
+            def exactes(m):                             # les couleurs exactes du dessin, sinon Madeira Rayon
+                cs = {f["couleur"] for f in M.lire_palette(marques[m])}
+                return sum(f["couleur"] in cs for f in fils)
+            meilleur = max(marques, key=exactes, default=None) if fils else None
+            reconnu = meilleur and exactes(meilleur) >= max(2, 0.8 * len(fils))   # 80 % de couleurs exactes
+            marque = meilleur if reconnu else ("Madeira Rayon" if "Madeira Rayon" in marques
+                                                                       else next(iter(marques), None))
+        nuancier = M.lire_palette(marques[marque]) if marque else []
+        choix = {M.hex6(k): M.hex6(v) for k, v in (d.get("choix") or {}).items()}
+        for f in fils:
+            b = next((x for x in nuancier if x["couleur"] == choix.get(f["couleur"])), None) if choix.get(f["couleur"]) else None
+            b = b or min(nuancier, key=lambda x: M.ecart(f["couleur"], x["couleur"]), default=None)
+            f["bobine"] = b
+            f["ecart"] = round(M.ecart(f["couleur"], b["couleur"]), 1) if b else None
+        return {"marques": list(marques), "marque": marque, "fils": fils}
 
     def _apercu_texte(self, d):
         """Aperçu d'un texte avant de l'ajouter : fabriqué sur un dessin vide, points calculés par Ink/Stitch."""
