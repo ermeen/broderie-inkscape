@@ -39,7 +39,7 @@ function rendreListe() {
     };
     ul.appendChild(li);
   }
-  if (!S.etat.objets.length) ul.innerHTML = '<li class="muted">Aucun objet brodable.<br>Dessinez d\'abord une forme dans Inkscape (rectangle, tracé…), sélectionnez-la, puis appuyez sur ⌘⇧B dans Inkscape. Ce panneau se met à jour tout seul.</li>';
+  if (!S.etat.objets.length) ul.innerHTML = '<li class="muted">Aucun objet brodable.<br>Dessinez d\'abord une forme dans Inkscape (rectangle, tracé…), sélectionnez-la, puis appuyez sur ⌘⌥B dans Inkscape. Ce panneau se met à jour tout seul.</li>';
   const cs = new Map();
   for (const o of S.etat.objets) for (const [k, q] of [['fill', o.remplissage], ['stroke', o.contour]]) {
     if (q && q !== 'none' && /^#[0-9a-f]{3,8}$/i.test(q) && (k === 'fill' ? o.types.includes('fill_stitch') : true)) {
@@ -182,10 +182,10 @@ function rendreTout() {
 function rendreAttente() {
   const n = S.etat.attente || 0, i = $('#attenteInfo');
   i.className = 'small' + (n ? ' on' : '');
-  i.textContent = n ? `${n} modification(s) à envoyer : appuyez sur ⌘⇧B dans Inkscape.`
-    : (S.etat.sans_dessin ? '' : 'Dessin à jour dans Inkscape. Après un changement dans Inkscape, appuyez sur ⌘⇧B pour le voir ici.');
+  i.textContent = n ? `${n} modification(s) à envoyer : appuyez sur ⌘⌥B dans Inkscape.`
+    : (S.etat.sans_dessin ? '' : 'Dessin à jour dans Inkscape. Après un changement dans Inkscape, appuyez sur ⌘⌥B pour le voir ici.');
   $('#bAbandonner').hidden = !n;
-  $('#etat').textContent = S.etat.sans_dessin ? 'Aucun dessin reçu : appuyez sur ⌘⇧B dans Inkscape.'
+  $('#etat').textContent = S.etat.sans_dessin ? 'Aucun dessin reçu : appuyez sur ⌘⌥B dans Inkscape.'
     : (S.etat.selection.length ? `${S.etat.selection.length} objet(s) sélectionné(s) dans Inkscape` : 'Aucune sélection : tout le dessin');
 }
 

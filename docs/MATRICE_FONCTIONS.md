@@ -279,7 +279,7 @@ Les 50 formats d'import (100 file input, 10O file input, BRO file input, COL fil
 | Mode avancé (tous les réglages) | accessible |
 | Aller-retour avec Inkscape sans blocage (envoi du dessin, retour des réglages, modifications faites dans Inkscape conservées) | testé hors Inkscape (script lancé comme Inkscape le lance) ; à tester dans Inkscape |
 | Aperçu recalculé à chaque changement, zoom net | testé |
-| Raccourci ⌘⇧B (envoi du dessin / retour des réglages) | installé ; à essayer après redémarrage d'Inkscape |
+| Raccourci ⌘⌥B (envoi du dessin / retour des réglages) | installé ; à essayer après redémarrage d'Inkscape |
 | Menu Extensions › Broderie › Panneau de broderie lancé dans Inkscape | testé (dessin réel reçu par le panneau) |
 | Commandes en arrière-plan (Inkscape et panneau restent utilisables) | testé |
 | Abandonner les modifications en attente | accessible |

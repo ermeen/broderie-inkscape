@@ -11,16 +11,19 @@ cp "$ICI/broderie_panneau.py" "$ICI/broderie_panneau.inx" "$ICI/broderie_serveur
 # arrête l'ancien serveur du panneau s'il tourne (il redémarre avec la nouvelle version)
 curl -s -m 2 -X POST http://127.0.0.1:47811/api/quitter -d '{}' >/dev/null 2>&1 || true
 find "$DEST" -name __pycache__ -prune -exec rm -rf {} +
-# raccourci clavier ⌘⇧B (et ⌘⌥B) pour le panneau, dans les raccourcis personnels d'Inkscape :
+# raccourci clavier ⌘⌥B  pour le panneau, dans les raccourcis personnels d'Inkscape :
 # fichier créé s'il n'existe pas, sinon la ligne est ajoutée sans toucher au reste
 KEYS="$HOME/Library/Application Support/org.inkscape.Inkscape/config/inkscape/keys/default.xml"
 mkdir -p "$(dirname "$KEYS")"
-LIGNE='  <bind gaction="app.org.pointlibre.broderie.panneau" keys="&lt;primary&gt;&lt;shift&gt;b,&lt;primary&gt;&lt;alt&gt;b"/>'
+LIGNE='  <bind gaction="app.org.pointlibre.broderie.panneau" keys="&lt;primary&gt;&lt;alt&gt;b"/>'
 if [ ! -f "$KEYS" ]; then
   printf '<?xml version="1.0"?>\n<keys name="Raccourcis personnels">\n%s\n</keys>\n' "$LIGNE" > "$KEYS"
 elif grep -q 'gaction="org.pointlibre.broderie.panneau"' "$KEYS"; then
   # nom d'action sans « app. » d'une version précédente (sans effet) : corrigé
   /usr/bin/sed -i '' 's/gaction="org.pointlibre.broderie.panneau"/gaction="app.org.pointlibre.broderie.panneau"/' "$KEYS"
+elif grep -q 'shift&gt;b' "$KEYS"; then
+  # ⌘⇧B ne fonctionne pas sur macOS : remplacé par ⌘⌥B
+  /usr/bin/sed -i '' 's/keys="&lt;primary&gt;&lt;shift&gt;b,&lt;primary&gt;&lt;alt&gt;b"/keys="\&lt;primary\&gt;\&lt;alt\&gt;b"/' "$KEYS"
 elif ! grep -q "org.pointlibre.broderie.panneau" "$KEYS"; then
   cp "$KEYS" "$KEYS.avant-broderie"
   /usr/bin/python3 - "$KEYS" "$LIGNE" <<'PY'
@@ -31,6 +34,6 @@ i = s.rfind("</keys>")
 open(f, "w", encoding="utf-8").write(s[:i] + ligne + "\n" + s[i:])
 PY
 fi
-echo "Raccourci : Cmd+Maj+B dans Inkscape"
+echo "Raccourci : Cmd+Option+B dans Inkscape"
 echo "Installé dans : $DEST"
-echo "Quittez et relancez Inkscape, puis appuyez sur Cmd+Maj+B (ou Extensions › Broderie › Panneau de broderie)"
+echo "Quittez et relancez Inkscape, puis appuyez sur Cmd+Option+B (ou Extensions › Broderie › Panneau de broderie)"

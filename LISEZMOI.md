@@ -5,7 +5,7 @@ Une interface simple pour Ink/Stitch, dans Inkscape. On dessine dans Inkscape, o
 ## Installer (une seule fois)
 
 1. Double-cliquez sur `installer.command`. Si macOS refuse d'ouvrir le fichier : clic droit › Ouvrir › Ouvrir.
-2. Quittez Inkscape, puis relancez-le : c'est nécessaire pour que le raccourci ⌘⇧B fonctionne.
+2. Quittez Inkscape, puis relancez-le : c'est nécessaire pour que le raccourci ⌘⌥B fonctionne.
 
 Le panneau est copié dans son propre dossier. Ink/Stitch et vos réglages ne sont pas modifiés. Pour le retirer : `desinstaller.command`.
 
@@ -13,10 +13,10 @@ Le panneau est copié dans son propre dossier. Ink/Stitch et vos réglages ne so
 
 Inkscape n'est jamais bloqué : le panneau reste ouvert dans Safari pendant que vous dessinez.
 
-**Un seul geste à retenir : ⌘⇧B dans Inkscape** (ou le menu Extensions › Broderie › Panneau de broderie).
+**Un seul geste à retenir : ⌘⌥B dans Inkscape** (ou le menu Extensions › Broderie › Panneau de broderie).
 
-- Vous venez de dessiner ou de sélectionner quelque chose : ⌘⇧B envoie le dessin au panneau et met Safari au premier plan.
-- Vous venez de changer des réglages dans le panneau : revenez dans Inkscape et appuyez sur ⌘⇧B. Les réglages sont appliqués au dessin, vous restez dans Inkscape, et Cmd+Z les annule. Le bas du panneau indique combien de modifications attendent.
+- Vous venez de dessiner ou de sélectionner quelque chose : ⌘⌥B envoie le dessin au panneau et met Safari au premier plan.
+- Vous venez de changer des réglages dans le panneau : revenez dans Inkscape et appuyez sur ⌘⌥B. Les réglages sont appliqués au dessin, vous restez dans Inkscape, et Cmd+Z les annule. Le bas du panneau indique combien de modifications attendent.
 
 Dans le panneau :
 - **à gauche** : les objets dans l'ordre de couture (▲▼ pour le changer) et les couleurs (cliquez sur une pastille pour la changer) ;
@@ -36,7 +36,7 @@ Les réglages sont enregistrés exactement comme Ink/Stitch les enregistre. Le d
 ## Limites connues du prototype
 
 - Le panneau s'ouvre dans le navigateur et non dans une fenêtre ancrée d'Inkscape : les extensions Inkscape 1.4 ne le permettent pas (voir `docs/ETUDE_TECHNIQUE.md`).
-- Les changements ne passent pas tout seuls d'Inkscape au panneau, ni l'inverse : c'est le rôle de ⌘⇧B. Inkscape ne permet pas à une extension de suivre le dessin en direct.
+- Les changements ne passent pas tout seuls d'Inkscape au panneau, ni l'inverse : c'est le rôle de ⌘⌥B. Inkscape ne permet pas à une extension de suivre le dessin en direct.
 - Une commande Ink/Stitch lancée depuis le panneau (« Toutes les commandes… ») est perdue si vous avez modifié le dessin dans Inkscape avant de l'envoyer. Le panneau le signale.
 - Le panneau s'arrête seul après une heure sans utilisation. Le menu le relance.
 - Ce qui a été réellement testé est indiqué dans `docs/MATRICE_FONCTIONS.md`.
