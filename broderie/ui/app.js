@@ -322,6 +322,43 @@ function texteCourbe(o) {
   return bloc('Texte courbé', d);
 }
 
+// colonne satin dessinée « à la Ink/Stitch » : deux rails + traverses, à réunir en un seul objet
+function railsEtTraverses(o) {
+  const d = document.createElement('div');
+  d.innerHTML = '<span class="muted small">Recherche des traits qui touchent cette forme…</span>';
+  api('traverses', { id: o.id }).then((r) => {
+    const noms = Object.fromEntries(S.etat.objets.map((x) => [x.id, x.nom]));
+    const ids = (r.ids || []).filter((i) => noms[i]);
+    if (!ids.length) {
+      d.innerHTML = o.types.includes('satin_column')
+        ? '<div class="aide">Colonne satin d\'un seul objet (rails et traverses réunis) : tout est prêt.</div>' : '';
+      if (!d.innerHTML) d.parentElement?.remove();
+      return;
+    }
+    d.innerHTML = `<div class="aide">Dans Ink/Stitch, les <b>deux rails</b> et les <b>traverses</b> d'une colonne satin doivent former <b>un seul objet</b>.
+      Ces traits touchent « ${esc(o.nom)} » : cochez ceux qui font partie de la colonne.</div>`;
+    const liste = document.createElement('div');
+    for (const i of ids) {
+      const l = document.createElement('label'); l.className = 'interrupteur';
+      l.innerHTML = `<span>${esc(noms[i])}</span><input type="checkbox" value="${esc(i)}" checked>`;
+      liste.appendChild(l);
+    }
+    d.appendChild(liste);
+    const b = document.createElement('button'); b.className = 'principal';
+    b.textContent = 'Assembler en une colonne satin';
+    b.onclick = async () => {
+      const choisis = $$('input:checked', liste).map((x) => x.value);
+      try {
+        const r2 = await api('assembler', { ids: [o.id, ...choisis] });
+        S.etat = r2.etat; S.sel = r2.id; rendreTout(); apercuBientot();
+        message('Colonne satin assemblée. Appuyez sur ⌘⌥B dans Inkscape pour l\'envoyer dans le dessin.');
+      } catch (e) { message(e.message, true); }
+    };
+    d.appendChild(b);
+  }).catch(() => { d.innerHTML = ''; });
+  return bloc('Rails et traverses', d);
+}
+
 // copier / coller les réglages d'une forme à l'autre
 const NON_COPIES = new Set(['lettering', 'satin_column']);
 function boutonsCopie(o) {
@@ -398,6 +435,7 @@ function rendreProps() {
     const fin = ['trim_after', 'stop_after'].map((n) => el.params.find((p) => p.name === n)).filter(Boolean);
     div.appendChild(bloc('Après cet objet', ...fin.map((p) => reglage(o, p, p.name === 'trim_after' ? 'Couper le fil' : 'Arrêter la machine'))));
   }
+  if (o.balise === 'path' && (o.types.includes('satin_column') || o.types.includes('stroke'))) div.appendChild(railsEtTraverses(o));
   const ou = outils(o); if (ou) div.appendChild(ou);
   div.appendChild(plusDeReglages(o, [...typs, ...(o.types.includes('clone') ? ['clone'] : []), 'element'], montres));
 }

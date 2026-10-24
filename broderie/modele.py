@@ -304,3 +304,66 @@ def contour_svg(svg, i):
     g.set("class", "selection-panneau")
     g.append(c)
     return etree.tostring(g, encoding="unicode")
+
+
+def _inkex():
+    """Bibliothèque d'Inkscape (chemins et transformations), fournie avec Inkscape."""
+    import sys
+    p = "/Applications/Inkscape.app/Contents/Resources/share/inkscape/extensions"
+    if os.path.isdir(p) and p not in sys.path:
+        sys.path.append(p)
+    import inkex
+    return inkex
+
+
+def _chemin(el):
+    """Tracé de l'élément dans le repère de son parent (sa propre transformation appliquée)."""
+    ix = _inkex()
+    p = ix.paths.Path(el.get("d") or "")
+    if el.get("transform"):
+        p = p.transform(ix.transforms.Transform(el.get("transform")))
+    return p
+
+
+def _boite(el, marge=0.0):
+    try:
+        b = _chemin(el).bounding_box()
+    except Exception:
+        return None
+    return (b.left - marge, b.top - marge, b.right + marge, b.bottom + marge) if b else None
+
+
+def traverses_possibles(svg, i):
+    """Traits (chemins) du même groupe qui touchent la colonne : rails ou traverses à assembler."""
+    el = par_id(svg, i)
+    if el is None or local(el) != "path":
+        return []
+    b = _boite(el, 1.0)
+    if not b:
+        return []
+    out = []
+    for f in el.getparent():
+        if f is el or not isinstance(f.tag, str) or local(f) != "path" or "stroke" not in types(f):
+            continue
+        c = _boite(f)
+        if c and c[0] <= b[2] and c[2] >= b[0] and c[1] <= b[3] and c[3] >= b[1]:
+            out.append(f.get("id"))
+    return out
+
+
+def assembler_satin(svg, ids):
+    """Réunit rails et traverses en un seul chemin colonne satin (comme Chemin › Combiner d'Inkscape)."""
+    els = [par_id(svg, i) for i in ids]
+    els = [e for e in els if e is not None and local(e) == "path"]
+    if len(els) < 2:
+        raise ValueError("Choisissez au moins deux traits à assembler.")
+    if len({id(e.getparent()) for e in els}) > 1:
+        raise ValueError("Ces traits sont dans des groupes différents : réunissez-les dans Inkscape (Chemin › Combiner, ⌘K).")
+    premier = els[0]
+    d = " ".join(str(_chemin(e)) for e in els)
+    premier.set("d", d)
+    premier.attrib.pop("transform", None)
+    premier.set("{%s}satin_column" % INKSTITCH_NS, "True")
+    for e in els[1:]:
+        e.getparent().remove(e)
+    return premier.get("id")

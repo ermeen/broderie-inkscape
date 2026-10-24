@@ -160,7 +160,7 @@ class Session:
     # --- actions du panneau -------------------------------------------------
     def action(self, nom, d):
         r = self._action(nom, d)
-        if nom in ("params", "couleur", "ordre", "abandonner", "sync", "lettrage"):
+        if nom in ("params", "couleur", "ordre", "abandonner", "sync", "lettrage", "assembler"):
             self.sauver()
         return r
 
@@ -203,6 +203,14 @@ class Session:
                 return {"ok": True}
             if nom == "commande":
                 return self._commande(d)
+            if nom == "traverses":
+                return {"ids": M.traverses_possibles(self.document, d["id"])}
+            if nom == "assembler":
+                ident = M.assembler_satin(self.document, d["ids"])
+                self.attente.append(("commande", "assembler_satin"))
+                self.version += 1
+                self.log("Colonne satin assemblée")
+                return {"id": ident, "etat": self.etat()}
             if nom == "contour":
                 return {"svg": M.contour_svg(self.document, d["id"]) if self.document is not None else None}
             if nom == "points":
