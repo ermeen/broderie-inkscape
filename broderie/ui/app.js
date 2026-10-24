@@ -475,11 +475,10 @@ $('#bTexte').onclick = () => { S.texte = true; const o = S.etat.objets.find((x) 
 let vb0 = null, vb = null, apercuDemande = 0, apercuEnCours = false;
 // mode de rendu et couleur du tissu (retenus d'une fois sur l'autre)
 let MODE = 'points', TISSU = '#ffffff';
-try { MODE = localStorage.getItem('broderie.mode') || 'points'; TISSU = localStorage.getItem('broderie.tissu') || '#ffffff'; } catch (e) { /* sans stockage */ }
+try { MODE = localStorage.getItem('broderie.mode') || 'points'; if (MODE !== 'points') MODE = 'realiste'; TISSU = localStorage.getItem('broderie.tissu') || '#ffffff'; } catch (e) { /* sans stockage */ }
 function barreRendu() {
   const d = document.createElement('div'); d.className = 'barre-rendu';
-  for (const [k, l, t] of [['points', 'Points', 'Les points et leur trajet'], ['realiste', 'Réaliste', 'Rendu photo du fil (image haute définition)'],
-    ['realiste-vectoriel', 'Réaliste net', 'Rendu réaliste vectoriel : reste net en zoomant (plus lent)']]) {
+  for (const [k, l, t] of [['points', 'Points', 'Les points et leur trajet'], ['realiste', 'Réaliste', 'Rendu photo du fil (image haute définition)']]) {
     const b = document.createElement('button'); b.textContent = l; b.title = t; if (k === MODE) b.className = 'on';
     b.onclick = (e) => { e.stopPropagation(); MODE = k; try { localStorage.setItem('broderie.mode', k); } catch (x) { /* rien */ } apercu(); };
     d.appendChild(b);

@@ -128,7 +128,7 @@ def document_modifie(sortie):
         return None
 
 
-MODES = {"points": "simple", "realiste": "realistic-600", "realiste-vectoriel": "realistic-vector"}
+MODES = {"points": "simple", "realiste": "realistic-600"}   # le rendu vectoriel demandait trop de mémoire
 
 
 def apercu(document, ids=None, mode="points"):
