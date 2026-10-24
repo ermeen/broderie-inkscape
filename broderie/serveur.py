@@ -203,6 +203,10 @@ class Session:
                 return {"ok": True}
             if nom == "commande":
                 return self._commande(d)
+            if nom == "fenetre":                       # largeur de la fenêtre du panneau (bouton ⇆)
+                from . import fenetre
+                ok, msg = fenetre.placer("http://127.0.0.1:%d" % PORT, int(d.get("largeur") or 440), forcer=True)
+                return {"ok": ok, "message": msg}
             if nom == "traverses":
                 return {"ids": M.traverses_possibles(self.document, d["id"])}
             if nom == "assembler":

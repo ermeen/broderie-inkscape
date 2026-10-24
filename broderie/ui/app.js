@@ -622,13 +622,13 @@ function verifierCadre() {
 }
 
 // ---------------------------------------------------------------- simulation intégrée (points d'Ink/Stitch)
-const SIM = { pts: null, fils: [], i: 0, lecture: false, raf: 0 };
+const SIM = { pts: null, fils: [], i: 0, lecture: false, raf: 0, vue: { k: 1, x: 0, y: 0 } };
 async function chargerSimulation() {
   if (!S.simu || SIM.pts !== S.simu.points) {
     try { await donneesPoints(); } catch (e) { message(e.message, true); return; }
     SIM.pts = S.simu.points; SIM.fils = S.simu.fils; SIM.i = SIM.pts.length;
     $('#sPos').max = SIM.pts.length; $('#sPos').value = SIM.i;
-    message('▶ pour voir la machine broder · le curseur avance ou recule point par point');
+    message('▶ pour voir la machine broder · molette : zoom · glisser : déplacer · double-clic : tout voir');
   }
   dessinerSimulation();
 }
@@ -646,7 +646,10 @@ function dessinerSimulation() {
   g.fillStyle = '#fff'; g.fillRect(0, 0, cv.width, cv.height);
   if (!SIM.pts || !SIM.pts.length) return;
   const { k, ox, oy } = cadreSimulation(cv);
-  g.lineWidth = Math.max(1, 3.5 * k); g.lineCap = 'round'; g.lineJoin = 'round';   // fil ≈ 0,35 mm (unités 0,1 mm)
+  g.setTransform(SIM.vue.k, 0, 0, SIM.vue.k, SIM.vue.x, SIM.vue.y);      // zoom et déplacement
+  g.lineWidth = Math.max(1 / SIM.vue.k, 2.2 * k); g.lineCap = 'round'; g.lineJoin = 'round';   // fil ≈ 0,22 mm (unités 0,1 mm)
+  g.globalAlpha = 0.9;
+  const trous = [];                                 // pénétrations de l'aiguille, visibles en zoomant
   let fil = 0, prec = null, nPoints = 0;
   g.strokeStyle = SIM.fils[0] || '#000'; g.beginPath();
   for (let i = 0; i < SIM.i && i < SIM.pts.length; i++) {
@@ -656,12 +659,19 @@ function dessinerSimulation() {
     if (c === 'STITCH') {
       if (prec) { g.moveTo(prec[0], prec[1]); g.lineTo(X, Y); }
       prec = [X, Y]; nPoints++;
+      if (k * SIM.vue.k > 3) trous.push(X, Y);
     } else prec = [X, Y];       // saut, coupe, arrêt : pas de fil dessiné
   }
   g.stroke();
+  g.globalAlpha = 1;
+  if (trous.length) {
+    g.fillStyle = 'rgba(0,0,0,.55)';
+    const r = Math.max(0.6 * k, 1.2 / SIM.vue.k);
+    for (let j = 0; j < trous.length; j += 2) { g.beginPath(); g.arc(trous[j], trous[j + 1], r, 0, 7); g.fill(); }
+  }
   const cur = SIM.pts[Math.min(SIM.i, SIM.pts.length) - 1];
   if (cur && SIM.i < SIM.pts.length) {
-    g.fillStyle = '#e74c3c'; g.beginPath(); g.arc(ox + cur[0] * k, oy + cur[1] * k, 4 * dpr, 0, 7); g.fill();
+    g.fillStyle = '#e74c3c'; g.beginPath(); g.arc(ox + cur[0] * k, oy + cur[1] * k, 4 * dpr / SIM.vue.k, 0, 7); g.fill();
   }
   const total = SIM.pts.filter((p) => p[2] === 'STITCH').length;
   $('#sInfo').textContent = `${nPoints.toLocaleString('fr')} / ${total.toLocaleString('fr')} points · fil ${Math.min(fil + 1, Math.max(1, SIM.fils.length))} / ${Math.max(1, SIM.fils.length)}`;
@@ -683,6 +693,22 @@ $('#sJouer').onclick = () => {
 };
 $('#sPos').oninput = (e) => { arreterSimulation(); SIM.i = +e.target.value; dessinerSimulation(); };
 window.addEventListener('resize', () => { if (S.vue === 'points') dessinerSimulation(); });
+// molette : zoom autour du pointeur · glisser : déplacer · double-clic : tout voir
+$('#simuCanvas').addEventListener('wheel', (e) => {
+  if (!SIM.pts) return; e.preventDefault();
+  const r = e.currentTarget.getBoundingClientRect(), dpr = window.devicePixelRatio || 1;
+  const mx = (e.clientX - r.left) * dpr, my = (e.clientY - r.top) * dpr, f = e.deltaY < 0 ? 1.2 : 1 / 1.2;
+  const k = Math.max(0.5, Math.min(60, SIM.vue.k * f)), q = k / SIM.vue.k;
+  SIM.vue = { k, x: mx - (mx - SIM.vue.x) * q, y: my - (my - SIM.vue.y) * q };
+  dessinerSimulation();
+}, { passive: false });
+$('#simuCanvas').addEventListener('pointerdown', (e) => {
+  const dpr = window.devicePixelRatio || 1, x0 = SIM.vue.x, y0 = SIM.vue.y;
+  const mv = (ev) => { SIM.vue.x = x0 + (ev.clientX - e.clientX) * dpr; SIM.vue.y = y0 + (ev.clientY - e.clientY) * dpr; dessinerSimulation(); };
+  const up = () => { document.removeEventListener('pointermove', mv); document.removeEventListener('pointerup', up); };
+  document.addEventListener('pointermove', mv); document.addEventListener('pointerup', up);
+});
+$('#simuCanvas').addEventListener('dblclick', () => { SIM.vue = { k: 1, x: 0, y: 0 }; dessinerSimulation(); });
 
 // ---------------------------------------------------------------- texte brodé (sans fenêtre Ink/Stitch)
 const TX = { texte: 'Bonjour', police: null, echelle: 100, align: 'left', pour: null };
@@ -844,6 +870,16 @@ $('#bExport').onclick = () => {
   location.href = `/export?format=${encodeURIComponent(f)}&ids=${encodeURIComponent((S.etat.selection || []).join(','))}`;
   message(`Fichier ${f.toUpperCase()} enregistré dans Téléchargements.`);
 };
+function rendreBoutonLarge() { $('#bLarge').textContent = window.innerWidth >= 760 ? '⇆ Panneau étroit' : '⇆ Aperçu à gauche'; }
+$('#bLarge').onclick = async () => {
+  const large = window.innerWidth < 760;
+  try {
+    const r = await api('fenetre', { largeur: large ? Math.min(1100, Math.round(screen.availWidth * 0.55)) : 440 });
+    if (!r.ok) message('Élargissez la fenêtre en tirant son bord gauche : l\'aperçu passe à gauche à partir de 760 pixels.');
+  } catch (e) { message('Élargissez la fenêtre en tirant son bord gauche : l\'aperçu passe à gauche à partir de 760 pixels.'); }
+};
+window.addEventListener('resize', rendreBoutonLarge);
+rendreBoutonLarge();
 $('#bPlus').onclick = () => { rendreCommandes(); $('#dlgCmd').showModal(); $('#cmdRecherche').focus(); };
 $('#cmdRecherche').oninput = rendreCommandes;
 $('#bAbandonner').onclick = async () => { S.etat = await api('abandonner'); rendreTout(); apercuBientot(); message('Modifications annulées.'); };

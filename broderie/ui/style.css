@@ -24,6 +24,7 @@ select, input[type=text], input[type=search], input[type=number], textarea { bac
 select { width: 100%; }
 header { background: var(--panneau); border-bottom: 1px solid var(--bord); }
 .titre { font-weight: 600; font-size: 14px; padding: 10px 14px 6px; display: flex; align-items: center; gap: 8px; }
+#bLarge { margin-left: auto; font-weight: 400; }
 .logo { width: 22px; height: 22px; border-radius: 6px; background: linear-gradient(135deg, #7b5cff, #3d7bff); color: #fff; display: inline-flex; align-items: center; justify-content: center; font-size: 13px; }
 .onglets { display: grid; grid-template-columns: repeat(4, 1fr); }
 .onglets button { border: none; border-radius: 0; background: none; padding: 7px 4px 8px; display: flex; flex-direction: column; align-items: center; gap: 2px;
@@ -150,3 +151,14 @@ dialog { border: 1px solid var(--bord); border-radius: 12px; background: var(--p
 #attente { position: fixed; inset: 0; background: rgba(0,0,0,.45); display: flex; align-items: center; justify-content: center; z-index: 10; }
 #attente[hidden] { display: none; }
 #attente > div { background: var(--panneau); padding: 14px 20px; border-radius: 10px; }
+
+/* fenêtre large : aperçu à gauche, réglages à droite (onglet Objets) */
+@media (min-width: 760px) {
+  #v-objets { flex-direction: row; align-items: stretch; }
+  #emplApercuObjets { flex: 1; min-width: 0; }
+  #emplApercuObjets #apercu { height: auto; flex: 1; }
+  #poignee { display: none; }
+  #v-objets .defile { flex: 0 0 400px; }
+  .onglets { max-width: 560px; }
+}
+#simuCanvas { cursor: grab; touch-action: none; }
