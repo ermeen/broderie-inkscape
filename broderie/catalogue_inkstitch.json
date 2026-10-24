@@ -8,7 +8,10 @@
    "format": null,
    "type": "effect",
    "menu": "Ink/Stitch",
-   "params": []
+   "params": [],
+   "fenetre": true,
+   "dans_inkscape": false,
+   "essai": null
   },
   {
    "fichier": "inkstitch_apply_attribute.inx",
@@ -22,31 +25,38 @@
      "name": "namespace",
      "type": "string",
      "label": "Namespace",
+     "aide": "",
      "default": "inkstitch",
-     "options": null
+     "page": "Options"
     },
     {
      "name": "key",
      "type": "string",
      "label": "Attribute",
+     "aide": "",
      "default": "",
-     "options": null
+     "page": "Options"
     },
     {
      "name": "value",
      "type": "string",
      "label": "Value",
+     "aide": "",
      "default": "",
-     "options": null
+     "page": "Options"
     },
     {
      "name": "remove",
      "type": "boolean",
      "label": "Remove attribute",
+     "aide": "",
      "default": "false",
-     "options": null
+     "page": "Options"
     }
-   ]
+   ],
+   "fenetre": false,
+   "dans_inkscape": false,
+   "essai": "ok"
   },
   {
    "fichier": "inkstitch_apply_palette.inx",
@@ -55,7 +65,10 @@
    "format": null,
    "type": "effect",
    "menu": "Ink/Stitch/Thread Color Management",
-   "params": []
+   "params": [],
+   "fenetre": true,
+   "dans_inkscape": false,
+   "essai": null
   },
   {
    "fichier": "inkstitch_apply_threadlist.inx",
@@ -69,27 +82,194 @@
      "name": "filepath",
      "type": "path",
      "label": "Choose file",
+     "aide": "",
      "default": "",
-     "options": null
+     "page": "Options",
+     "mode": "file",
+     "filetypes": "txt,edr,col,inf"
     },
     {
      "name": "method",
      "type": "optiongroup",
      "label": "Choose method",
-     "default": "",
+     "aide": "",
+     "default": "1",
+     "page": "Options",
      "options": [
       "1",
       "2"
+     ],
+     "options_libelles": [
+      "Apply Ink/Stitch threadlist",
+      "Apply other threadlist*"
      ]
     },
     {
      "name": "palette",
      "type": "enum",
      "label": "*Choose color palette",
-     "default": "",
-     "options": null
+     "aide": "",
+     "default": "ARC Polyester",
+     "page": "Options",
+     "options": [
+      "ARC Polyester",
+      "ARC Rayon",
+      "Admelody Polyester",
+      "Admelody Rayon",
+      "Anchor",
+      "Aurifil Lana",
+      "Aurifil Mako",
+      "Aurifil Polyester",
+      "Aurifil Rayon",
+      "Aurifil Royal",
+      "BFC Polyester",
+      "Brildor AC",
+      "Brildor CO",
+      "Brildor MF",
+      "Brildor NY",
+      "Brildor PB",
+      "Brother Country",
+      "Brother Embroidery",
+      "Coats Alcazar",
+      "Coats Alcazar Jazz",
+      "Coats Sylko",
+      "Coats Sylko USA",
+      "DMC",
+      "Embroidex",
+      "Emmel",
+      "Fil-Tec Glide",
+      "Floriani Polyester",
+      "FuFu Polyester",
+      "FuFu Rayon",
+      "Gunold Polyester",
+      "Gutermann Creativ Dekor",
+      "Hemingworth",
+      "Isacord Polyester",
+      "Isafil Rayon",
+      "Isalon Polyester",
+      "Janome",
+      "King Star",
+      "MTB - Embroidex",
+      "Madeira Burmilana",
+      "Madeira Matt",
+      "Madeira Polyneon",
+      "Madeira Rayon",
+      "Magnifico",
+      "Marathon Polyester",
+      "Marathon Rayon",
+      "Marathon Rayon V3",
+      "Metro",
+      "Mettler Embroidery",
+      "Mettler Poly Sheen",
+      "New Brothread 40 Colors",
+      "New Brothread 80 Colors",
+      "Outback Embroidery Rayon",
+      "Poly X40",
+      "Princess",
+      "RAL",
+      "Radiant Rayon",
+      "Robison-Anton Polyester",
+      "Robison-Anton Rayon",
+      "Royal Polyester",
+      "Royal Viscose Rayon",
+      "Sigma",
+      "Simthread 63 Brother Colours Polyester",
+      "Simthread Polyester",
+      "Simthread Rayon",
+      "Simthread glow in the dark / 15 colors",
+      "Sulky Polyester",
+      "Sulky Rayon",
+      "Swist Rayon",
+      "Threadart",
+      "Tristar Polyester",
+      "Tristar Rayon",
+      "Viking Palette",
+      "Vyapar Rayon",
+      "Wonderfil Polyester",
+      "Wonderfil Rayon"
+     ],
+     "options_libelles": [
+      "ARC Polyester",
+      "ARC Rayon",
+      "Admelody Polyester",
+      "Admelody Rayon",
+      "Anchor",
+      "Aurifil Lana",
+      "Aurifil Mako",
+      "Aurifil Polyester",
+      "Aurifil Rayon",
+      "Aurifil Royal",
+      "BFC Polyester",
+      "Brildor AC",
+      "Brildor CO",
+      "Brildor MF",
+      "Brildor NY",
+      "Brildor PB",
+      "Brother Country",
+      "Brother Embroidery",
+      "Coats Alcazar",
+      "Coats Alcazar Jazz",
+      "Coats Sylko",
+      "Coats Sylko USA",
+      "DMC",
+      "Embroidex",
+      "Emmel",
+      "Fil-Tec Glide",
+      "Floriani Polyester",
+      "FuFu Polyester",
+      "FuFu Rayon",
+      "Gunold Polyester",
+      "Gutermann Creativ Dekor",
+      "Hemingworth",
+      "Isacord Polyester",
+      "Isafil Rayon",
+      "Isalon Polyester",
+      "Janome",
+      "King Star",
+      "MTB - Embroidex",
+      "Madeira Burmilana",
+      "Madeira Matt",
+      "Madeira Polyneon",
+      "Madeira Rayon",
+      "Magnifico",
+      "Marathon Polyester",
+      "Marathon Rayon",
+      "Marathon Rayon V3",
+      "Metro",
+      "Mettler Embroidery",
+      "Mettler Poly Sheen",
+      "New Brothread 40 Colors",
+      "New Brothread 80 Colors",
+      "Outback Embroidery Rayon",
+      "Poly X40",
+      "Princess",
+      "RAL",
+      "Radiant Rayon",
+      "Robison-Anton Polyester",
+      "Robison-Anton Rayon",
+      "Royal Polyester",
+      "Royal Viscose Rayon",
+      "Sigma",
+      "Simthread 63 Brother Colours Polyester",
+      "Simthread Polyester",
+      "Simthread Rayon",
+      "Simthread glow in the dark / 15 colors",
+      "Sulky Polyester",
+      "Sulky Rayon",
+      "Swist Rayon",
+      "Threadart",
+      "Tristar Polyester",
+      "Tristar Rayon",
+      "Viking Palette",
+      "Vyapar Rayon",
+      "Wonderfil Polyester",
+      "Wonderfil Rayon"
+     ]
     }
-   ]
+   ],
+   "fenetre": false,
+   "dans_inkscape": false,
+   "essai": "échec"
   },
   {
    "fichier": "inkstitch_auto_run.inx",
@@ -103,24 +283,30 @@
      "name": "break_up",
      "type": "boolean",
      "label": "Add nodes at intersections",
+     "aide": "",
      "default": "true",
-     "options": null
+     "page": "Auto-Route Running Stitch Options"
     },
     {
      "name": "preserve_order",
      "type": "boolean",
      "label": "Preserve order of running stitches",
+     "aide": "",
      "default": "false",
-     "options": null
+     "page": "Auto-Route Running Stitch Options"
     },
     {
      "name": "trim",
      "type": "boolean",
      "label": "Trim jump stitches",
+     "aide": "",
      "default": "false",
-     "options": null
+     "page": "Auto-Route Running Stitch Options"
     }
-   ]
+   ],
+   "fenetre": false,
+   "dans_inkscape": false,
+   "essai": "ok"
   },
   {
    "fichier": "inkstitch_auto_satin.inx",
@@ -134,24 +320,30 @@
      "name": "trim",
      "type": "boolean",
      "label": "Trim jump stitches",
+     "aide": "",
      "default": "true",
-     "options": null
+     "page": "Options"
     },
     {
      "name": "preserve_order",
      "type": "boolean",
      "label": "Preserve order of satin columns",
+     "aide": "",
      "default": "false",
-     "options": null
+     "page": "Options"
     },
     {
      "name": "keep_originals",
      "type": "boolean",
      "label": "Keep original paths",
+     "aide": "",
      "default": "false",
-     "options": null
+     "page": "Options"
     }
-   ]
+   ],
+   "fenetre": false,
+   "dans_inkscape": false,
+   "essai": "ok"
   },
   {
    "fichier": "inkstitch_batch_lettering.inx",
@@ -165,124 +357,190 @@
      "name": "text",
      "type": "string",
      "label": "Text",
+     "aide": "Enter the text. Each line of text will be exported to a separate file.",
      "default": "",
-     "options": null
+     "page": "Options",
+     "appearance": "multiline"
     },
     {
      "name": "separator",
      "type": "string",
      "label": "Custom separator",
+     "aide": "Set a custom separator for multiline text export. Leave empty for line break.",
      "default": "",
-     "options": null
+     "page": "Options"
     },
     {
      "name": "font",
      "type": "string",
      "label": "Font name",
+     "aide": "",
      "default": "",
-     "options": null
+     "page": "Options"
     },
     {
      "name": "scale",
      "type": "int",
      "label": "Scale (%)",
+     "aide": "The scale value must be within the scale range of the specified font.",
      "default": "100",
-     "options": null
+     "page": "Options",
+     "min": "1",
+     "max": "800"
     },
     {
      "name": "color-sort",
      "type": "optiongroup",
      "label": "Color sort",
-     "default": "",
+     "aide": "",
+     "default": "off",
+     "page": "Options",
      "options": [
       "off",
       "all",
       "line",
       "word"
-     ]
+     ],
+     "options_libelles": [
+      "Off",
+      "Whole text",
+      "Line",
+      "Word"
+     ],
+     "appearance": "combo"
     },
     {
      "name": "trim",
      "type": "optiongroup",
      "label": "Add trims",
-     "default": "",
+     "aide": "",
+     "default": "off",
+     "page": "Options",
      "options": [
       "off",
       "line",
       "word",
       "glyph"
-     ]
+     ],
+     "options_libelles": [
+      "Never",
+      "after each line",
+      "after each word",
+      "after each letter"
+     ],
+     "appearance": "combo"
     },
     {
      "name": "use-command-symbols",
      "type": "boolean",
      "label": "Use command symbols",
+     "aide": "",
      "default": "false",
-     "options": null
+     "page": "Options"
     },
     {
      "name": "text-align",
      "type": "optiongroup",
      "label": "Align Multiline Text",
-     "default": "",
+     "aide": "",
+     "default": "left",
+     "page": "Options",
      "options": [
       "left",
       "center",
       "right",
       "block",
       "letterspacing"
-     ]
+     ],
+     "options_libelles": [
+      "Left",
+      "Center",
+      "Right",
+      "Block (default)",
+      "Block (letterspacing)"
+     ],
+     "appearance": "combo"
     },
     {
      "name": "letter_spacing",
      "type": "float",
      "label": "Letter spacing",
+     "aide": "",
      "default": "0",
-     "options": null
+     "page": "Options",
+     "min": "-500",
+     "max": "500",
+     "precision": "2"
     },
     {
      "name": "word_spacing",
      "type": "float",
      "label": "Word spacing",
+     "aide": "",
      "default": "0",
-     "options": null
+     "page": "Options",
+     "min": "-500",
+     "max": "500",
+     "precision": "2"
     },
     {
      "name": "line_height",
      "type": "float",
      "label": "Line height",
+     "aide": "",
      "default": "0",
-     "options": null
+     "page": "Options",
+     "min": "-500",
+     "max": "500",
+     "precision": "2"
     },
     {
      "name": "text-position",
      "type": "optiongroup",
      "label": "Horizontal text position",
-     "default": "",
+     "aide": "Uses this text position when using lettering along path",
+     "default": "left",
+     "page": "Options",
      "options": [
       "left",
       "center",
       "right",
       "stretch"
-     ]
+     ],
+     "options_libelles": [
+      "Left",
+      "Center",
+      "Right",
+      "Stretch"
+     ],
+     "appearance": "combo"
     },
     {
      "name": "vertical-text-position",
      "type": "optiongroup",
      "label": "Vertical text position",
-     "default": "",
+     "aide": "Uses this text position when using lettering along path",
+     "default": "top",
+     "page": "Options",
      "options": [
       "top",
       "baseline",
       "bottom"
-     ]
+     ],
+     "options_libelles": [
+      "Top",
+      "Baseline",
+      "Bottom"
+     ],
+     "appearance": "combo"
     },
     {
      "name": "file-formats",
      "type": "string",
      "label": "File formats",
+     "aide": "Comma separated list of file formats",
      "default": "",
-     "options": null
+     "page": "Options"
     }
    ]
   },
@@ -298,20 +556,32 @@
      "name": "method",
      "type": "optiongroup",
      "label": "Method",
-     "default": "",
+     "aide": "",
+     "default": "0",
+     "page": "Options",
      "options": [
       "0",
       "1"
+     ],
+     "options_libelles": [
+      "Simple",
+      "Complex"
      ]
     },
     {
      "name": "threshold",
      "type": "float",
      "label": "Threshold (px²)",
+     "aide": "Removes shapes and holes smaller than this",
      "default": "20",
-     "options": null
+     "page": "Options",
+     "min": "0.1",
+     "max": "1000"
     }
-   ]
+   ],
+   "fenetre": false,
+   "dans_inkscape": false,
+   "essai": "ok"
   },
   {
    "fichier": "inkstitch_cleanup.inx",
@@ -325,59 +595,76 @@
      "name": "rm_fill",
      "type": "boolean",
      "label": "Remove Small Fill Areas",
+     "aide": "Removes areas smaller than defined by threshold.",
      "default": "true",
-     "options": null
+     "page": "Options"
     },
     {
      "name": "fill_threshold",
      "type": "float",
      "label": "Fill area threshold (mm²)",
+     "aide": "",
      "default": "5",
-     "options": null
+     "page": "Options",
+     "min": "0",
+     "max": "800"
     },
     {
      "name": "rm_stroke",
      "type": "boolean",
      "label": "Remove Small strokes",
+     "aide": "Removes small strokes shorter than defined by threshold.",
      "default": "true",
-     "options": null
+     "page": "Options"
     },
     {
      "name": "stroke_threshold",
      "type": "float",
      "label": "Stroke threshold (mm)",
+     "aide": "",
      "default": "1.35",
-     "options": null
+     "page": "Options",
+     "min": "0",
+     "max": "800"
     },
     {
      "name": "rm_satin",
      "type": "boolean",
      "label": "Remove Small satins",
+     "aide": "Removes small satin columns shorter than defined by threshold.",
      "default": "true",
-     "options": null
+     "page": "Options"
     },
     {
      "name": "satin_threshold",
      "type": "float",
      "label": "Satin threshold (mm)",
+     "aide": "",
      "default": "1.35",
-     "options": null
+     "page": "Options",
+     "min": "0",
+     "max": "800"
     },
     {
      "name": "rm_groups",
      "type": "boolean",
      "label": "Remove empty layers and groups",
+     "aide": "",
      "default": "true",
-     "options": null
+     "page": "Options"
     },
     {
      "name": "dry_run",
      "type": "boolean",
      "label": "Test run",
+     "aide": "Only display labels and ids of affected elements and groups without removing them.",
      "default": "true",
-     "options": null
+     "page": "Options"
     }
-   ]
+   ],
+   "fenetre": false,
+   "dans_inkscape": false,
+   "essai": "ok"
   },
   {
    "fichier": "inkstitch_commands_scale_symbols.inx",
@@ -391,10 +678,17 @@
      "name": "size",
      "type": "int",
      "label": "Size (%)",
+     "aide": "",
      "default": "100",
-     "options": null
+     "page": "",
+     "min": "0",
+     "max": "400",
+     "appearance": "full"
     }
-   ]
+   ],
+   "fenetre": false,
+   "dans_inkscape": false,
+   "essai": "ok"
   },
   {
    "fichier": "inkstitch_cross_stitch_assistant.inx",
@@ -403,7 +697,10 @@
    "format": null,
    "type": "effect",
    "menu": "Ink/Stitch/Tools: Fill",
-   "params": []
+   "params": [],
+   "fenetre": true,
+   "dans_inkscape": false,
+   "essai": null
   },
   {
    "fichier": "inkstitch_cut_satin.inx",
@@ -412,7 +709,10 @@
    "format": null,
    "type": "effect",
    "menu": "Ink/Stitch/Tools: Satin",
-   "params": []
+   "params": [],
+   "fenetre": false,
+   "dans_inkscape": false,
+   "essai": "ok"
   },
   {
    "fichier": "inkstitch_cutwork_segmentation.inx",
@@ -426,101 +726,154 @@
      "name": "a_start",
      "type": "int",
      "label": "start",
+     "aide": "",
      "default": "112",
-     "options": null
+     "page": "Cutwork Options",
+     "min": "0",
+     "max": "180",
+     "precision": "1",
+     "appearance": "full"
     },
     {
      "name": "a_end",
      "type": "int",
      "label": "end",
+     "aide": "",
      "default": "157",
-     "options": null
+     "page": "Cutwork Options",
+     "min": "0",
+     "max": "180",
+     "precision": "1",
+     "appearance": "full"
     },
     {
      "name": "a_color",
      "type": "color",
      "label": "color",
+     "aide": "",
      "default": "0x990000ff",
-     "options": null
+     "page": "Cutwork Options",
+     "appearance": "colorbutton"
     },
     {
      "name": "b_start",
      "type": "int",
      "label": "start",
+     "aide": "",
      "default": "158",
-     "options": null
+     "page": "Cutwork Options",
+     "min": "0",
+     "max": "180",
+     "precision": "1",
+     "appearance": "full"
     },
     {
      "name": "b_end",
      "type": "int",
      "label": "end",
+     "aide": "",
      "default": "23",
-     "options": null
+     "page": "Cutwork Options",
+     "min": "0",
+     "max": "180",
+     "precision": "1",
+     "appearance": "full"
     },
     {
      "name": "b_color",
      "type": "color",
      "label": "color",
+     "aide": "",
      "default": "0xe5a50aff",
-     "options": null
+     "page": "Cutwork Options",
+     "appearance": "colorbutton"
     },
     {
      "name": "c_start",
      "type": "int",
      "label": "start",
+     "aide": "",
      "default": "22",
-     "options": null
+     "page": "Cutwork Options",
+     "min": "0",
+     "max": "180",
+     "precision": "1",
+     "appearance": "full"
     },
     {
      "name": "c_end",
      "type": "int",
      "label": "end",
+     "aide": "",
      "default": "68",
-     "options": null
+     "page": "Cutwork Options",
+     "min": "0",
+     "max": "180",
+     "precision": "1",
+     "appearance": "full"
     },
     {
      "name": "c_color",
      "type": "color",
      "label": "color",
+     "aide": "",
      "default": "0x009900ff",
-     "options": null
+     "page": "Cutwork Options",
+     "appearance": "colorbutton"
     },
     {
      "name": "d_start",
      "type": "int",
      "label": "start",
+     "aide": "",
      "default": "67",
-     "options": null
+     "page": "Cutwork Options",
+     "min": "0",
+     "max": "180",
+     "precision": "1",
+     "appearance": "full"
     },
     {
      "name": "d_end",
      "type": "int",
      "label": "end",
+     "aide": "",
      "default": "113",
-     "options": null
+     "page": "Cutwork Options",
+     "min": "0",
+     "max": "180",
+     "precision": "1",
+     "appearance": "full"
     },
     {
      "name": "d_color",
      "type": "color",
      "label": "color",
+     "aide": "",
      "default": "0x000099ff",
-     "options": null
+     "page": "Cutwork Options",
+     "appearance": "colorbutton"
     },
     {
      "name": "sort_by_color",
      "type": "boolean",
      "label": "Sort elements by color",
+     "aide": "",
      "default": "true",
-     "options": null
+     "page": "Cutwork Options"
     },
     {
      "name": "keep_original",
      "type": "boolean",
      "label": "Keep original",
+     "aide": "",
      "default": "false",
-     "options": null
+     "page": "Cutwork Options"
     }
-   ]
+   ],
+   "fenetre": false,
+   "dans_inkscape": false,
+   "essai": "échec"
   },
   {
    "fichier": "inkstitch_density_map.inx",
@@ -534,49 +887,76 @@
      "name": "num-neighbors-red",
      "type": "int",
      "label": "Number of stitches",
+     "aide": "0 = no density info",
      "default": "6",
-     "options": null
+     "page": "Options",
+     "min": "0",
+     "max": "99"
     },
     {
      "name": "density-radius-red",
      "type": "float",
      "label": "within a radius (mm) of",
+     "aide": "",
      "default": "0.5",
-     "options": null
+     "page": "Options",
+     "min": "0",
+     "max": "50"
     },
     {
      "name": "num-neighbors-yellow",
      "type": "int",
      "label": "Number of stitches",
+     "aide": "0 = no density info",
      "default": "3",
-     "options": null
+     "page": "Options",
+     "min": "0",
+     "max": "99"
     },
     {
      "name": "density-radius-yellow",
      "type": "float",
      "label": "within a radius (mm) of",
+     "aide": "",
      "default": "0.5",
-     "options": null
+     "page": "Options",
+     "min": "0",
+     "max": "50"
     },
     {
      "name": "layer-visibility",
      "type": "optiongroup",
      "label": "Design layer visibility",
-     "default": "",
+     "aide": "",
+     "default": "0",
+     "page": "Options",
      "options": [
       "0",
       "1",
       "2"
-     ]
+     ],
+     "options_libelles": [
+      "Unchanged",
+      "Hidden",
+      "Lower opacity"
+     ],
+     "appearance": "combo"
     },
     {
      "name": "indicator-size",
      "type": "float",
      "label": "Indicator size",
+     "aide": "",
      "default": "0.5",
-     "options": null
+     "page": "Options",
+     "min": "0",
+     "max": "50",
+     "precision": "2"
     }
-   ]
+   ],
+   "fenetre": false,
+   "dans_inkscape": false,
+   "essai": "ok"
   },
   {
    "fichier": "inkstitch_display_stacking_order.inx",
@@ -590,10 +970,16 @@
      "name": "font_size",
      "type": "int",
      "label": "Font size",
+     "aide": "",
      "default": "4",
-     "options": null
+     "page": "Options",
+     "min": "0",
+     "max": "100"
     }
-   ]
+   ],
+   "fenetre": false,
+   "dans_inkscape": false,
+   "essai": "ok"
   },
   {
    "fichier": "inkstitch_duplicate_params.inx",
@@ -602,7 +988,10 @@
    "format": null,
    "type": "effect",
    "menu": "Ink/Stitch/Edit",
-   "params": []
+   "params": [],
+   "fenetre": false,
+   "dans_inkscape": false,
+   "essai": "ok"
   },
   {
    "fichier": "inkstitch_element_info.inx",
@@ -611,7 +1000,10 @@
    "format": null,
    "type": "effect",
    "menu": "Ink/Stitch/Troubleshoot",
-   "params": []
+   "params": [],
+   "fenetre": true,
+   "dans_inkscape": false,
+   "essai": null
   },
   {
    "fichier": "inkstitch_fill_to_satin.inx",
@@ -625,50 +1017,70 @@
      "name": "skip_end_section",
      "type": "boolean",
      "label": "Start / end at rung",
+     "aide": "Needs at least 2 rungs",
      "default": "false",
-     "options": null
+     "page": "Options"
     },
     {
      "name": "pull_compensation_mm",
      "type": "float",
      "label": "Pull compensation (mm)",
+     "aide": "",
      "default": "0.0",
-     "options": null
+     "page": "Options",
+     "min": "-10",
+     "max": "10",
+     "precision": "2"
     },
     {
      "name": "center",
      "type": "boolean",
      "label": "Center-walk underlay",
+     "aide": "",
      "default": "false",
-     "options": null
+     "page": "Options"
     },
     {
      "name": "contour",
      "type": "boolean",
      "label": "Contour underlay",
+     "aide": "",
      "default": "false",
-     "options": null
+     "page": "Options"
     },
     {
      "name": "zigzag",
      "type": "boolean",
      "label": "Zig-zag underlay",
+     "aide": "",
      "default": "false",
-     "options": null
+     "page": "Options"
     },
     {
      "name": "keep",
      "type": "optiongroup",
      "label": "Keep (do not remove)",
-     "default": "",
+     "aide": "Define which elements from the original selection will be removed after conversion.                                     Fills with no rung interesection are neither converted nor removed.",
+     "default": "none",
+     "page": "Options",
      "options": [
       "none",
       "original_fills",
       "original_fills_and_rungs",
       "unused_subpaths"
-     ]
+     ],
+     "options_libelles": [
+      "None (remove entire selection)",
+      "Fills (remove rungs only)",
+      "Fills and rungs (keep entire selection)",
+      "Unconverted disconnected fill subpaths"
+     ],
+     "appearance": "combo"
     }
-   ]
+   ],
+   "fenetre": true,
+   "dans_inkscape": false,
+   "essai": null
   },
   {
    "fichier": "inkstitch_fill_to_stroke.inx",
@@ -682,31 +1094,44 @@
      "name": "keep_original",
      "type": "boolean",
      "label": "Keep original",
+     "aide": "",
      "default": "false",
-     "options": null
+     "page": "Options"
     },
     {
      "name": "threshold_mm",
      "type": "float",
      "label": "Threshold for dead ends (mm)",
+     "aide": "Deletes small lines. A good value in most cases is the approximate line width of the original shape",
      "default": "10",
-     "options": null
+     "page": "Options",
+     "min": "0",
+     "max": "500",
+     "precision": "2"
     },
     {
      "name": "line_width_mm",
      "type": "float",
      "label": "Line width (mm)",
+     "aide": "",
      "default": "0.26",
-     "options": null
+     "page": "Options",
+     "min": "0",
+     "max": "15",
+     "precision": "2"
     },
     {
      "name": "close_gaps",
      "type": "boolean",
      "label": "Cut lines: close gaps",
+     "aide": "",
      "default": "false",
-     "options": null
+     "page": "Options"
     }
-   ]
+   ],
+   "fenetre": false,
+   "dans_inkscape": false,
+   "essai": "ok"
   },
   {
    "fichier": "inkstitch_flip.inx",
@@ -715,7 +1140,10 @@
    "format": null,
    "type": "effect",
    "menu": "Ink/Stitch/Tools: Satin",
-   "params": []
+   "params": [],
+   "fenetre": false,
+   "dans_inkscape": false,
+   "essai": "ok"
   },
   {
    "fichier": "inkstitch_generate_palette.inx",
@@ -729,17 +1157,23 @@
      "name": "palette_name",
      "type": "string",
      "label": "Palette name",
+     "aide": "",
      "default": "",
-     "options": null
+     "page": "Generate Palette Options"
     },
     {
      "name": "palette_folder",
      "type": "path",
      "label": "Folder (optional):",
+     "aide": "",
      "default": "",
-     "options": null
+     "page": "Generate Palette Options",
+     "mode": "folder"
     }
-   ]
+   ],
+   "fenetre": false,
+   "dans_inkscape": false,
+   "essai": "ok"
   },
   {
    "fichier": "inkstitch_global_commands.inx",
@@ -753,17 +1187,22 @@
      "name": "origin",
      "type": "boolean",
      "label": "Origin for exported embroidery files",
+     "aide": "",
      "default": "false",
-     "options": null
+     "page": ""
     },
     {
      "name": "stop_position",
      "type": "boolean",
      "label": "Jump destination for Stop commands (a.k.a. \"Frame Out position\").",
+     "aide": "",
      "default": "false",
-     "options": null
+     "page": ""
     }
-   ]
+   ],
+   "fenetre": false,
+   "dans_inkscape": false,
+   "essai": "ok"
   },
   {
    "fichier": "inkstitch_gradient_blocks.inx",
@@ -777,10 +1216,17 @@
      "name": "end-row-spacing",
      "type": "float",
      "label": "End row spacing",
+     "aide": "Set to zero to use twice the row spacing value",
      "default": "0",
-     "options": null
+     "page": "Options",
+     "min": "0",
+     "max": "100",
+     "precision": "2"
     }
-   ]
+   ],
+   "fenetre": false,
+   "dans_inkscape": false,
+   "essai": "ok"
   },
   {
    "fichier": "inkstitch_input_100.inx",
@@ -1244,17 +1690,22 @@
      "name": "install-palettes",
      "type": "boolean",
      "label": "Install thread color palettes",
+     "aide": "Installs some default thread color palettes.",
      "default": "true",
-     "options": null
+     "page": "Options"
     },
     {
      "name": "install-symbol-libraries",
      "type": "boolean",
      "label": "Install symbol libraries",
+     "aide": "Installs symbol libraries with reusable motifs for embroidery",
      "default": "true",
-     "options": null
+     "page": "Options"
     }
-   ]
+   ],
+   "fenetre": true,
+   "dans_inkscape": false,
+   "essai": null
   },
   {
    "fichier": "inkstitch_install_custom_palette.inx",
@@ -1268,10 +1719,16 @@
      "name": "filepath",
      "type": "path",
      "label": "Choose file",
+     "aide": "",
      "default": "",
-     "options": null
+     "page": "Options",
+     "mode": "file",
+     "filetypes": "gpl"
     }
-   ]
+   ],
+   "fenetre": true,
+   "dans_inkscape": false,
+   "essai": null
   },
   {
    "fichier": "inkstitch_jump_to_stroke.inx",
@@ -1285,77 +1742,103 @@
      "name": "minimum-jump-length",
      "type": "float",
      "label": "Convert jumps longer than (mm)",
+     "aide": "A value of 0 defaults to the actual minimum jump stitch length.",
      "default": "0",
-     "options": null
+     "page": "Options",
+     "min": "0",
+     "max": "100",
+     "precision": "2"
     },
     {
      "name": "maximum-jump-length",
      "type": "float",
      "label": "Convert jumps shorter than (mm)",
+     "aide": "A value of 0 means no size limit.",
      "default": "0",
-     "options": null
+     "page": "Options",
+     "min": "0",
+     "max": "10000",
+     "precision": "2"
     },
     {
      "name": "connect",
      "type": "optiongroup",
      "label": "Connect",
-     "default": "",
+     "aide": "",
+     "default": "all",
+     "page": "Options",
      "options": [
       "all",
       "layer",
       "group"
-     ]
+     ],
+     "options_libelles": [
+      "all",
+      "in same layer",
+      "in same group"
+     ],
+     "appearance": "combo"
     },
     {
      "name": "exclude-trim",
      "type": "bool",
      "label": "Trim",
+     "aide": "",
      "default": "true",
-     "options": null
+     "page": "Options"
     },
     {
      "name": "exclude-stop",
      "type": "bool",
      "label": "Stop",
+     "aide": "",
      "default": "true",
-     "options": null
+     "page": "Options"
     },
     {
      "name": "exclude-force-lock-stitch",
      "type": "bool",
      "label": "Force lock stitch",
+     "aide": "",
      "default": "true",
-     "options": null
+     "page": "Options"
     },
     {
      "name": "merge",
      "type": "bool",
      "label": "Merge consecutive strokes of same type",
+     "aide": "",
      "default": "false",
-     "options": null
+     "page": "Output settings"
     },
     {
      "name": "merge_subpaths",
      "type": "bool",
      "label": "Merge subpaths of stroke elements",
+     "aide": "",
      "default": "false",
-     "options": null
+     "page": "Output settings"
     },
     {
      "name": "stitch-length",
      "type": "float",
      "label": "Running stitch length (mm)",
+     "aide": "",
      "default": "2.5",
-     "options": null
+     "page": "Output settings"
     },
     {
      "name": "tolerance",
      "type": "float",
      "label": "Running stitch tolerance (mm)",
+     "aide": "",
      "default": "2.0",
-     "options": null
+     "page": "Output settings"
     }
-   ]
+   ],
+   "fenetre": false,
+   "dans_inkscape": false,
+   "essai": "ok"
   },
   {
    "fichier": "inkstitch_jump_to_trim.inx",
@@ -1369,34 +1852,53 @@
      "name": "command",
      "type": "optiongroup",
      "label": "Command",
-     "default": "",
+     "aide": "",
+     "default": "trim",
+     "page": "Options",
      "options": [
       "trim",
       "stop"
-     ]
+     ],
+     "options_libelles": [
+      "Trim",
+      "Stop"
+     ],
+     "appearance": "combo"
     },
     {
      "name": "minimum-jump-length",
      "type": "float",
      "label": "Convert jumps not shorter than (mm)",
+     "aide": "",
      "default": "3.0",
-     "options": null
+     "page": "Options",
+     "min": "0",
+     "max": "100",
+     "precision": "2"
     },
     {
      "name": "maximum-jump-length",
      "type": "float",
      "label": "Convert jumps not longer than (mm)",
+     "aide": "",
      "default": "0",
-     "options": null
+     "page": "Options",
+     "min": "0",
+     "max": "10000",
+     "precision": "2"
     },
     {
      "name": "use-command-symbol",
      "type": "boolean",
      "label": "Use command symbol",
+     "aide": "",
      "default": "false",
-     "options": null
+     "page": "Options"
     }
-   ]
+   ],
+   "fenetre": false,
+   "dans_inkscape": false,
+   "essai": "ok"
   },
   {
    "fichier": "inkstitch_knockdown_fill.inx",
@@ -1410,78 +1912,119 @@
      "name": "stitch-length",
      "type": "float",
      "label": "Stitch length",
+     "aide": "",
      "default": "3",
-     "options": null
+     "page": "Options",
+     "min": "0.1",
+     "max": "50"
     },
     {
      "name": "keep-holes",
      "type": "bool",
      "label": "Keep holes",
+     "aide": "",
      "default": "true",
-     "options": null
+     "page": "Options"
     },
     {
      "name": "offset",
      "type": "float",
      "label": "Offset",
+     "aide": "",
      "default": "1",
-     "options": null
+     "page": "Options",
+     "min": "-50",
+     "max": "50"
     },
     {
      "name": "join-style",
      "type": "optiongroup",
      "label": "Join style",
-     "default": "",
+     "aide": "",
+     "default": "1",
+     "page": "Options",
      "options": [
       "1",
       "2",
       "3"
-     ]
+     ],
+     "options_libelles": [
+      "Round",
+      "Mitre",
+      "Bevel"
+     ],
+     "appearance": "combo"
     },
     {
      "name": "mitre-limit",
      "type": "float",
      "label": "Mitre limit",
+     "aide": "",
      "default": "5.0",
-     "options": null
+     "page": "Options",
+     "min": "0.1",
+     "max": "50"
     },
     {
      "name": "shape",
      "type": "optiongroup",
      "label": "Shape",
+     "aide": "",
      "default": "",
+     "page": "Embossing",
      "options": [
       "",
       "rect",
       "circle"
-     ]
+     ],
+     "options_libelles": [
+      "None",
+      "Rectangle",
+      "Circle"
+     ],
+     "appearance": "combo"
     },
     {
      "name": "simple-shape",
      "type": "bool",
      "label": "Use only shape",
+     "aide": "Whether or not the motif should be cut out of the shape.",
      "default": "false",
-     "options": null
+     "page": "Embossing"
     },
     {
      "name": "shape-offset",
      "type": "float",
      "label": "Shape offset",
+     "aide": "",
      "default": "1",
-     "options": null
+     "page": "Embossing",
+     "min": "0",
+     "max": "50"
     },
     {
      "name": "shape-join-style",
      "type": "optiongroup",
      "label": "Join style",
-     "default": "",
+     "aide": "",
+     "default": "1",
+     "page": "Embossing",
      "options": [
       "1",
       "2",
       "3"
-     ]
+     ],
+     "options_libelles": [
+      "Round",
+      "Mitre",
+      "Bevel"
+     ],
+     "appearance": "combo"
     }
-   ]
+   ],
+   "fenetre": false,
+   "dans_inkscape": false,
+   "essai": "ok"
   },
   {
    "fichier": "inkstitch_layer_commands.inx",
@@ -1495,10 +2038,14 @@
      "name": "ignore_layer",
      "type": "boolean",
      "label": "Ignore layer (do not stitch any objects in this layer)",
+     "aide": "",
      "default": "false",
-     "options": null
+     "page": ""
     }
-   ]
+   ],
+   "fenetre": false,
+   "dans_inkscape": false,
+   "essai": "ok"
   },
   {
    "fichier": "inkstitch_lettering.inx",
@@ -1507,7 +2054,10 @@
    "format": null,
    "type": "effect",
    "menu": "Ink/Stitch/Lettering",
-   "params": []
+   "params": [],
+   "fenetre": true,
+   "dans_inkscape": false,
+   "essai": null
   },
   {
    "fichier": "inkstitch_lettering_along_path.inx",
@@ -1521,26 +2071,46 @@
      "name": "text-position",
      "type": "optiongroup",
      "label": "Text position",
-     "default": "",
+     "aide": "",
+     "default": "left",
+     "page": "Options",
      "options": [
       "left",
       "center",
       "right",
       "stretch"
-     ]
+     ],
+     "options_libelles": [
+      "Left",
+      "Center",
+      "Right",
+      "Stretch"
+     ],
+     "appearance": "combo"
     },
     {
      "name": "vertical-alignment",
      "type": "optiongroup",
      "label": "Vertical alignment",
-     "default": "",
+     "aide": "",
+     "default": "top",
+     "page": "Options",
      "options": [
       "top",
       "baseline",
       "bottom"
-     ]
+     ],
+     "options_libelles": [
+      "Top",
+      "Baseline",
+      "Bottom"
+     ],
+     "appearance": "combo"
     }
-   ]
+   ],
+   "fenetre": false,
+   "dans_inkscape": false,
+   "essai": "ok"
   },
   {
    "fichier": "inkstitch_lettering_custom_font_dir.inx",
@@ -1554,10 +2124,15 @@
      "name": "path",
      "type": "path",
      "label": "Custom font directory",
+     "aide": "",
      "default": "",
-     "options": null
+     "page": "Options",
+     "mode": "folder"
     }
-   ]
+   ],
+   "fenetre": false,
+   "dans_inkscape": false,
+   "essai": null
   },
   {
    "fichier": "inkstitch_lettering_edit_json.inx",
@@ -1566,7 +2141,10 @@
    "format": null,
    "type": "effect",
    "menu": "Ink/Stitch/Font Management",
-   "params": []
+   "params": [],
+   "fenetre": true,
+   "dans_inkscape": false,
+   "essai": null
   },
   {
    "fichier": "inkstitch_lettering_font_sample.inx",
@@ -1575,7 +2153,10 @@
    "format": null,
    "type": "effect",
    "menu": "Ink/Stitch/Font Management",
-   "params": []
+   "params": [],
+   "fenetre": true,
+   "dans_inkscape": false,
+   "essai": null
   },
   {
    "fichier": "inkstitch_lettering_force_lock_stitches.inx",
@@ -1589,45 +2170,58 @@
      "name": "satin_only",
      "type": "boolean",
      "label": "Restrict to Satin",
+     "aide": "",
      "default": "false",
-     "options": null
+     "page": "Options"
     },
     {
      "name": "distance",
      "type": "boolean",
      "label": "Add forced lock stitches by distance",
+     "aide": "Add lock stitches when the following jump stitch is in the specified size range",
      "default": "false",
-     "options": null
+     "page": "Options"
     },
     {
      "name": "min_distance",
      "type": "float",
      "label": "Minimum distance (mm)",
+     "aide": "",
      "default": "1",
-     "options": null
+     "page": "Options",
+     "min": "0",
+     "max": "50"
     },
     {
      "name": "max_distance",
      "type": "float",
      "label": "Maximum distance (mm)",
+     "aide": "",
      "default": "3",
-     "options": null
+     "page": "Options",
+     "min": "0.1",
+     "max": "500"
     },
     {
      "name": "last_element",
      "type": "boolean",
      "label": "Add forced lock stitches to the last element of each glyph",
+     "aide": "",
      "default": "false",
-     "options": null
+     "page": "Options"
     },
     {
      "name": "last_group_element",
      "type": "boolean",
      "label": "Add forced lock stitches to the last element of each group",
+     "aide": "",
      "default": "false",
-     "options": null
+     "page": "Options"
     }
-   ]
+   ],
+   "fenetre": false,
+   "dans_inkscape": false,
+   "essai": "ok"
   },
   {
    "fichier": "inkstitch_lettering_generate_json.inx",
@@ -1641,330 +2235,419 @@
      "name": "font-name",
      "type": "string",
      "label": "Name",
+     "aide": "",
      "default": "",
-     "options": null
+     "page": "Font info"
     },
     {
      "name": "font-description",
      "type": "string",
      "label": "Description",
+     "aide": "",
      "default": "",
-     "options": null
+     "page": "Font info"
     },
     {
      "name": "font_license",
      "type": "string",
      "label": "Font license",
+     "aide": "",
      "default": "SIL Open Font License v1.1",
-     "options": null
+     "page": "Font info"
     },
     {
      "name": "text_direction",
      "type": "optiongroup",
      "label": "Text direction",
-     "default": "",
+     "aide": "",
+     "default": "ltr",
+     "page": "Font info",
      "options": [
       "ltr",
       "rtl"
-     ]
+     ],
+     "options_libelles": [
+      "Left to right",
+      "Right to left"
+     ],
+     "appearance": "combo"
     },
     {
      "name": "default_variant",
      "type": "optiongroup",
      "label": "Default variant",
-     "default": "",
+     "aide": "Default embroidery direction",
+     "default": "ltr",
+     "page": "Font info",
      "options": [
       "ltr",
       "rtl",
       "ttb",
       "btt"
-     ]
+     ],
+     "options_libelles": [
+      "Left to right",
+      "Right to left",
+      "Top to bottom",
+      "Bottom to top"
+     ],
+     "appearance": "combo"
     },
     {
      "name": "original_font",
      "type": "string",
      "label": "Original Font Name",
+     "aide": "",
      "default": "",
-     "options": null
+     "page": "Font info"
     },
     {
      "name": "original_font_url",
      "type": "string",
      "label": "Original Font URL",
+     "aide": "",
      "default": "",
-     "options": null
+     "page": "Font info"
     },
     {
      "name": "font-file",
      "type": "path",
      "label": "SVG Font File",
+     "aide": "",
      "default": "",
-     "options": null
+     "page": "Font info",
+     "mode": "file",
+     "filetypes": "svg"
     },
     {
      "name": "applique",
      "type": "bool",
      "label": "Applique",
+     "aide": "",
      "default": "false",
-     "options": null
+     "page": "Font info"
     },
     {
      "name": "crossstitch",
      "type": "bool",
      "label": "Cross Stitch",
+     "aide": "",
      "default": "false",
-     "options": null
+     "page": "Font info"
     },
     {
      "name": "display",
      "type": "bool",
      "label": "Display",
+     "aide": "",
      "default": "false",
-     "options": null
+     "page": "Font info"
     },
     {
      "name": "handwriting",
      "type": "bool",
      "label": "Handwriting",
+     "aide": "",
      "default": "false",
-     "options": null
+     "page": "Font info"
     },
     {
      "name": "italic",
      "type": "bool",
      "label": "Italic",
+     "aide": "",
      "default": "false",
-     "options": null
+     "page": "Font info"
     },
     {
      "name": "monogram",
      "type": "bool",
      "label": "Monogram",
+     "aide": "",
      "default": "false",
-     "options": null
+     "page": "Font info"
     },
     {
      "name": "multicolor",
      "type": "bool",
      "label": "Multicolor",
+     "aide": "",
      "default": "false",
-     "options": null
+     "page": "Font info"
     },
     {
      "name": "ripple",
      "type": "bool",
      "label": "Ripple Stitch",
+     "aide": "",
      "default": "false",
-     "options": null
+     "page": "Font info"
     },
     {
      "name": "running_stitch",
      "type": "bool",
      "label": "Running Stitch",
+     "aide": "",
      "default": "false",
-     "options": null
+     "page": "Font info"
     },
     {
      "name": "sans_serif",
      "type": "bool",
      "label": "Sans Serif",
+     "aide": "",
      "default": "false",
-     "options": null
+     "page": "Font info"
     },
     {
      "name": "satin",
      "type": "bool",
      "label": "Satin",
+     "aide": "",
      "default": "false",
-     "options": null
+     "page": "Font info"
     },
     {
      "name": "serif",
      "type": "bool",
      "label": "Serif",
+     "aide": "",
      "default": "false",
-     "options": null
+     "page": "Font info"
     },
     {
      "name": "tartan",
      "type": "bool",
      "label": "Tartan",
+     "aide": "",
      "default": "false",
-     "options": null
+     "page": "Font info"
     },
     {
      "name": "tiny",
      "type": "bool",
      "label": "Tiny",
+     "aide": "",
      "default": "false",
-     "options": null
+     "page": "Font info"
     },
     {
      "name": "arabic",
      "type": "bool",
      "label": "Script: arabic",
+     "aide": "",
      "default": "false",
-     "options": null
+     "page": "Font info"
     },
     {
      "name": "cyrillic",
      "type": "bool",
      "label": "Script: cyrillic",
+     "aide": "",
      "default": "false",
-     "options": null
+     "page": "Font info"
     },
     {
      "name": "greek",
      "type": "bool",
      "label": "Script: greek",
+     "aide": "",
      "default": "false",
-     "options": null
+     "page": "Font info"
     },
     {
      "name": "hebrew",
      "type": "bool",
      "label": "Script: hebrew",
+     "aide": "",
      "default": "false",
-     "options": null
+     "page": "Font info"
     },
     {
      "name": "japanese",
      "type": "bool",
      "label": "Script: japanese",
+     "aide": "",
      "default": "false",
-     "options": null
+     "page": "Font info"
     },
     {
      "name": "latin",
      "type": "bool",
      "label": "Script: latin",
+     "aide": "",
      "default": "false",
-     "options": null
+     "page": "Font info"
     },
     {
      "name": "default-glyph",
      "type": "string",
      "label": "Default Glyph",
+     "aide": "",
      "default": "�",
-     "options": null
+     "page": "Settings"
     },
     {
      "name": "auto-satin",
      "type": "bool",
      "label": "Autoroute Satin",
+     "aide": "Disable if you defined manual routing in your font.",
      "default": "true",
-     "options": null
+     "page": "Settings"
     },
     {
      "name": "scale-cross_stitch",
      "type": "bool",
      "label": "Scale cross stitch pattern",
+     "aide": "Wether or not the cross stitch pattern will be scaled along with the font.",
      "default": "false",
-     "options": null
+     "page": "Settings"
     },
     {
      "name": "reversible",
      "type": "bool",
      "label": "Reversible",
+     "aide": "If disabled back and forth stitching will not be possile for this font.",
      "default": "true",
-     "options": null
+     "page": "Settings"
     },
     {
      "name": "sortable",
      "type": "bool",
      "label": "Sortable",
+     "aide": "If disabled color sorting will be disabled for this font.                    Color sorting needs color_sort_index indicators within the font.",
      "default": "false",
-     "options": null
+     "page": "Settings"
     },
     {
      "name": "combine-at-sort-indices",
      "type": "string",
      "label": "Combine indices",
+     "aide": "When color sorting, combine elements with this color indices (comma separated)",
      "default": "",
-     "options": null
+     "page": "Settings"
     },
     {
      "name": "letter-case",
      "type": "optiongroup",
      "label": "Force letter case",
+     "aide": "",
      "default": "",
+     "page": "Settings",
      "options": [
       "",
       "upper",
       "lower"
-     ]
+     ],
+     "options_libelles": [
+      "No",
+      "Upper",
+      "Lower"
+     ],
+     "appearance": "combo"
     },
     {
      "name": "size",
      "type": "float",
      "label": "Size",
+     "aide": "",
      "default": "15",
-     "options": null
+     "page": "Settings",
+     "min": "1",
+     "max": "1000",
+     "precision": "1"
     },
     {
      "name": "min-scale",
      "type": "float",
      "label": "Min Scale",
+     "aide": "",
      "default": "1",
-     "options": null
+     "page": "Settings",
+     "min": "0.1",
+     "max": "1",
+     "precision": "1"
     },
     {
      "name": "max-scale",
      "type": "float",
      "label": "Max Scale",
+     "aide": "",
      "default": "1",
-     "options": null
+     "page": "Settings",
+     "min": "1",
+     "max": "10",
+     "precision": "1"
     },
     {
      "name": "use-custom-leading",
      "type": "bool",
      "label": "Force",
+     "aide": "Overwrite leading information from font file.",
      "default": "false",
-     "options": null
+     "page": "Kerning"
     },
     {
      "name": "leading",
      "type": "int",
      "label": "Leading (px)",
+     "aide": "Line height (default: 100)",
      "default": "100",
-     "options": null
+     "page": "Kerning",
+     "min": "-100",
+     "max": "500",
+     "precision": "1"
     },
     {
      "name": "use-custom-spacing",
      "type": "bool",
      "label": "Force",
+     "aide": "Overwrite word spacing information from font file.",
      "default": "false",
-     "options": null
+     "page": "Kerning"
     },
     {
      "name": "word-spacing",
      "type": "int",
      "label": "Word spacing (px)",
+     "aide": "Space character width (default: 20)",
      "default": "20",
-     "options": null
+     "page": "Kerning",
+     "min": "-100",
+     "max": "500",
+     "precision": "1"
     },
     {
      "name": "use-custom-letter-spacing",
      "type": "bool",
      "label": "Force",
+     "aide": "Overwrite letter spacing information from font file.",
      "default": "false",
-     "options": null
+     "page": "Kerning"
     },
     {
      "name": "letter-spacing",
      "type": "int",
      "label": "Letter spacing (px)",
+     "aide": "Letter spacing (default: 100)",
      "default": "100",
-     "options": null
+     "page": "Kerning",
+     "min": "-100",
+     "max": "500",
+     "precision": "1"
     },
     {
      "name": "use-glyph-width",
      "type": "bool",
      "label": "Use glyph width",
+     "aide": "Use glyph width to define letter spacing.",
      "default": "false",
-     "options": null
+     "page": "Kerning"
     }
-   ]
+   ],
+   "fenetre": false,
+   "dans_inkscape": false,
+   "essai": "ok"
   },
   {
    "fichier": "inkstitch_lettering_organize_glyphs.inx",
@@ -1978,7 +2661,9 @@
      "name": "action",
      "type": "optiongroup",
      "label": "Choose action",
-     "default": "",
+     "aide": "",
+     "default": "step1",
+     "page": "Options",
      "options": [
       "step1",
       "step2",
@@ -1990,9 +2675,25 @@
       "step8",
       "duplicate",
       "sort"
-     ]
+     ],
+     "options_libelles": [
+      "Step 1 : Comma and period and hyphen",
+      "Step 2 : Undecomposable Letters",
+      "Step 3 : Digits, Symbols  and Opening Punctuation",
+      "Step 4 : Closing Punctuation",
+      "Step 5 : First diacritics",
+      "Step 6 : All diacritics",
+      "Step 7 : Two pieces Letters",
+      "Step 8 : Other Composed Letters",
+      "Check duplicate GlyphLayers",
+      "Sort by Category"
+     ],
+     "appearance": "combo"
     }
-   ]
+   ],
+   "fenetre": false,
+   "dans_inkscape": false,
+   "essai": "ok"
   },
   {
    "fichier": "inkstitch_lettering_remove_kerning.inx",
@@ -2006,10 +2707,16 @@
      "name": "font-files",
      "type": "path",
      "label": "Select Font Files",
+     "aide": "",
      "default": "",
-     "options": null
+     "page": "Options",
+     "mode": "files",
+     "filetypes": "svg"
     }
-   ]
+   ],
+   "fenetre": false,
+   "dans_inkscape": false,
+   "essai": "ok"
   },
   {
    "fichier": "inkstitch_lettering_set_color_sort_index.inx",
@@ -2023,10 +2730,16 @@
      "name": "color-sort-index",
      "type": "int",
      "label": "Color sort index",
+     "aide": "",
      "default": "",
-     "options": null
+     "page": "Options",
+     "min": "0",
+     "max": "100"
     }
-   ]
+   ],
+   "fenetre": false,
+   "dans_inkscape": false,
+   "essai": "ok"
   },
   {
    "fichier": "inkstitch_lettering_svg_font_to_layers.inx",
@@ -2040,17 +2753,24 @@
      "name": "reference",
      "type": "string",
      "label": "Use this character to define size",
+     "aide": "",
      "default": "M",
-     "options": null
+     "page": ""
     },
     {
      "name": "height",
      "type": "float",
      "label": "Height of reference character (mm)",
+     "aide": "",
      "default": "20",
-     "options": null
+     "page": "",
+     "min": "1",
+     "max": "1000"
     }
-   ]
+   ],
+   "fenetre": false,
+   "dans_inkscape": false,
+   "essai": "ok"
   },
   {
    "fichier": "inkstitch_letters_to_font.inx",
@@ -2064,7 +2784,9 @@
      "name": "file-format",
      "type": "optiongroup",
      "label": "File format",
-     "default": "",
+     "aide": "",
+     "default": "*.PEC",
+     "page": "Options",
      "options": [
       "*.PEC",
       "*.PES",
@@ -2087,34 +2809,73 @@
       "*.COL",
       "*.INF",
       "*.JSON"
-     ]
+     ],
+     "options_libelles": [
+      "PEC",
+      "PES",
+      "EXP",
+      "DST",
+      "JEF",
+      "VP3",
+      "SVG",
+      "CSV",
+      "XXX",
+      "SEW",
+      "U01",
+      "TBF",
+      "PMV",
+      "TXT",
+      "GCODE",
+      "PLT",
+      "QCC",
+      "EDR",
+      "COL",
+      "INF",
+      "JSON"
+     ],
+     "appearance": "combo"
     },
     {
      "name": "font-dir",
      "type": "path",
      "label": "Font directory",
+     "aide": "",
      "default": "",
-     "options": null
+     "page": "Options",
+     "mode": "folder",
+     "filetypes": "svg"
     },
     {
      "name": "margin-left",
      "type": "float",
      "label": "Margin left (mm)",
+     "aide": "With \"Use glyph width\" enabled in the json, the margin to the left page border defines the distance between glyphs",
      "default": "0",
-     "options": null
+     "page": "Options"
     },
     {
      "name": "import-commands",
      "type": "optiongroup",
      "label": "Import commands",
-     "default": "",
+     "aide": "",
+     "default": "params",
+     "page": "Options",
      "options": [
       "params",
       "symbols",
       "none"
-     ]
+     ],
+     "options_libelles": [
+      "As param",
+      "As symbol",
+      "No"
+     ],
+     "appearance": "combo"
     }
-   ]
+   ],
+   "fenetre": false,
+   "dans_inkscape": false,
+   "essai": "ok"
   },
   {
    "fichier": "inkstitch_object_commands.inx",
@@ -2128,79 +2889,101 @@
      "name": "starting_point",
      "type": "boolean",
      "label": "Starting position",
+     "aide": "",
      "default": "false",
-     "options": null
+     "page": ""
     },
     {
      "name": "ending_point",
      "type": "boolean",
      "label": "Ending position",
+     "aide": "",
      "default": "false",
-     "options": null
+     "page": ""
     },
     {
      "name": "target_point",
      "type": "boolean",
      "label": "Target position",
+     "aide": "",
      "default": "false",
-     "options": null
+     "page": ""
     },
     {
      "name": "autoroute_start",
      "type": "boolean",
      "label": "Auto-route starting position",
+     "aide": "",
      "default": "false",
-     "options": null
+     "page": ""
     },
     {
      "name": "autoroute_end",
      "type": "boolean",
      "label": "Auto-route ending position",
+     "aide": "",
      "default": "false",
-     "options": null
+     "page": ""
     },
     {
      "name": "stop",
      "type": "boolean",
      "label": "Stop (pause machine) after sewing this object",
+     "aide": "",
      "default": "false",
-     "options": null
+     "page": ""
     },
     {
      "name": "trim",
      "type": "boolean",
      "label": "Trim thread after sewing this object",
+     "aide": "",
      "default": "false",
-     "options": null
+     "page": ""
     },
     {
      "name": "ignore_object",
      "type": "boolean",
      "label": "Ignore this object (do not stitch)",
+     "aide": "",
      "default": "false",
-     "options": null
+     "page": ""
     },
     {
      "name": "satin_cut_point",
      "type": "boolean",
      "label": "Satin cut point (use with Cut Satin Column)",
+     "aide": "",
      "default": "false",
-     "options": null
+     "page": ""
     },
     {
      "name": "command_position",
      "type": "optiongroup",
      "label": "Command position",
-     "default": "",
+     "aide": "",
+     "default": "random",
+     "page": "",
      "options": [
       "random",
       "top_left",
       "top_right",
       "bottom_left",
       "bottom_right"
-     ]
+     ],
+     "options_libelles": [
+      "Random",
+      "Top left",
+      "Top right",
+      "Bottom left",
+      "Bottom right"
+     ],
+     "appearance": "combo"
     }
-   ]
+   ],
+   "fenetre": false,
+   "dans_inkscape": false,
+   "essai": "ok"
   },
   {
    "fichier": "inkstitch_object_commands_toggle_visibility.inx",
@@ -2209,7 +2992,10 @@
    "format": null,
    "type": "effect",
    "menu": "Ink/Stitch/Commands/View",
-   "params": []
+   "params": [],
+   "fenetre": false,
+   "dans_inkscape": false,
+   "essai": "ok"
   },
   {
    "fichier": "inkstitch_outline.inx",
@@ -2223,38 +3009,62 @@
      "name": "keep-original",
      "type": "boolean",
      "label": "Keep original element(s)",
+     "aide": "",
      "default": "false",
-     "options": null
+     "page": "Options"
     },
     {
      "name": "threshold",
      "type": "float",
      "label": "Threshold (mm²)",
+     "aide": "Removes smaller shape areas than that",
      "default": "10",
-     "options": null
+     "page": "Options",
+     "min": "0",
+     "max": "100",
+     "precision": "2",
+     "appearance": "full"
     },
     {
      "name": "buffer",
      "type": "float",
      "label": "Buffer (mm)",
+     "aide": "Enlarge strokes by this amount",
      "default": "0.001",
-     "options": null
+     "page": "Options",
+     "min": "0.001",
+     "max": "1",
+     "precision": "3",
+     "appearance": "full"
     },
     {
      "name": "smoothness",
      "type": "float",
      "label": "Smoothness (mm)",
+     "aide": "Smooth path by this amount",
      "default": "0.3",
-     "options": null
+     "page": "Options",
+     "min": "0.01",
+     "max": "5",
+     "precision": "2",
+     "appearance": "full"
     },
     {
      "name": "inset",
      "type": "float",
      "label": "Inset (mm)",
+     "aide": "Counteract the buffer effect",
      "default": "0",
-     "options": null
+     "page": "Options",
+     "min": "0",
+     "max": "5",
+     "precision": "3",
+     "appearance": "full"
     }
-   ]
+   ],
+   "fenetre": false,
+   "dans_inkscape": false,
+   "essai": "ok"
   },
   {
    "fichier": "inkstitch_output_COL.inx",
@@ -2263,15 +3073,7 @@
    "format": "col",
    "type": "output",
    "menu": "",
-   "params": [
-    {
-     "name": "format",
-     "type": "string",
-     "label": "",
-     "default": "col",
-     "options": null
-    }
-   ]
+   "params": []
   },
   {
    "fichier": "inkstitch_output_CSV.inx",
@@ -2280,15 +3082,7 @@
    "format": "csv",
    "type": "output",
    "menu": "",
-   "params": [
-    {
-     "name": "format",
-     "type": "string",
-     "label": "",
-     "default": "csv",
-     "options": null
-    }
-   ]
+   "params": []
   },
   {
    "fichier": "inkstitch_output_DST.inx",
@@ -2297,15 +3091,7 @@
    "format": "dst",
    "type": "output",
    "menu": "",
-   "params": [
-    {
-     "name": "format",
-     "type": "string",
-     "label": "",
-     "default": "dst",
-     "options": null
-    }
-   ]
+   "params": []
   },
   {
    "fichier": "inkstitch_output_EDR.inx",
@@ -2314,15 +3100,7 @@
    "format": "edr",
    "type": "output",
    "menu": "",
-   "params": [
-    {
-     "name": "format",
-     "type": "string",
-     "label": "",
-     "default": "edr",
-     "options": null
-    }
-   ]
+   "params": []
   },
   {
    "fichier": "inkstitch_output_EXP.inx",
@@ -2331,15 +3109,7 @@
    "format": "exp",
    "type": "output",
    "menu": "",
-   "params": [
-    {
-     "name": "format",
-     "type": "string",
-     "label": "",
-     "default": "exp",
-     "options": null
-    }
-   ]
+   "params": []
   },
   {
    "fichier": "inkstitch_output_GCODE.inx",
@@ -2350,133 +3120,166 @@
    "menu": "",
    "params": [
     {
-     "name": "format",
-     "type": "string",
-     "label": "",
-     "default": "gcode",
-     "options": null
-    },
-    {
      "name": "flip_x",
      "type": "boolean",
      "label": "negate X coordinate values",
+     "aide": "Negate x coordinates",
      "default": "false",
-     "options": null
+     "page": "Coordinate Settings"
     },
     {
      "name": "flip_y",
      "type": "boolean",
      "label": "negate Y coordinate values",
+     "aide": "Negate y coordinates",
      "default": "false",
-     "options": null
+     "page": "Coordinate Settings"
     },
     {
      "name": "alternate_z",
      "type": "optiongroup",
      "label": "Z coordinate value",
-     "default": "",
+     "aide": "Either alternate Z value between 0 and 1 or travel custom value.",
+     "default": "true",
+     "page": "Coordinate Settings",
      "options": [
       "true",
       "false"
+     ],
+     "options_libelles": [
+      "alternate Z value",
+      "Z travel per stitch"
      ]
     },
     {
      "name": "stitch_z_travel",
      "type": "float",
      "label": "Z travel per stitch",
+     "aide": "increment z coordinate by this amount per stitch if \"Z travel per stitch\" is enabled",
      "default": "5.0",
-     "options": null
+     "page": "Coordinate Settings",
+     "min": "0",
+     "max": "999"
     },
     {
      "name": "custom_stitch",
      "type": "string",
      "label": "STITCH",
+     "aide": "Use '%X' for x-coordinate. Use '%Y' for y-coordinate and '%Z' for z-coordinate.",
      "default": "",
-     "options": null
+     "page": "Custom Commands",
+     "appearance": "multiline"
     },
     {
      "name": "custom_color_change",
      "type": "string",
      "label": "COLOR CHANGE",
+     "aide": "Leave empty to use default value. Use 'none' to remove. Use %R %G %B for thread color values",
      "default": "",
-     "options": null
+     "page": "Custom Commands",
+     "appearance": "multiline"
     },
     {
      "name": "custom_jump",
      "type": "string",
      "label": "JUMP",
+     "aide": "Leave empty to ignore jumps. Use '%X' for x-coordinate and '%Y' for y-coordinate.",
      "default": "",
-     "options": null
+     "page": "Custom Commands",
+     "appearance": "multiline"
     },
     {
      "name": "custom_stop",
      "type": "string",
      "label": "STOP",
+     "aide": "Leave empty to use default value. Use 'none' to remove.",
      "default": "",
-     "options": null
+     "page": "Custom Commands",
+     "appearance": "multiline"
     },
     {
      "name": "custom_start",
      "type": "string",
      "label": "START",
+     "aide": "Use %R %G %B for inital color thread color values",
      "default": "",
-     "options": null
+     "page": "Custom Commands",
+     "appearance": "multiline"
     },
     {
      "name": "custom_end",
      "type": "string",
      "label": "END",
+     "aide": "",
      "default": "",
-     "options": null
+     "page": "Custom Commands",
+     "appearance": "multiline"
     },
     {
      "name": "laser_mode",
      "type": "boolean",
      "label": "laser mode",
+     "aide": "Laser mode (generate g-code for grbl laser mode)",
      "default": "false",
-     "options": null
+     "page": "Laser Settings"
     },
     {
      "name": "dynamic_laser_power",
      "type": "boolean",
      "label": "dynamic laser power",
+     "aide": "Use Grbl's M4 dynamic laser power mode.  Ensures consistent laser cutting power regardless of motor speed.  Only for PWM-capable lasers.",
      "default": "true",
-     "options": null
+     "page": "Laser Settings",
+     "min": "0.0",
+     "max": "5.0"
     },
     {
      "name": "laser_warm_up_time",
      "type": "float",
      "label": "laser warm-up time",
+     "aide": "When turning on the laser, wait this many seconds for laser to warm up (G4 command)",
      "default": "0.0",
-     "options": null
+     "page": "Laser Settings"
     },
     {
      "name": "spindle_speed",
      "type": "int",
      "label": "spindle speed",
+     "aide": "spindle speed (laser power for laser mode, set to -1 to omit)",
      "default": "-1",
-     "options": null
+     "page": "Laser Settings",
+     "min": "-1",
+     "max": "1000000000"
     },
     {
      "name": "min_spindle_speed",
      "type": "int",
      "label": "min spindle speed",
+     "aide": "minimum spindle speed value (grbl $31 setting)",
      "default": "-1",
-     "options": null
+     "page": "Laser Settings",
+     "min": "-1",
+     "max": "1000000000"
     },
     {
      "name": "max_spindle_speed",
      "type": "int",
      "label": "max spindle speed",
+     "aide": "minimum spindle speed value (grbl $30 setting)",
      "default": "-1",
-     "options": null
+     "page": "Laser Settings",
+     "min": "-1",
+     "max": "1000000000"
     },
     {
      "name": "feed_rate",
      "type": "int",
      "label": "feed rate (in mm/min, set to -1 to omit)",
+     "aide": "",
      "default": "-1",
-     "options": null
+     "page": "Laser Settings",
+     "min": "-1",
+     "max": "1000000000"
     }
    ]
   },
@@ -2487,15 +3290,7 @@
    "format": "inf",
    "type": "output",
    "menu": "",
-   "params": [
-    {
-     "name": "format",
-     "type": "string",
-     "label": "",
-     "default": "inf",
-     "options": null
-    }
-   ]
+   "params": []
   },
   {
    "fichier": "inkstitch_output_JEF.inx",
@@ -2504,15 +3299,7 @@
    "format": "jef",
    "type": "output",
    "menu": "",
-   "params": [
-    {
-     "name": "format",
-     "type": "string",
-     "label": "",
-     "default": "jef",
-     "options": null
-    }
-   ]
+   "params": []
   },
   {
    "fichier": "inkstitch_output_JSON.inx",
@@ -2521,15 +3308,7 @@
    "format": "json",
    "type": "output",
    "menu": "",
-   "params": [
-    {
-     "name": "format",
-     "type": "string",
-     "label": "",
-     "default": "json",
-     "options": null
-    }
-   ]
+   "params": []
   },
   {
    "fichier": "inkstitch_output_PEC.inx",
@@ -2538,15 +3317,7 @@
    "format": "pec",
    "type": "output",
    "menu": "",
-   "params": [
-    {
-     "name": "format",
-     "type": "string",
-     "label": "",
-     "default": "pec",
-     "options": null
-    }
-   ]
+   "params": []
   },
   {
    "fichier": "inkstitch_output_PES.inx",
@@ -2555,15 +3326,7 @@
    "format": "pes",
    "type": "output",
    "menu": "",
-   "params": [
-    {
-     "name": "format",
-     "type": "string",
-     "label": "",
-     "default": "pes",
-     "options": null
-    }
-   ]
+   "params": []
   },
   {
    "fichier": "inkstitch_output_PLT.inx",
@@ -2572,15 +3335,7 @@
    "format": "plt",
    "type": "output",
    "menu": "",
-   "params": [
-    {
-     "name": "format",
-     "type": "string",
-     "label": "",
-     "default": "plt",
-     "options": null
-    }
-   ]
+   "params": []
   },
   {
    "fichier": "inkstitch_output_PMV.inx",
@@ -2589,15 +3344,7 @@
    "format": "pmv",
    "type": "output",
    "menu": "",
-   "params": [
-    {
-     "name": "format",
-     "type": "string",
-     "label": "",
-     "default": "pmv",
-     "options": null
-    }
-   ]
+   "params": []
   },
   {
    "fichier": "inkstitch_output_QCC.inx",
@@ -2606,15 +3353,7 @@
    "format": "qcc",
    "type": "output",
    "menu": "",
-   "params": [
-    {
-     "name": "format",
-     "type": "string",
-     "label": "",
-     "default": "qcc",
-     "options": null
-    }
-   ]
+   "params": []
   },
   {
    "fichier": "inkstitch_output_SEW.inx",
@@ -2623,15 +3362,7 @@
    "format": "sew",
    "type": "output",
    "menu": "",
-   "params": [
-    {
-     "name": "format",
-     "type": "string",
-     "label": "",
-     "default": "sew",
-     "options": null
-    }
-   ]
+   "params": []
   },
   {
    "fichier": "inkstitch_output_SVG.inx",
@@ -2640,15 +3371,7 @@
    "format": "svg",
    "type": "output",
    "menu": "",
-   "params": [
-    {
-     "name": "format",
-     "type": "string",
-     "label": "",
-     "default": "svg",
-     "options": null
-    }
-   ]
+   "params": []
   },
   {
    "fichier": "inkstitch_output_TBF.inx",
@@ -2657,15 +3380,7 @@
    "format": "tbf",
    "type": "output",
    "menu": "",
-   "params": [
-    {
-     "name": "format",
-     "type": "string",
-     "label": "",
-     "default": "tbf",
-     "options": null
-    }
-   ]
+   "params": []
   },
   {
    "fichier": "inkstitch_output_TXT.inx",
@@ -2674,15 +3389,7 @@
    "format": "txt",
    "type": "output",
    "menu": "",
-   "params": [
-    {
-     "name": "format",
-     "type": "string",
-     "label": "",
-     "default": "txt",
-     "options": null
-    }
-   ]
+   "params": []
   },
   {
    "fichier": "inkstitch_output_U01.inx",
@@ -2691,15 +3398,7 @@
    "format": "u01",
    "type": "output",
    "menu": "",
-   "params": [
-    {
-     "name": "format",
-     "type": "string",
-     "label": "",
-     "default": "u01",
-     "options": null
-    }
-   ]
+   "params": []
   },
   {
    "fichier": "inkstitch_output_VP3.inx",
@@ -2708,15 +3407,7 @@
    "format": "vp3",
    "type": "output",
    "menu": "",
-   "params": [
-    {
-     "name": "format",
-     "type": "string",
-     "label": "",
-     "default": "vp3",
-     "options": null
-    }
-   ]
+   "params": []
   },
   {
    "fichier": "inkstitch_output_XXX.inx",
@@ -2725,15 +3416,7 @@
    "format": "xxx",
    "type": "output",
    "menu": "",
-   "params": [
-    {
-     "name": "format",
-     "type": "string",
-     "label": "",
-     "default": "xxx",
-     "options": null
-    }
-   ]
+   "params": []
   },
   {
    "fichier": "inkstitch_palette_split_text.inx",
@@ -2742,7 +3425,10 @@
    "format": null,
    "type": "effect",
    "menu": "Ink/Stitch/Thread Color Management/Generate Palette",
-   "params": []
+   "params": [],
+   "fenetre": false,
+   "dans_inkscape": false,
+   "essai": "ok"
   },
   {
    "fichier": "inkstitch_palette_to_text.inx",
@@ -2756,10 +3442,16 @@
      "name": "file",
      "type": "path",
      "label": "Choose file",
+     "aide": "",
      "default": "",
-     "options": null
+     "page": "Options",
+     "mode": "file",
+     "filetypes": "gpl"
     }
-   ]
+   ],
+   "fenetre": false,
+   "dans_inkscape": false,
+   "essai": "échec"
   },
   {
    "fichier": "inkstitch_params.inx",
@@ -2768,7 +3460,10 @@
    "format": null,
    "type": "effect",
    "menu": "Ink/Stitch",
-   "params": []
+   "params": [],
+   "fenetre": true,
+   "dans_inkscape": false,
+   "essai": null
   },
   {
    "fichier": "inkstitch_png_realistic.inx",
@@ -2782,8 +3477,11 @@
      "name": "dpi",
      "type": "int",
      "label": "DPI",
+     "aide": "",
      "default": "300",
-     "options": null
+     "page": "Settings",
+     "min": "100",
+     "max": "2000"
     }
    ]
   },
@@ -2799,15 +3497,22 @@
      "name": "line_width",
      "type": "float",
      "label": "Line width (mm)",
+     "aide": "",
      "default": "0.3",
-     "options": null
+     "page": "Settings",
+     "min": "0.01",
+     "max": "5",
+     "precision": "2"
     },
     {
      "name": "dpi",
      "type": "int",
      "label": "DPI",
+     "aide": "",
      "default": "300",
-     "options": null
+     "page": "Settings",
+     "min": "100",
+     "max": "2000"
     }
    ]
   },
@@ -2818,7 +3523,10 @@
    "format": null,
    "type": "effect",
    "menu": "Ink/Stitch",
-   "params": []
+   "params": [],
+   "fenetre": true,
+   "dans_inkscape": false,
+   "essai": null
   },
   {
    "fichier": "inkstitch_print.inx",
@@ -2827,7 +3535,10 @@
    "format": null,
    "type": "effect",
    "menu": "Ink/Stitch/Visualize and Export",
-   "params": []
+   "params": [],
+   "fenetre": true,
+   "dans_inkscape": false,
+   "essai": "ok"
   },
   {
    "fichier": "inkstitch_redwork.inx",
@@ -2841,52 +3552,71 @@
      "name": "merge_distance",
      "type": "float",
      "label": "Connect lines below this distance (mm)",
+     "aide": "Unconnected lines may result in jump stitches",
      "default": "0.5",
-     "options": null
+     "page": "Options",
+     "min": "0",
+     "max": "500",
+     "precision": "2"
     },
     {
      "name": "minimum_path_length",
      "type": "float",
      "label": "Minimum path length (mm)",
+     "aide": "Shorter paths  will be removed from redwork result",
      "default": "0.5",
-     "options": null
+     "page": "Options",
+     "min": "0",
+     "max": "500",
+     "precision": "2"
     },
     {
      "name": "redwork_running_stitch_length_mm",
      "type": "float",
      "label": "Redwork stitch length (mm)",
+     "aide": "set  redwork  stitch length",
      "default": "2.5",
-     "options": null
+     "page": "Options",
+     "min": "0",
+     "max": "500",
+     "precision": "2"
     },
     {
      "name": "redwork_bean_stitch_repeats",
      "type": "string",
      "label": "Redwork bean stitch number of repeats",
+     "aide": "Redwork bean stitch number of repeats",
      "default": "0",
-     "options": null
+     "page": "Options"
     },
     {
      "name": "redwork_split_colors",
      "type": "boolean",
      "label": "Split by color",
+     "aide": "Split strokes by colors and generate Redwork for each color.",
      "default": "false",
-     "options": null
+     "page": "Options"
     },
     {
      "name": "combine",
      "type": "boolean",
      "label": "Combine elements",
+     "aide": "Combine consecutive elements of same type",
      "default": "false",
-     "options": null
+     "page": "Options"
     },
     {
      "name": "keep_originals",
      "type": "boolean",
      "label": "Keep original paths",
+     "aide": "",
      "default": "false",
-     "options": null
+     "page": "Options"
     }
-   ]
+   ],
+   "fenetre": false,
+   "dans_inkscape": false,
+   "essai": "ok"
   },
   {
    "fichier": "inkstitch_remove_duplicated_points.inx",
@@ -2900,17 +3630,27 @@
      "name": "num_points",
      "type": "int",
      "label": "Remove point if repeated within this number of consecutive points",
+     "aide": "",
      "default": "10",
-     "options": null
+     "page": "Options",
+     "min": "1",
+     "max": "5000"
     },
     {
      "name": "distance",
      "type": "float",
      "label": "Distance tolerance",
+     "aide": "",
      "default": "0.01",
-     "options": null
+     "page": "Options",
+     "min": "0",
+     "max": "500",
+     "precision": "2"
     }
-   ]
+   ],
+   "fenetre": false,
+   "dans_inkscape": false,
+   "essai": "ok"
   },
   {
    "fichier": "inkstitch_remove_embroidery_settings.inx",
@@ -2924,7 +3664,9 @@
      "name": "del_params",
      "type": "optiongroup",
      "label": "Remove Params",
-     "default": "",
+     "aide": "Removes params from selected objects or all objects if nothing is selected.",
+     "default": "none",
+     "page": "Options",
      "options": [
       "none",
       "all",
@@ -3027,13 +3769,119 @@
       "zigzag_underlay_spacing_mm",
       "zigzag_underlay",
       "zigzag_width_mm"
-     ]
+     ],
+     "options_libelles": [
+      "None",
+      "All",
+      "angle",
+      "avoid_self_crossing",
+      "bean_stitch_repeats",
+      "center_walk_underlay",
+      "center_walk_underlay_position",
+      "center_walk_underlay_repeats",
+      "center_walk_underlay_stitch_length_mm",
+      "clip",
+      "clockwise",
+      "clone",
+      "contour_strategy",
+      "contour_underlay",
+      "contour_underlay_inset_mm",
+      "contour_underlay_inset_percent",
+      "contour_underlay_stitch_length_mm",
+      "cutwork_needle",
+      "end_row_spacing_mm",
+      "e_stitch",
+      "expand_mm",
+      "exponent",
+      "fill",
+      "fill_method",
+      "fill_underlay_angle",
+      "fill_underlay",
+      "fill_underlay_inset_mm",
+      "fill_underlay_max_stitch_length_mm",
+      "fill_underlay_row_spacing_mm",
+      "fill_underlay_skip_last",
+      "flip_angle",
+      "flip_exponent",
+      "flip",
+      "force_lock_stitches",
+      "grid_size_mm",
+      "guided_fill_strategy",
+      "invisible_layers",
+      "join_style",
+      "layer_visibility",
+      "line_count",
+      "lock_custom_end",
+      "lock_custom_start",
+      "lock_end",
+      "lock_end_scale_mm",
+      "lock_end_scale_percent",
+      "lock_start",
+      "lock_start_scale_mm",
+      "lock_start_scale_percent",
+      "manual_stitch",
+      "max_stitch_length_mm",
+      "meander_angle",
+      "meander_pattern",
+      "meander_scale_percent",
+      "min_line_dist_mm",
+      "min_random_split_length_mm",
+      "polyline",
+      "pull_compensation_mm",
+      "pull_compensation_percent",
+      "random_seed",
+      "random_split_jitter_percent",
+      "random_split_phase",
+      "random_width_decrease_percent",
+      "random_width_increase_percent",
+      "random_zigzag_spacing_percent",
+      "repeats",
+      "reverse_rails",
+      "reverse",
+      "rotate_ripples",
+      "row_spacing_mm",
+      "running_stitch_length_mm",
+      "running_stitch_tolerance_mm",
+      "satin_column",
+      "satin_method",
+      "scale_axis",
+      "scale_end",
+      "scale_start",
+      "short_stitch_distance_mm",
+      "short_stitch_inset",
+      "skip_end",
+      "skip_last",
+      "skip_start",
+      "smoothness_mm",
+      "split_method",
+      "split_staggers",
+      "staggers",
+      "stop_after",
+      "stop_at_ending_point",
+      "stroke_first",
+      "stroke_method",
+      "swap_satin_rails",
+      "ties",
+      "trim_after",
+      "underlay_underpath",
+      "underpath",
+      "zigzag_spacing_mm",
+      "zigzag_underlay_inset_mm",
+      "zigzag_underlay_inset_percent",
+      "zigzag_underlay_max_stitch_length_mm",
+      "zigzag_underlay_spacing_mm",
+      "zigzag_underlay",
+      "zigzag_width_mm"
+     ],
+     "appearance": "combo"
     },
     {
      "name": "del_commands",
      "type": "optiongroup",
      "label": "Remove Commands",
-     "default": "",
+     "aide": "Removes visual commands from selected objects or all objects if nothing is selected.",
+     "default": "none",
+     "page": "Options",
      "options": [
       "none",
       "all",
@@ -3049,16 +3897,37 @@
       "ignore_layer",
       "origin",
       "stop_position"
-     ]
+     ],
+     "options_libelles": [
+      "None",
+      "All",
+      "Starting position",
+      "Ending position",
+      "Target position",
+      "Auto-route starting position",
+      "Auto-route ending position",
+      "Stop (pause machine) after sewing this object",
+      "Trim thread after sewing this object",
+      "Ignore this object (do not stitch)",
+      "Satin cut point (use with Cut Satin Column)",
+      "Ignore layer (do not stitch any objects in this layer)",
+      "Origin for exported embroidery files",
+      "Jump destination for Stop commands (a.k.a. \"Frame Out position\")."
+     ],
+     "appearance": "combo"
     },
     {
      "name": "del_print",
      "type": "boolean",
      "label": "Remove Print Settings from SVG metadata",
+     "aide": "",
      "default": "false",
-     "options": null
+     "page": "Options"
     }
-   ]
+   ],
+   "fenetre": false,
+   "dans_inkscape": false,
+   "essai": "ok"
   },
   {
    "fichier": "inkstitch_reorder.inx",
@@ -3067,7 +3936,10 @@
    "format": null,
    "type": "effect",
    "menu": "Ink/Stitch/Edit",
-   "params": []
+   "params": [],
+   "fenetre": false,
+   "dans_inkscape": false,
+   "essai": "ok"
   },
   {
    "fichier": "inkstitch_satin_multicolor.inx",
@@ -3076,7 +3948,10 @@
    "format": null,
    "type": "effect",
    "menu": "Ink/Stitch/Tools: Satin",
-   "params": []
+   "params": [],
+   "fenetre": true,
+   "dans_inkscape": false,
+   "essai": null
   },
   {
    "fichier": "inkstitch_satin_to_stroke.inx",
@@ -3090,10 +3965,14 @@
      "name": "keep_satin",
      "type": "boolean",
      "label": "Keep satin column",
+     "aide": "Do not delete original satin column.",
      "default": "false",
-     "options": null
+     "page": "Options"
     }
-   ]
+   ],
+   "fenetre": false,
+   "dans_inkscape": false,
+   "essai": "ok"
   },
   {
    "fichier": "inkstitch_select_elements.inx",
@@ -3107,183 +3986,240 @@
      "name": "select-running-stitch",
      "type": "boolean",
      "label": "Running Stitch",
+     "aide": "",
      "default": "false",
-     "options": null
+     "page": "Select options"
     },
     {
      "name": "running-stitch-condition",
      "type": "optiongroup",
      "label": "Type",
-     "default": "",
+     "aide": "Select only specific running stitches",
+     "default": "all",
+     "page": "Select options",
      "options": [
       "all",
       "autorun-top",
       "autorun-underpath",
       "autosatin-underpath"
-     ]
+     ],
+     "options_libelles": [
+      "No restriction",
+      "Top Stitching (Redwork/Auto-Run)",
+      "Underpath (Redwork/Auto-Run)",
+      "Underpath (Auto-Satin)"
+     ],
+     "appearance": "combo"
     },
     {
      "name": "bean-stitch-repeats",
      "type": "string",
      "label": "Bean stitch repeats",
+     "aide": "",
      "default": "0",
-     "options": null
+     "page": "Select options"
     },
     {
      "name": "select-ripples",
      "type": "boolean",
      "label": "Ripples",
+     "aide": "",
      "default": "false",
-     "options": null
+     "page": "Select options"
     },
     {
      "name": "select-zigzag",
      "type": "boolean",
      "label": "ZigZag Stitch",
+     "aide": "",
      "default": "false",
-     "options": null
+     "page": "Select options"
     },
     {
      "name": "select-manual",
      "type": "boolean",
      "label": "Manual Stitch",
+     "aide": "",
      "default": "false",
-     "options": null
+     "page": "Select options"
     },
     {
      "name": "select-satin",
      "type": "boolean",
      "label": "Satin Column",
+     "aide": "",
      "default": "false",
-     "options": null
+     "page": "Select options"
     },
     {
      "name": "select-e",
      "type": "boolean",
      "label": "E-Stitch",
+     "aide": "",
      "default": "false",
-     "options": null
+     "page": "Select options"
     },
     {
      "name": "select-s",
      "type": "boolean",
      "label": "S-Stitch",
+     "aide": "",
      "default": "false",
-     "options": null
+     "page": "Select options"
     },
     {
      "name": "select-satin-zigzag",
      "type": "boolean",
      "label": "Zig-Zag",
+     "aide": "",
      "default": "false",
-     "options": null
+     "page": "Select options"
     },
     {
      "name": "satin-underlay",
      "type": "optiongroup",
      "label": "Underlay",
-     "default": "",
+     "aide": "Only select satins with this underlay type",
+     "default": "all",
+     "page": "Select options",
      "options": [
       "all",
       "no",
       "center",
       "contour",
       "zigzag"
-     ]
+     ],
+     "options_libelles": [
+      "No restriction",
+      "No underlay",
+      "Centerwalk",
+      "Contour",
+      "Zigzag"
+     ],
+     "appearance": "combo"
     },
     {
      "name": "rung-count",
      "type": "optiongroup",
      "label": "Rung count",
-     "default": "",
+     "aide": "Only select satins with this rung count",
+     "default": "all",
+     "page": "Select options",
      "options": [
       "all",
       "zero",
       "two"
-     ]
+     ],
+     "options_libelles": [
+      "No restriction",
+      "No Rungs",
+      "Two Rungs"
+     ],
+     "appearance": "combo"
     },
     {
      "name": "select-tatami-fill",
      "type": "boolean",
      "label": "Tatami Fill",
+     "aide": "",
      "default": "false",
-     "options": null
+     "page": "Select options"
     },
     {
      "name": "select-circular-fill",
      "type": "boolean",
      "label": "Circular Fill",
+     "aide": "",
      "default": "false",
-     "options": null
+     "page": "Select options"
     },
     {
      "name": "select-contour-fill",
      "type": "boolean",
      "label": "Contour Fill",
+     "aide": "",
      "default": "false",
-     "options": null
+     "page": "Select options"
     },
     {
      "name": "select-guided-fill",
      "type": "boolean",
      "label": "Guided Fill",
+     "aide": "",
      "default": "false",
-     "options": null
+     "page": "Select options"
     },
     {
      "name": "select-linear-gradient-fill",
      "type": "boolean",
      "label": "Linear Gradient Fill",
+     "aide": "",
      "default": "false",
-     "options": null
+     "page": "Select options"
     },
     {
      "name": "select-meander-fill",
      "type": "boolean",
      "label": "Meander Fill",
+     "aide": "",
      "default": "false",
-     "options": null
+     "page": "Select options"
     },
     {
      "name": "select-tartan-fill",
      "type": "boolean",
      "label": "Tartan Fill",
+     "aide": "",
      "default": "false",
-     "options": null
+     "page": "Select options"
     },
     {
      "name": "select-legacy-fill",
      "type": "boolean",
      "label": "Legacy Fill",
+     "aide": "",
      "default": "false",
-     "options": null
+     "page": "Select options"
     },
     {
      "name": "fill-underlay",
      "type": "optiongroup",
      "label": "Underlay",
-     "default": "",
+     "aide": "Only select fills with this underlay",
+     "default": "all",
+     "page": "Select options",
      "options": [
       "all",
       "yes",
       "no"
-     ]
+     ],
+     "options_libelles": [
+      "No restriction",
+      "Underlay",
+      "No Underlay"
+     ],
+     "appearance": "combo"
     },
     {
      "name": "select-clone",
      "type": "boolean",
      "label": "Clone",
+     "aide": "",
      "default": "false",
-     "options": null
+     "page": "Select options"
     },
     {
      "name": "python-path",
      "type": "string",
      "label": "Python Path",
+     "aide": "",
      "default": "",
-     "options": null
+     "page": "Help"
     }
-   ]
+   ],
+   "fenetre": false,
+   "dans_inkscape": true,
+   "essai": "ok"
   },
   {
    "fichier": "inkstitch_selection_to_anchor_line.inx",
@@ -3292,7 +4228,10 @@
    "format": null,
    "type": "effect",
    "menu": "Ink/Stitch/Edit",
-   "params": []
+   "params": [],
+   "fenetre": false,
+   "dans_inkscape": false,
+   "essai": "ok"
   },
   {
    "fichier": "inkstitch_selection_to_guide_line.inx",
@@ -3301,7 +4240,10 @@
    "format": null,
    "type": "effect",
    "menu": "Ink/Stitch/Edit",
-   "params": []
+   "params": [],
+   "fenetre": false,
+   "dans_inkscape": false,
+   "essai": "ok"
   },
   {
    "fichier": "inkstitch_selection_to_pattern.inx",
@@ -3310,7 +4252,10 @@
    "format": null,
    "type": "effect",
    "menu": "Ink/Stitch/Edit",
-   "params": []
+   "params": [],
+   "fenetre": true,
+   "dans_inkscape": false,
+   "essai": null
   },
   {
    "fichier": "inkstitch_simulator.inx",
@@ -3319,7 +4264,10 @@
    "format": null,
    "type": "effect",
    "menu": "Ink/Stitch/Visualize and Export",
-   "params": []
+   "params": [],
+   "fenetre": true,
+   "dans_inkscape": false,
+   "essai": null
   },
   {
    "fichier": "inkstitch_stitch_plan_preview.inx",
@@ -3333,75 +4281,102 @@
      "name": "layer-visibility",
      "type": "optiongroup",
      "label": "Design layer visibility",
-     "default": "",
+     "aide": "",
+     "default": "unchanged",
+     "page": "Options",
      "options": [
       "unchanged",
       "hidden",
       "lower_opacity"
-     ]
+     ],
+     "options_libelles": [
+      "Unchanged",
+      "Hidden",
+      "Lower opacity"
+     ],
+     "appearance": "combo"
     },
     {
      "name": "render-mode",
      "type": "optiongroup",
      "label": "Render Mode",
-     "default": "",
+     "aide": "Realistic modes will render to a raster image for performance reasons. Realistic Vector may cause Inkscape to slow down for complex designs.",
+     "default": "simple",
+     "page": "Options",
      "options": [
       "simple",
       "realistic-300",
       "realistic-600",
       "realistic-vector"
-     ]
+     ],
+     "options_libelles": [
+      "Stitch Plan",
+      "Realistic View",
+      "Realistic View (High Quality)",
+      "Realistic Vector (slow)"
+     ],
+     "appearance": "combo"
     },
     {
      "name": "move-to-side",
      "type": "boolean",
      "label": "Move stitch plan beside the canvas",
+     "aide": "",
      "default": "true",
-     "options": null
+     "page": "Options"
     },
     {
      "name": "needle-points",
      "type": "boolean",
      "label": "Needle points",
+     "aide": "",
      "default": "false",
-     "options": null
+     "page": "Options"
     },
     {
      "name": "visual-commands",
      "type": "boolean",
      "label": "Display command symbols",
+     "aide": "",
      "default": "false",
-     "options": null
+     "page": "Options"
     },
     {
      "name": "render-jumps",
      "type": "boolean",
      "label": "Render jump stitches",
+     "aide": "",
      "default": "true",
-     "options": null
+     "page": "Options"
     },
     {
      "name": "insensitive",
      "type": "boolean",
      "label": "Lock",
+     "aide": "Make stitch plan insensitive to mouse interactions",
      "default": "false",
-     "options": null
+     "page": "Options"
     },
     {
      "name": "ignore-layer",
      "type": "boolean",
      "label": "Add ignore layer command",
+     "aide": "",
      "default": "true",
-     "options": null
+     "page": "Options"
     },
     {
      "name": "overwrite",
      "type": "boolean",
      "label": "Override last stitch plan",
+     "aide": "",
      "default": "true",
-     "options": null
+     "page": "Options"
     }
-   ]
+   ],
+   "fenetre": false,
+   "dans_inkscape": false,
+   "essai": "ok"
   },
   {
    "fichier": "inkstitch_stitch_plan_preview_undo.inx",
@@ -3410,7 +4385,10 @@
    "format": null,
    "type": "effect",
    "menu": "Ink/Stitch/Visualize and Export",
-   "params": []
+   "params": [],
+   "fenetre": false,
+   "dans_inkscape": true,
+   "essai": null
   },
   {
    "fichier": "inkstitch_stroke_to_lpe_satin.inx",
@@ -3424,7 +4402,9 @@
      "name": "pattern",
      "type": "optiongroup",
      "label": "Pattern",
-     "default": "",
+     "aide": "",
+     "default": "normal",
+     "page": "Options",
      "options": [
       "normal",
       "pearl",
@@ -3433,51 +4413,79 @@
       "triangle",
       "wave",
       "arch"
-     ]
+     ],
+     "options_libelles": [
+      "Normal",
+      "Pearls",
+      "Diamonds",
+      "Squares",
+      "Triangles",
+      "Wave",
+      "Arch"
+     ],
+     "appearance": "combo"
     },
     {
      "name": "min-width",
      "type": "float",
      "label": "Min Width (mm)",
+     "aide": "",
      "default": "4",
-     "options": null
+     "page": "Options",
+     "min": "0",
+     "max": "100",
+     "precision": "1"
     },
     {
      "name": "max-width",
      "type": "float",
      "label": "Max Width (mm)",
+     "aide": "",
      "default": "7",
-     "options": null
+     "page": "Options",
+     "min": "0",
+     "max": "100",
+     "precision": "1"
     },
     {
      "name": "length",
      "type": "float",
      "label": "Pattern Length (mm)",
+     "aide": "",
      "default": "15",
-     "options": null
+     "page": "Options",
+     "min": "0.1",
+     "max": "100",
+     "precision": "1"
     },
     {
      "name": "stretched",
      "type": "boolean",
      "label": "Stretched",
+     "aide": "",
      "default": "false",
-     "options": null
+     "page": "Options"
     },
     {
      "name": "rungs",
      "type": "boolean",
      "label": "Add rungs",
+     "aide": "",
      "default": "true",
-     "options": null
+     "page": "Options"
     },
     {
      "name": "path-specific",
      "type": "boolean",
      "label": "Path specific",
+     "aide": "",
      "default": "true",
-     "options": null
+     "page": "Options"
     }
-   ]
+   ],
+   "fenetre": false,
+   "dans_inkscape": false,
+   "essai": "ok"
   },
   {
    "fichier": "inkstitch_stroke_to_satin.inx",
@@ -3486,7 +4494,10 @@
    "format": null,
    "type": "effect",
    "menu": "Ink/Stitch/Tools: Satin",
-   "params": []
+   "params": [],
+   "fenetre": false,
+   "dans_inkscape": false,
+   "essai": "ok"
   },
   {
    "fichier": "inkstitch_tartan.inx",
@@ -3495,7 +4506,10 @@
    "format": null,
    "type": "effect",
    "menu": "Ink/Stitch/Tools: Fill",
-   "params": []
+   "params": [],
+   "fenetre": true,
+   "dans_inkscape": false,
+   "essai": null
   },
   {
    "fichier": "inkstitch_test_swatches.inx",
@@ -3504,7 +4518,10 @@
    "format": null,
    "type": "effect",
    "menu": "Ink/Stitch/Edit",
-   "params": []
+   "params": [],
+   "fenetre": true,
+   "dans_inkscape": false,
+   "essai": null
   },
   {
    "fichier": "inkstitch_thread_list.inx",
@@ -3527,24 +4544,34 @@
      "name": "rotate",
      "type": "float",
      "label": "Rotate",
+     "aide": "",
      "default": "0",
-     "options": null
+     "page": "Options",
+     "min": "-180",
+     "max": "180",
+     "precision": "2",
+     "appearance": "full"
     },
     {
      "name": "flip-horizontally",
      "type": "bool",
      "label": "Flip horizontally",
+     "aide": "",
      "default": "false",
-     "options": null
+     "page": "Options"
     },
     {
      "name": "flip-vertically",
      "type": "bool",
      "label": "Flip vertically",
+     "aide": "",
      "default": "false",
-     "options": null
+     "page": "Options"
     }
-   ]
+   ],
+   "fenetre": false,
+   "dans_inkscape": false,
+   "essai": "ok"
   },
   {
    "fichier": "inkstitch_troubleshoot.inx",
@@ -3558,38 +4585,52 @@
      "name": "show-errors",
      "type": "boolean",
      "label": "Errors",
+     "aide": "Problems that will prevent the shape from being embroidered.",
      "default": "true",
-     "options": null
+     "page": "Options"
     },
     {
      "name": "show-warnings",
      "type": "boolean",
      "label": "Warnings",
+     "aide": "Problems that may lead to incorrect stitch paths.",
      "default": "true",
-     "options": null
+     "page": "Options"
     },
     {
      "name": "show-type-warning",
      "type": "boolean",
      "label": "Object type warning",
+     "aide": "Warns about unemboiderable object types.",
      "default": "true",
-     "options": null
+     "page": "Options"
     },
     {
      "name": "pointer-size",
      "type": "float",
      "label": "Pointer size (mm)",
+     "aide": "",
      "default": "5",
-     "options": null
+     "page": "Options",
+     "min": "1",
+     "max": "800",
+     "precision": "2"
     },
     {
      "name": "font-size",
      "type": "float",
      "label": "Font size (mm)",
+     "aide": "",
      "default": "2",
-     "options": null
+     "page": "Options",
+     "min": "1",
+     "max": "800",
+     "precision": "2"
     }
-   ]
+   ],
+   "fenetre": false,
+   "dans_inkscape": false,
+   "essai": "ok"
   },
   {
    "fichier": "inkstitch_unlink_clone.inx",
@@ -3603,17 +4644,22 @@
      "name": "recursive",
      "type": "boolean",
      "label": "Recursive",
+     "aide": "",
      "default": "true",
-     "options": null
+     "page": "Options"
     },
     {
      "name": "add-group",
      "type": "boolean",
      "label": "Group unlinked symbols",
+     "aide": "",
      "default": "true",
-     "options": null
+     "page": "Options"
     }
-   ]
+   ],
+   "fenetre": false,
+   "dans_inkscape": false,
+   "essai": "ok"
   },
   {
    "fichier": "inkstitch_update_svg.inx",
@@ -3627,10 +4673,17 @@
      "name": "update-from",
      "type": "int",
      "label": "Update from version",
+     "aide": "",
      "default": "0",
-     "options": null
+     "page": "",
+     "min": "0",
+     "max": "2",
+     "appearance": "full"
     }
-   ]
+   ],
+   "fenetre": false,
+   "dans_inkscape": false,
+   "essai": "ok"
   },
   {
    "fichier": "inkstitch_zigzag_line_to_satin.inx",
@@ -3644,35 +4697,49 @@
      "name": "pattern",
      "type": "optiongroup",
      "label": "Line Pattern",
-     "default": "",
+     "aide": "",
+     "default": "square",
+     "page": "Options",
      "options": [
       "square",
       "sawtooth",
       "zigzag"
-     ]
+     ],
+     "options_libelles": [
+      "Square",
+      "Sawtooth",
+      "Zigzag"
+     ],
+     "appearance": "combo"
     },
     {
      "name": "smoothing",
      "type": "boolean",
      "label": "Smoothing",
+     "aide": "",
      "default": "true",
-     "options": null
+     "page": "Options"
     },
     {
      "name": "rungs",
      "type": "boolean",
      "label": "Add rungs",
+     "aide": "",
      "default": "true",
-     "options": null
+     "page": "Options"
     },
     {
      "name": "reduce-rungs",
      "type": "boolean",
      "label": "Reduce number of rungs",
+     "aide": "",
      "default": "false",
-     "options": null
+     "page": "Options"
     }
-   ]
+   ],
+   "fenetre": false,
+   "dans_inkscape": false,
+   "essai": "ok"
   },
   {
    "fichier": "inkstitch_zip.inx",
@@ -3686,204 +4753,248 @@
      "name": "custom-file-name",
      "type": "string",
      "label": "Custom file name",
+     "aide": "Defines the file names inside the zip archive. Leave empty for default file name.",
      "default": "",
-     "options": null
+     "page": ""
     },
     {
      "name": "format-pec",
      "type": "boolean",
      "label": ".PEC: Brother Embroidery Format",
+     "aide": "",
      "default": "false",
-     "options": null
+     "page": "File Formats"
     },
     {
      "name": "format-pes",
      "type": "boolean",
      "label": ".PES: Brother Embroidery Format",
+     "aide": "",
      "default": "false",
-     "options": null
+     "page": "File Formats"
     },
     {
      "name": "format-exp",
      "type": "boolean",
      "label": ".EXP: Melco Expanded Embroidery Format",
+     "aide": "",
      "default": "false",
-     "options": null
+     "page": "File Formats"
     },
     {
      "name": "format-dst",
      "type": "boolean",
      "label": ".DST: Tajima Embroidery Format",
+     "aide": "",
      "default": "false",
-     "options": null
+     "page": "File Formats"
     },
     {
      "name": "format-jef",
      "type": "boolean",
      "label": ".JEF: Janome Embroidery Format",
+     "aide": "",
      "default": "false",
-     "options": null
+     "page": "File Formats"
     },
     {
      "name": "format-vp3",
      "type": "boolean",
      "label": ".VP3: Pfaff Embroidery Format",
+     "aide": "",
      "default": "false",
-     "options": null
+     "page": "File Formats"
     },
     {
      "name": "format-xxx",
      "type": "boolean",
      "label": ".XXX: Singer Embroidery Format",
+     "aide": "",
      "default": "false",
-     "options": null
+     "page": "File Formats"
     },
     {
      "name": "format-sew",
      "type": "boolean",
      "label": ".SEW: Janome Embroidery Format",
+     "aide": "",
      "default": "false",
-     "options": null
+     "page": "File Formats"
     },
     {
      "name": "format-u01",
      "type": "boolean",
      "label": ".U01: Barudan Embroidery Format",
+     "aide": "",
      "default": "false",
-     "options": null
+     "page": "File Formats"
     },
     {
      "name": "format-tbf",
      "type": "boolean",
      "label": ".TBF: Tajima Embroidery Format",
+     "aide": "",
      "default": "false",
-     "options": null
+     "page": "File Formats"
     },
     {
      "name": "format-pmv",
      "type": "boolean",
      "label": ".PMV: Brother Stitch Format [STITCH]",
+     "aide": "",
      "default": "false",
-     "options": null
+     "page": "File Formats"
     },
     {
      "name": "format-gcode",
      "type": "boolean",
      "label": ".GCODE: gcode Format, Text File",
+     "aide": "",
      "default": "false",
-     "options": null
+     "page": "File Formats"
     },
     {
      "name": "format-plt",
      "type": "boolean",
      "label": ".PLT: Plt - HPGL [QUILTING]",
+     "aide": "",
      "default": "false",
-     "options": null
+     "page": "File Formats"
     },
     {
      "name": "format-qcc",
      "type": "boolean",
      "label": ".QCC: Qcc - QuiltEZ [QUILTING]",
+     "aide": "",
      "default": "false",
-     "options": null
+     "page": "File Formats"
     },
     {
      "name": "format-edr",
      "type": "boolean",
      "label": ".EDR: Edr Color Format [COLOR]",
+     "aide": "",
      "default": "false",
-     "options": null
+     "page": "File Formats"
     },
     {
      "name": "format-col",
      "type": "boolean",
      "label": ".COL: Col Color Format [COLOR]",
+     "aide": "",
      "default": "false",
-     "options": null
+     "page": "File Formats"
     },
     {
      "name": "format-inf",
      "type": "boolean",
      "label": ".INF: Inf Color Format [COLOR]",
+     "aide": "",
      "default": "false",
-     "options": null
+     "page": "File Formats"
     },
     {
      "name": "format-threadlist",
      "type": "boolean",
      "label": ".TXT: Threadlist [COLOR]",
+     "aide": "",
      "default": "false",
-     "options": null
+     "page": "File Formats"
     },
     {
      "name": "format-svg",
      "type": "boolean",
      "label": ".SVG: Scalable Vector Graphic",
+     "aide": "",
      "default": "false",
-     "options": null
+     "page": "File Formats"
     },
     {
      "name": "format-png-realistic",
      "type": "boolean",
      "label": ".PNG: Portable Network Graphics (Realistic) [IMAGE]",
+     "aide": "",
      "default": "false",
-     "options": null
+     "page": "File Formats"
     },
     {
      "name": "dpi-realistic",
      "type": "int",
      "label": "DPI",
+     "aide": "",
      "default": "300",
-     "options": null
+     "page": "File Formats",
+     "min": "100",
+     "max": "2000"
     },
     {
      "name": "format-png-simple",
      "type": "boolean",
      "label": ".PNG: Portable Network Graphics (Simple) [IMAGE]",
+     "aide": "",
      "default": "false",
-     "options": null
+     "page": "File Formats"
     },
     {
      "name": "png-simple-line-width",
      "type": "float",
      "label": "Line width (mm)",
+     "aide": "",
      "default": "0.3",
-     "options": null
+     "page": "File Formats",
+     "min": "0.01",
+     "max": "5",
+     "precision": "2"
     },
     {
      "name": "dpi-simple",
      "type": "int",
      "label": "DPI",
+     "aide": "",
      "default": "300",
-     "options": null
+     "page": "File Formats",
+     "min": "100",
+     "max": "2000"
     },
     {
      "name": "x-repeats",
      "type": "int",
      "label": "Horizontal repeats",
+     "aide": "",
      "default": "1",
-     "options": null
+     "page": "Panelization Options",
+     "min": "1",
+     "max": "20"
     },
     {
      "name": "x-spacing",
      "type": "float",
      "label": "Horizontal spacing (mm)",
+     "aide": "",
      "default": "100",
-     "options": null
+     "page": "Panelization Options",
+     "min": "-1000",
+     "max": "1000"
     },
     {
      "name": "y-repeats",
      "type": "int",
      "label": "Vertical repeats",
+     "aide": "",
      "default": "1",
-     "options": null
+     "page": "Panelization Options",
+     "min": "1",
+     "max": "20"
     },
     {
      "name": "y-spacing",
      "type": "float",
      "label": "Vertical spacing (mm)",
+     "aide": "",
      "default": "100",
-     "options": null
+     "page": "Panelization Options",
+     "min": "-1000",
+     "max": "1000"
     }
    ]
   }

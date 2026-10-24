@@ -39,7 +39,7 @@ function rendreListe() {
     };
     ul.appendChild(li);
   }
-  if (!S.etat.objets.length) ul.innerHTML = '<li class="muted">Aucun objet brodable.<br>Dessinez d\'abord une forme dans Inkscape (rectangle, tracé…), sélectionnez-la, puis, dans Inkscape, Extensions › Broderie › Panneau de broderie. Ce panneau se met à jour tout seul.</li>';
+  if (!S.etat.objets.length) ul.innerHTML = '<li class="muted">Aucun objet brodable.<br>Dessinez d\'abord une forme dans Inkscape (rectangle, tracé…), sélectionnez-la, puis appuyez sur ⌘⇧B dans Inkscape. Ce panneau se met à jour tout seul.</li>';
   const cs = new Map();
   for (const o of S.etat.objets) for (const [k, q] of [['fill', o.remplissage], ['stroke', o.contour]]) {
     if (q && q !== 'none' && /^#[0-9a-f]{3,8}$/i.test(q) && (k === 'fill' ? o.types.includes('fill_stitch') : true)) {
@@ -171,6 +171,7 @@ function rendreProps() {
   }
   for (const t of o.types) if (t !== 'lettrage') { const s = section(o, t); if (s) div.appendChild(s); }
   const g = section(o, 'element'); if (g) div.appendChild(g);
+  div.appendChild(outilsRapides(o));
 }
 
 function rendreTout() {
@@ -181,10 +182,10 @@ function rendreTout() {
 function rendreAttente() {
   const n = S.etat.attente || 0, i = $('#attenteInfo');
   i.className = 'small' + (n ? ' on' : '');
-  i.textContent = n ? `${n} modification(s) à envoyer : dans Inkscape, menu Extensions › Broderie › Panneau de broderie.`
-    : (S.etat.sans_dessin ? '' : 'Dessin à jour dans Inkscape.');
+  i.textContent = n ? `${n} modification(s) à envoyer : appuyez sur ⌘⇧B dans Inkscape.`
+    : (S.etat.sans_dessin ? '' : 'Dessin à jour dans Inkscape. Après un changement dans Inkscape, appuyez sur ⌘⇧B pour le voir ici.');
   $('#bAbandonner').hidden = !n;
-  $('#etat').textContent = S.etat.sans_dessin ? 'Aucun dessin reçu : dans Inkscape, Extensions › Broderie › Panneau de broderie.'
+  $('#etat').textContent = S.etat.sans_dessin ? 'Aucun dessin reçu : appuyez sur ⌘⇧B dans Inkscape.'
     : (S.etat.selection.length ? `${S.etat.selection.length} objet(s) sélectionné(s) dans Inkscape` : 'Aucune sélection : tout le dessin');
 }
 
@@ -238,62 +239,128 @@ let minuterie = null;
 function apercuBientot() { clearTimeout(minuterie); minuterie = setTimeout(apercu, 400); }
 
 // ---------------------------------------------------------------- commandes Ink/Stitch
+// Lancées en arrière-plan : une fenêtre d'Ink/Stitch (lettrage, paramètres…) peut s'ouvrir ;
+// le panneau et Inkscape restent utilisables. Le résultat arrive par surveiller().
+const cmdPar = (ext) => (S.etat.commandes || []).find((c) => c.extension === ext);
 async function commande(ext, params = {}, ids = null) {
+  const c = cmdPar(ext);
   try {
-    const r = await api('commande', { extension: ext, params, ids: ids || S.etat.selection }, 'Une fenêtre d\'Ink/Stitch peut s\'ouvrir : fermez-la pour revenir ici.');
-    S.etat = await api('etat'); rendreTout(); if (r.modifie) apercuBientot();
-    message(r.modifie ? `Commande « ${ext} » appliquée au dessin.` : (r.erreur || `Commande « ${ext} » terminée sans modification.`), !!r.erreur && !r.modifie);
+    const r = await api('commande', { extension: ext, params, ids: ids || S.etat.selection });
+    S.tache = { extension: ext, nom: c ? c.nom_fr : ext, fini: false };
+    rendreTache();
+    message(r.fenetre ? `« ${S.tache.nom} » : la fenêtre d'Ink/Stitch s'ouvre (elle peut être derrière le navigateur).` : `« ${S.tache.nom} » en cours…`);
   } catch (e) { message(e.message, true); }
+}
+
+function rendreTache() {
+  const b = $('#tache');
+  const t = S.tache;
+  if (!t || t.fini) { b.hidden = true; return; }
+  b.hidden = false; b.textContent = `Ink/Stitch : ${t.nom}…`;
+}
+
+async function tacheFinie(t) {
+  S.tache = null; rendreTache();
+  S.etat = await api('etat'); rendreTout();
+  if (t.modifie) { apercuBientot(); message(`« ${t.nom} » appliqué.` + (t.message ? '\n' + t.message : '')); }
+  else message(t.erreur || t.message || `« ${t.nom} » terminé, sans modification du dessin.`, !!t.erreur);
 }
 
 function rendreCommandes() {
   const q = $('#cmdRecherche').value.trim().toLowerCase();
   const ul = $('#cmdListe'); ul.innerHTML = '';
   let menu = null;
-  const cmds = S.etat.commandes.slice().sort((a, b) => (a.menu + a.nom).localeCompare(b.menu + b.nom));
+  const cmds = S.etat.commandes.slice().sort((a, b) => (a.menu_fr + a.nom_fr).localeCompare(b.menu_fr + b.nom_fr, 'fr'));
   for (const c of cmds) {
-    if (q && !(c.nom + ' ' + c.menu + ' ' + c.extension).toLowerCase().includes(q)) continue;
-    if (c.menu !== menu) { menu = c.menu; const h = document.createElement('li'); h.className = 'menu'; h.textContent = (menu || 'Ink/Stitch').replace('Ink/Stitch/', '').replace('Ink/Stitch', 'Général'); ul.appendChild(h); }
-    const li = document.createElement('li'); li.className = 'c' + (S.cmd === c ? ' on' : ''); li.textContent = c.nom;
+    if (q && !(c.nom_fr + ' ' + c.nom + ' ' + c.menu_fr + ' ' + c.extension).toLowerCase().includes(q)) continue;
+    if (c.menu_fr !== menu) { menu = c.menu_fr; const h = document.createElement('li'); h.className = 'menu'; h.textContent = menu; ul.appendChild(h); }
+    const li = document.createElement('li'); li.className = 'c' + (S.cmd === c ? ' on' : '');
+    li.innerHTML = esc(c.nom_fr) + (c.fenetre ? ' <span class="badge">fenêtre</span>' : '');
     li.onclick = () => { S.cmd = c; rendreCommandes(); formCommande(c); };
     ul.appendChild(li);
   }
 }
 
+function couleurHex(v) {
+  const n = /^\d+$/.test(String(v)) ? Number(v) : parseInt(String(v).replace(/^0x|#/i, '').slice(0, 6).padEnd(8, 'f'), 16);
+  const h = (Math.floor(n / 256) & 0xffffff).toString(16).padStart(6, '0');
+  return '#' + h;
+}
+
 function formCommande(c) {
   const f = $('#cmdForm');
-  f.innerHTML = `<h3>${esc(c.nom)}</h3><p class="muted small">${esc(c.menu)} · --extension=${esc(c.extension)}</p>`;
+  f.innerHTML = `<h3>${esc(c.nom_fr)}</h3><p class="muted small">${esc(c.menu_fr)}${c.fenetre ? ' · ouvre une fenêtre d\'Ink/Stitch' : ''}</p>`;
+  if (c.dans_inkscape) {
+    f.innerHTML += '<p>Cette commande agit sur la sélection d\'Inkscape : utilisez-la depuis le menu Extensions › Ink/Stitch d\'Inkscape.</p>';
+    return;
+  }
   const vals = {};
+  let page = null;
   for (const p of c.params) {
-    if (!p.name || ['notebook', 'page'].includes(p.type) || p.type === null) continue;
-    if (p.type === 'description' || p.type === 'label') continue;
+    if (!p.name || p.type === 'label') continue;
+    if (p.page_fr && p.page_fr !== page) { page = p.page_fr; const h = document.createElement('h4'); h.textContent = page; f.appendChild(h); }
     const d = document.createElement('div'); d.className = 'champ';
-    const lib = esc(p.label || p.name);
+    const lib = `<label title="${esc(p.aide_fr || '')}">${esc(p.libelle)}</label>`;
     vals[p.name] = p.default;
-    if (p.type === 'boolean') {
+    if (p.type === 'boolean' || p.type === 'bool') {
       d.className = 'champ chk';
-      d.innerHTML = `<label><input type="checkbox" ${estVrai(p.default) ? 'checked' : ''}> ${lib}</label><span></span>`;
-      $('input', d).onchange = (e) => { vals[p.name] = e.target.checked; };
+      d.innerHTML = `<label title="${esc(p.aide_fr || '')}"><input type="checkbox" ${estVrai(p.default) ? 'checked' : ''}> ${esc(p.libelle)}</label><span></span>`;
       vals[p.name] = estVrai(p.default);
+      $('input', d).onchange = (e) => { vals[p.name] = e.target.checked; };
     } else if (p.options) {
-      d.innerHTML = `<label>${lib}</label><select>${p.options.map((o) => `<option ${o === p.default ? 'selected' : ''}>${esc(o)}</option>`).join('')}</select><span></span>`;
+      d.innerHTML = `${lib}<select>${p.options.map((o, k) => `<option value="${esc(o)}" ${o === p.default ? 'selected' : ''}>${esc((p.options_libelles || [])[k] || o)}</option>`).join('')}</select><span></span>`;
       if (!p.options.includes(p.default)) vals[p.name] = p.options[0];
       $('select', d).onchange = (e) => { vals[p.name] = e.target.value; };
+    } else if (p.type === 'color') {
+      d.innerHTML = `${lib}<input type="color" value="${couleurHex(p.default || '0x000000ff')}"><span></span>`;
+      vals[p.name] = couleurHex(p.default || '0x000000ff');
+      $('input', d).onchange = (e) => { vals[p.name] = e.target.value; };
+    } else if (p.type === 'path') {
+      d.innerHTML = `${lib}<div class="chemin"><input type="text" value="${esc(p.default)}" placeholder="${p.mode === 'folder' ? 'dossier' : 'fichier'}"><button type="button">Choisir…</button></div><span></span>`;
+      const inp = $('input', d);
+      inp.onchange = () => { vals[p.name] = inp.value; };
+      $('button', d).onclick = async () => {
+        const r = await api('choisir', { mode: p.mode || 'file' }, 'Choisissez dans la fenêtre du Mac (elle peut être derrière le navigateur).');
+        if (r.chemin) { inp.value = r.chemin; vals[p.name] = r.chemin; }
+      };
     } else {
-      d.innerHTML = `<label>${lib}</label><input type="text" value="${esc(p.default)}"><span></span>`;
+      const num = p.type === 'int' || p.type === 'float';
+      d.innerHTML = `${lib}<input type="${num ? 'number' : 'text'}" value="${esc(p.default)}" ${num ? `step="${p.type === 'int' ? 1 : 'any'}"` : ''} ${p.min != null ? `min="${esc(p.min)}"` : ''} ${p.max != null ? `max="${esc(p.max)}"` : ''}><span></span>`;
       $('input', d).onchange = (e) => { vals[p.name] = e.target.value; };
     }
     f.appendChild(d);
   }
-  const b = document.createElement('button'); b.type = 'button'; b.className = 'principal'; b.textContent = 'Exécuter';
+  const b = document.createElement('button'); b.type = 'button'; b.className = 'principal'; b.textContent = c.fenetre ? 'Ouvrir' : 'Exécuter';
   b.onclick = () => { $('#dlgCmd').close(); commande(c.extension, vals); };
   f.appendChild(b);
+}
+
+// outils rapides proposés selon le type d'objet (commandes Ink/Stitch existantes)
+const OUTILS = {
+  stroke: ['stroke_to_satin', 'zigzag_line_to_satin', 'auto_run', 'redwork', 'outline'],
+  satin_column: ['auto_satin', 'cut_satin', 'flip', 'satin_to_stroke', 'satin_multicolor'],
+  fill_stitch: ['fill_to_stroke', 'fill_to_satin', 'knockdown_fill', 'gradient_blocks', 'tartan'],
+  element: ['params', 'duplicate_params', 'remove_embroidery_settings', 'troubleshoot'],
+};
+function outilsRapides(o) {
+  const exts = [...new Set([...o.types.flatMap((t) => OUTILS[t] || []), ...OUTILS.element])].filter(cmdPar);
+  const sec = document.createElement('div'); sec.className = 'section outils-rapides';
+  sec.innerHTML = '<h3>Outils</h3>';
+  for (const e of exts) {
+    const c = cmdPar(e);
+    const b = document.createElement('button'); b.textContent = c.nom_fr + (c.fenetre ? '…' : '');
+    b.title = c.menu_fr;
+    b.onclick = () => (c.params.length && !c.fenetre ? (S.cmd = c, rendreCommandes(), formCommande(c), $('#dlgCmd').showModal()) : commande(e, {}, [o.id]));
+    sec.appendChild(b);
+  }
+  return sec;
 }
 
 // ---------------------------------------------------------------- démarrage
 $('#bApercu').onclick = apercu;
 $('#bSimu').onclick = async () => { await api('simulateur', { ids: S.etat.selection }); message('Le simulateur d\'Ink/Stitch s\'ouvre dans une fenêtre séparée.'); };
 $('#bLettrage').onclick = () => commande('lettering');
+$('#bParams').onclick = () => commande('params');
 $('#bExport').onclick = () => {
   const f = $('#fFormat').value;
   location.href = `/export?format=${encodeURIComponent(f)}&ids=${encodeURIComponent((S.etat.selection || []).join(','))}`;
@@ -309,7 +376,8 @@ $('#bAbandonner').onclick = async () => { S.etat = await api('abandonner'); rend
 async function surveiller() {
   try {
     const r = await api('present');
-    if (S.etat && r.version !== S.etat.version) { S.etat = await api('etat'); rendreTout(); apercuBientot(); }
+    if (S.tache && r.tache && r.tache.fini && r.tache.extension === S.tache.extension) await tacheFinie(r.tache);
+    else if (S.etat && r.version !== S.etat.version) { S.etat = await api('etat'); rendreTout(); apercuBientot(); }
   } catch (e) { $('#etat').textContent = 'Panneau arrêté : relancez-le depuis Inkscape.'; }
 }
 setInterval(surveiller, 2000);

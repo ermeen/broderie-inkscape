@@ -212,6 +212,30 @@ def _libelle_option(o):
     return _OPTIONS.get(o, str(o))
 
 
+def commandes():
+    """Commandes Ink/Stitch (effets) avec noms, menus, libellés et choix traduits."""
+    out = []
+    for c in CATALOGUE["commandes"]:
+        if c["type"] != "effect":
+            continue
+        q = dict(c)
+        q["nom_fr"] = tr(c["nom"])
+        sous = (c["menu"] or "").replace("Ink/Stitch", "", 1).strip("/")
+        q["menu_fr"] = " › ".join(tr(m) for m in sous.split("/") if m) or "Ink/Stitch"
+        ps = []
+        for p in c["params"]:
+            p = dict(p)
+            p["libelle"] = tr(p.get("label") or "") or p["name"]
+            p["aide_fr"] = tr(p.get("aide") or "")
+            p["page_fr"] = tr(p.get("page") or "")
+            if p.get("options_libelles"):
+                p["options_libelles"] = [tr(x) for x in p["options_libelles"]]
+            ps.append(p)
+        q["params"] = ps
+        out.append(q)
+    return out
+
+
 def par_id(svg, i):
     racine = svg.getroot() if hasattr(svg, "getroot") else svg
     # parcours simple : racine.xpath() d'inkex n'accepte pas les variables XPath

@@ -154,80 +154,85 @@ Total : 139 réglages.
 
 ## 2. Commandes Ink/Stitch (menu Extensions › Ink/Stitch)
 
-Toutes sont proposées dans « Toutes les commandes… » du panneau (recherche par nom), avec leurs options. Certaines ont aussi un bouton direct.
+Toutes sont dans le panneau, à « Toutes les commandes… » : noms en français, recherche, options avec sélecteur de fichier ou de couleur. Celles qui conviennent au type d'objet choisi apparaissent aussi dans **Propriétés › Outils**.
 
-| Menu actuel | Commande | Identifiant | Options | Emplacement prévu | État |
+États :
+- `testé` : exécutée pour de vrai par le moteur sur un dessin d'essai, avec ses options par défaut, sans erreur. Une commande qui attend une donnée (nom, fichier…) répond par son message normal, et ce message s'affiche dans le panneau ;
+- `fenêtre` : ouvre sa propre fenêtre Ink/Stitch, lancée depuis le panneau sans bloquer Inkscape ; non testée une par une ;
+- `Inkscape` : agit sur la sélection d'Inkscape et s'utilise donc depuis le menu Ink/Stitch.
+
+| Menu actuel | Commande | Identifiant | Emplacement prévu | État | Réponse lors de l'essai |
 |---|---|---|---|---|---|
-| Ink/Stitch | About | `about` | 0 | Toutes les commandes… | accessible |
-| Ink/Stitch | Cutwork segmentation | `cutwork_segmentation` | 14 | Toutes les commandes… | accessible |
-| Ink/Stitch | Install Addons for Inkscape | `install` | 2 | Toutes les commandes… | accessible |
-| Ink/Stitch | Params | `params` | 0 | Panneau Propriétés (remplace la fenêtre) | testé |
-| Ink/Stitch | Preferences | `preferences` | 0 | Toutes les commandes… | accessible |
-| Ink/Stitch/Commands | Add Commands | `global_commands` | 2 | Toutes les commandes… | accessible |
-| Ink/Stitch/Commands | Add Layer Commands | `layer_commands` | 1 | Toutes les commandes… | accessible |
-| Ink/Stitch/Commands | Attach Commands to Selected Objects | `object_commands` | 10 | Toutes les commandes… | accessible |
-| Ink/Stitch/Commands | Jump Stitch to Trim/Stop Command | `jump_to_trim` | 4 | Toutes les commandes… | accessible |
-| Ink/Stitch/Commands/View | Scale Command Symbols | `commands_scale_symbols` | 1 | Toutes les commandes… | accessible |
-| Ink/Stitch/Commands/View | Show|Hide Object Commands | `object_commands_toggle_visibility` | 0 | Toutes les commandes… | accessible |
-| Ink/Stitch/Edit | Apply attribute | `apply_attribute` | 4 | Toutes les commandes… | accessible |
-| Ink/Stitch/Edit | Duplicate Params | `duplicate_params` | 0 | Toutes les commandes… | accessible |
-| Ink/Stitch/Edit | Generate Test Swatches from Selection | `test_swatches` | 0 | Toutes les commandes… | accessible |
-| Ink/Stitch/Edit | Re-stack objects in order of selection | `reorder` | 0 | Toutes les commandes… | accessible |
-| Ink/Stitch/Edit | Remove duplicated points | `remove_duplicated_points` | 2 | Toutes les commandes… | accessible |
-| Ink/Stitch/Edit | Select embroidery elements | `select_elements` | 23 | Toutes les commandes… | accessible |
-| Ink/Stitch/Edit | Selection to anchor line | `selection_to_anchor_line` | 0 | Toutes les commandes… | accessible |
-| Ink/Stitch/Edit | Selection to guide line | `selection_to_guide_line` | 0 | Toutes les commandes… | accessible |
-| Ink/Stitch/Edit | Selection to pattern | `selection_to_pattern` | 0 | Toutes les commandes… | accessible |
-| Ink/Stitch/Edit | Transform | `transform_elements` | 3 | Toutes les commandes… | accessible |
-| Ink/Stitch/Edit | Unlink Clone | `unlink_clone` | 2 | Toutes les commandes… | accessible |
-| Ink/Stitch/Font Management | Convert SVG Font to Glyph Layers | `lettering_svg_font_to_layers` | 2 | Toutes les commandes… | accessible |
-| Ink/Stitch/Font Management | Custom font directory | `lettering_custom_font_dir` | 1 | Toutes les commandes… | accessible |
-| Ink/Stitch/Font Management | Edit JSON | `lettering_edit_json` | 0 | Toutes les commandes… | accessible |
-| Ink/Stitch/Font Management | Font Sampling | `lettering_font_sample` | 0 | Toutes les commandes… | accessible |
-| Ink/Stitch/Font Management | Force lock stitches | `lettering_force_lock_stitches` | 6 | Toutes les commandes… | accessible |
-| Ink/Stitch/Font Management | Generate JSON | `lettering_generate_json` | 45 | Toutes les commandes… | accessible |
-| Ink/Stitch/Font Management | Letters to font | `letters_to_font` | 4 | Toutes les commandes… | accessible |
-| Ink/Stitch/Font Management | Organize Glyphs | `lettering_organize_glyphs` | 1 | Toutes les commandes… | accessible |
-| Ink/Stitch/Font Management | Remove Kerning | `lettering_remove_kerning` | 1 | Toutes les commandes… | accessible |
-| Ink/Stitch/Font Management | Set color sort index | `lettering_set_color_sort_index` | 1 | Toutes les commandes… | accessible |
-| Ink/Stitch/Lettering | Lettering Tool | `lettering` | 0 | Barre d'outils › Lettrage ; Propriétés › Lettrage | accessible |
-| Ink/Stitch/Lettering | Lettering along path | `lettering_along_path` | 2 | Toutes les commandes… | accessible |
-| Ink/Stitch/Thread Color Management | Apply Palette | `apply_palette` | 0 | Toutes les commandes… | accessible |
-| Ink/Stitch/Thread Color Management | Apply Threadlist | `apply_threadlist` | 3 | Toutes les commandes… | accessible |
-| Ink/Stitch/Thread Color Management | Install custom palette | `install_custom_palette` | 1 | Toutes les commandes… | accessible |
-| Ink/Stitch/Thread Color Management | Palette to text | `palette_to_text` | 1 | Toutes les commandes… | accessible |
-| Ink/Stitch/Thread Color Management/Generate Palette | Generate Color Palette | `generate_palette` | 2 | Toutes les commandes… | accessible |
-| Ink/Stitch/Thread Color Management/Generate Palette | Split text | `palette_split_text` | 0 | Toutes les commandes… | accessible |
-| Ink/Stitch/Tools: Fill | Break Apart Fill Objects | `break_apart` | 2 | Toutes les commandes… | accessible |
-| Ink/Stitch/Tools: Fill | Convert to gradient blocks | `gradient_blocks` | 1 | Toutes les commandes… | accessible |
-| Ink/Stitch/Tools: Fill | Cross Stitch Assistant | `cross_stitch_assistant` | 0 | Toutes les commandes… | accessible |
-| Ink/Stitch/Tools: Fill | Selection to Knockdown Fill | `knockdown_fill` | 9 | Toutes les commandes… | accessible |
-| Ink/Stitch/Tools: Fill | Tartan | `tartan` | 0 | Toutes les commandes… | accessible |
-| Ink/Stitch/Tools: Satin | Auto-Route Satin Columns | `auto_satin` | 3 | Toutes les commandes… | accessible |
-| Ink/Stitch/Tools: Satin | Cut Satin Column | `cut_satin` | 0 | Toutes les commandes… | accessible |
-| Ink/Stitch/Tools: Satin | Fill to satin | `fill_to_satin` | 6 | Toutes les commandes… | accessible |
-| Ink/Stitch/Tools: Satin | Flip Satin Column Rails | `flip` | 0 | Toutes les commandes… | accessible |
-| Ink/Stitch/Tools: Satin | Multicolor Satin | `satin_multicolor` | 0 | Toutes les commandes… | accessible |
-| Ink/Stitch/Tools: Satin | Stroke to Live Path Effect Satin | `stroke_to_lpe_satin` | 7 | Toutes les commandes… | accessible |
-| Ink/Stitch/Tools: Satin | Stroke to Satin | `stroke_to_satin` | 0 | Toutes les commandes… | accessible |
-| Ink/Stitch/Tools: Satin | Zig-Zag Line to Satin | `zigzag_line_to_satin` | 4 | Toutes les commandes… | accessible |
-| Ink/Stitch/Tools: Stroke | Auto-Route Running Stitch | `auto_run` | 3 | Toutes les commandes… | accessible |
-| Ink/Stitch/Tools: Stroke | Fill to Stroke | `fill_to_stroke` | 4 | Toutes les commandes… | accessible |
-| Ink/Stitch/Tools: Stroke | Jump Stitch to Stroke | `jump_to_stroke` | 10 | Toutes les commandes… | accessible |
-| Ink/Stitch/Tools: Stroke | Outline | `outline` | 5 | Toutes les commandes… | accessible |
-| Ink/Stitch/Tools: Stroke | Redwork | `redwork` | 7 | Toutes les commandes… | accessible |
-| Ink/Stitch/Tools: Stroke | Satin to Stroke | `satin_to_stroke` | 1 | Toutes les commandes… | accessible |
-| Ink/Stitch/Troubleshoot | Cleanup Document | `cleanup` | 8 | Toutes les commandes… | accessible |
-| Ink/Stitch/Troubleshoot | Element Info | `element_info` | 0 | Toutes les commandes… | accessible |
-| Ink/Stitch/Troubleshoot | Remove embroidery settings | `remove_embroidery_settings` | 3 | Toutes les commandes… | accessible |
-| Ink/Stitch/Troubleshoot | Troubleshoot Objects | `troubleshoot` | 5 | Toutes les commandes… | accessible |
-| Ink/Stitch/Troubleshoot | Update inkstitch svg | `update_svg` | 1 | Toutes les commandes… | accessible |
-| Ink/Stitch/Visualize and Export | Density Map | `density_map` | 6 | Toutes les commandes… | accessible |
-| Ink/Stitch/Visualize and Export | Display stacking order | `display_stacking_order` | 1 | Toutes les commandes… | accessible |
-| Ink/Stitch/Visualize and Export | PDF Export | `print` | 0 | Toutes les commandes… | accessible |
-| Ink/Stitch/Visualize and Export | Simulator | `simulator` | 0 | Barre d'outils › Simulateur | accessible |
-| Ink/Stitch/Visualize and Export | Stitch Plan Preview | `stitch_plan_preview` | 9 | Barre d'outils › Aperçu des points (rendu intégré) | testé |
-| Ink/Stitch/Visualize and Export | Undo Stitch Plan Preview | `stitch_plan_preview_undo` | 0 | Toutes les commandes… | accessible |
+| Ink/Stitch | About | `about` | Toutes les commandes… | fenêtre |  |
+| Ink/Stitch | Cutwork segmentation | `cutwork_segmentation` | Toutes les commandes… | testé (après correction des couleurs) | inkex.colors.ColorError: 'Unknown color format: 0x990000ff' |
+| Ink/Stitch | Install Addons for Inkscape | `install` | Toutes les commandes… | fenêtre |  |
+| Ink/Stitch | Params | `params` | Barre d'outils › Paramètres Ink/Stitch ; Propriétés (réglages) | fenêtre |  |
+| Ink/Stitch | Preferences | `preferences` | Toutes les commandes… | fenêtre |  |
+| Ink/Stitch/Commands | Add Commands | `global_commands` | Toutes les commandes… | testé | Please choose one or more commands to add. |
+| Ink/Stitch/Commands | Add Layer Commands | `layer_commands` | Toutes les commandes… | testé | Please choose one or more commands to add. |
+| Ink/Stitch/Commands | Attach Commands to Selected Objects | `object_commands` | Toutes les commandes… | testé | Please choose one or more commands to attach. |
+| Ink/Stitch/Commands | Jump Stitch to Trim/Stop Command | `jump_to_trim` | Toutes les commandes… | testé |  |
+| Ink/Stitch/Commands/View | Scale Command Symbols | `commands_scale_symbols` | Toutes les commandes… | testé |  |
+| Ink/Stitch/Commands/View | Show|Hide Object Commands | `object_commands_toggle_visibility` | Toutes les commandes… | testé |  |
+| Ink/Stitch/Edit | Apply attribute | `apply_attribute` | Toutes les commandes… | testé | Please enter the attribute name. |
+| Ink/Stitch/Edit | Duplicate Params | `duplicate_params` | Toutes les commandes… ; Propriétés › Outils | testé |  |
+| Ink/Stitch/Edit | Generate Test Swatches from Selection | `test_swatches` | Toutes les commandes… | fenêtre |  |
+| Ink/Stitch/Edit | Re-stack objects in order of selection | `reorder` | Toutes les commandes… | testé |  |
+| Ink/Stitch/Edit | Remove duplicated points | `remove_duplicated_points` | Toutes les commandes… | testé |  |
+| Ink/Stitch/Edit | Select embroidery elements | `select_elements` | Toutes les commandes… | Inkscape | Could not detect python path. Please insert python path manually as described in the help  |
+| Ink/Stitch/Edit | Selection to anchor line | `selection_to_anchor_line` | Toutes les commandes… | testé |  |
+| Ink/Stitch/Edit | Selection to guide line | `selection_to_guide_line` | Toutes les commandes… | testé |  |
+| Ink/Stitch/Edit | Selection to pattern | `selection_to_pattern` | Toutes les commandes… | fenêtre |  |
+| Ink/Stitch/Edit | Transform | `transform_elements` | Toutes les commandes… | testé |  |
+| Ink/Stitch/Edit | Unlink Clone | `unlink_clone` | Toutes les commandes… | testé |  |
+| Ink/Stitch/Font Management | Convert SVG Font to Glyph Layers | `lettering_svg_font_to_layers` | Toutes les commandes… | testé | There are no svg fonts |
+| Ink/Stitch/Font Management | Custom font directory | `lettering_custom_font_dir` | Toutes les commandes… | accessible |  |
+| Ink/Stitch/Font Management | Edit JSON | `lettering_edit_json` | Toutes les commandes… | fenêtre |  |
+| Ink/Stitch/Font Management | Font Sampling | `lettering_font_sample` | Toutes les commandes… | fenêtre |  |
+| Ink/Stitch/Font Management | Force lock stitches | `lettering_force_lock_stitches` | Toutes les commandes… | testé |  |
+| Ink/Stitch/Font Management | Generate JSON | `lettering_generate_json` | Toutes les commandes… | testé | Please specify a font file. |
+| Ink/Stitch/Font Management | Letters to font | `letters_to_font` | Toutes les commandes… | testé | Font directory not found. Please specify an existing directory. |
+| Ink/Stitch/Font Management | Organize Glyphs | `lettering_organize_glyphs` | Toutes les commandes… | testé | Either  fill them or delete them |
+| Ink/Stitch/Font Management | Remove Kerning | `lettering_remove_kerning` | Toutes les commandes… | testé |  |
+| Ink/Stitch/Font Management | Set color sort index | `lettering_set_color_sort_index` | Toutes les commandes… | testé |  |
+| Ink/Stitch/Lettering | Lettering Tool | `lettering` | Barre d'outils › Lettrage | fenêtre |  |
+| Ink/Stitch/Lettering | Lettering along path | `lettering_along_path` | Toutes les commandes… | testé | Please select one path and one Ink/Stitch lettering group. |
+| Ink/Stitch/Thread Color Management | Apply Palette | `apply_palette` | Toutes les commandes… | fenêtre |  |
+| Ink/Stitch/Thread Color Management | Apply Threadlist | `apply_threadlist` | Toutes les commandes… | testé : attend un fichier (bouton Choisir…) | File not found. |
+| Ink/Stitch/Thread Color Management | Install custom palette | `install_custom_palette` | Toutes les commandes… | fenêtre |  |
+| Ink/Stitch/Thread Color Management | Palette to text | `palette_to_text` | Toutes les commandes… | testé : attend un fichier (bouton Choisir…) | TypeError: stat: path should be string, bytes, os.PathLike or integer, not NoneType |
+| Ink/Stitch/Thread Color Management/Generate Palette | Generate Color Palette | `generate_palette` | Toutes les commandes… | testé | Please specify a name for your color palette. |
+| Ink/Stitch/Thread Color Management/Generate Palette | Split text | `palette_split_text` | Toutes les commandes… | testé |  |
+| Ink/Stitch/Tools: Fill | Break Apart Fill Objects | `break_apart` | Toutes les commandes… | testé |  |
+| Ink/Stitch/Tools: Fill | Convert to gradient blocks | `gradient_blocks` | Toutes les commandes… ; Propriétés › Outils | testé | Please select at least one object with a gradient fill. |
+| Ink/Stitch/Tools: Fill | Cross Stitch Assistant | `cross_stitch_assistant` | Toutes les commandes… | fenêtre |  |
+| Ink/Stitch/Tools: Fill | Selection to Knockdown Fill | `knockdown_fill` | Toutes les commandes… ; Propriétés › Outils | testé |  |
+| Ink/Stitch/Tools: Fill | Tartan | `tartan` | Toutes les commandes… ; Propriétés › Outils | fenêtre |  |
+| Ink/Stitch/Tools: Satin | Auto-Route Satin Columns | `auto_satin` | Toutes les commandes… ; Propriétés › Outils | testé |  |
+| Ink/Stitch/Tools: Satin | Cut Satin Column | `cut_satin` | Toutes les commandes… ; Propriétés › Outils | testé |  |
+| Ink/Stitch/Tools: Satin | Fill to satin | `fill_to_satin` | Toutes les commandes… ; Propriétés › Outils | fenêtre |  |
+| Ink/Stitch/Tools: Satin | Flip Satin Column Rails | `flip` | Toutes les commandes… ; Propriétés › Outils | testé |  |
+| Ink/Stitch/Tools: Satin | Multicolor Satin | `satin_multicolor` | Toutes les commandes… ; Propriétés › Outils | fenêtre |  |
+| Ink/Stitch/Tools: Satin | Stroke to Live Path Effect Satin | `stroke_to_lpe_satin` | Toutes les commandes… | testé | Cannot convert a satin column into a live path effect satin. Please select a stroke. |
+| Ink/Stitch/Tools: Satin | Stroke to Satin | `stroke_to_satin` | Toutes les commandes… ; Propriétés › Outils | testé |  |
+| Ink/Stitch/Tools: Satin | Zig-Zag Line to Satin | `zigzag_line_to_satin` | Toutes les commandes… ; Propriétés › Outils | testé |  |
+| Ink/Stitch/Tools: Stroke | Auto-Route Running Stitch | `auto_run` | Toutes les commandes… ; Propriétés › Outils | testé |  |
+| Ink/Stitch/Tools: Stroke | Fill to Stroke | `fill_to_stroke` | Toutes les commandes… ; Propriétés › Outils | testé |  |
+| Ink/Stitch/Tools: Stroke | Jump Stitch to Stroke | `jump_to_stroke` | Toutes les commandes… | testé |  |
+| Ink/Stitch/Tools: Stroke | Outline | `outline` | Toutes les commandes… ; Propriétés › Outils | testé | Could not generate path from element trait_large with the given settings. |
+| Ink/Stitch/Tools: Stroke | Redwork | `redwork` | Toutes les commandes… ; Propriétés › Outils | testé |  |
+| Ink/Stitch/Tools: Stroke | Satin to Stroke | `satin_to_stroke` | Toutes les commandes… ; Propriétés › Outils | testé |  |
+| Ink/Stitch/Troubleshoot | Cleanup Document | `cleanup` | Toutes les commandes… | testé | 0 groups/layers to remove: |
+| Ink/Stitch/Troubleshoot | Element Info | `element_info` | Toutes les commandes… | fenêtre |  |
+| Ink/Stitch/Troubleshoot | Remove embroidery settings | `remove_embroidery_settings` | Toutes les commandes… ; Propriétés › Outils | testé |  |
+| Ink/Stitch/Troubleshoot | Troubleshoot Objects | `troubleshoot` | Toutes les commandes… ; Propriétés › Outils | testé | If you are still having trouble with a shape not being embroidered, check if it is in a la |
+| Ink/Stitch/Troubleshoot | Update inkstitch svg | `update_svg` | Toutes les commandes… | testé |  |
+| Ink/Stitch/Visualize and Export | Density Map | `density_map` | Toutes les commandes… | testé |  |
+| Ink/Stitch/Visualize and Export | Display stacking order | `display_stacking_order` | Toutes les commandes… | testé |  |
+| Ink/Stitch/Visualize and Export | PDF Export | `print` | Toutes les commandes… | fenêtre |  |
+| Ink/Stitch/Visualize and Export | Simulator | `simulator` | Barre d'outils › Simulateur | fenêtre |  |
+| Ink/Stitch/Visualize and Export | Stitch Plan Preview | `stitch_plan_preview` | Aperçu (zone centrale, automatique) | testé |  |
+| Ink/Stitch/Visualize and Export | Undo Stitch Plan Preview | `stitch_plan_preview_undo` | Toutes les commandes… | Inkscape |  |
 
 ## 3. Export (Fichier › Enregistrer une copie, formats Ink/Stitch)
 
@@ -274,4 +279,7 @@ Les 50 formats d'import (100 file input, 10O file input, BRO file input, COL fil
 | Mode avancé (tous les réglages) | accessible |
 | Aller-retour avec Inkscape sans blocage (envoi du dessin, retour des réglages, modifications faites dans Inkscape conservées) | testé hors Inkscape (script lancé comme Inkscape le lance) ; à tester dans Inkscape |
 | Aperçu recalculé à chaque changement, zoom net | testé |
+| Raccourci ⌘⇧B (envoi du dessin / retour des réglages) | installé ; à essayer après redémarrage d'Inkscape |
+| Menu Extensions › Broderie › Panneau de broderie lancé dans Inkscape | testé (dessin réel reçu par le panneau) |
+| Commandes en arrière-plan (Inkscape et panneau restent utilisables) | testé |
 | Abandonner les modifications en attente | accessible |

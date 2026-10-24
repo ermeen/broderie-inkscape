@@ -81,3 +81,9 @@ dialog { border: 1px solid var(--bord); border-radius: 10px; background: var(--p
   main { grid-template-columns: 1fr; }
   #centre { min-height: 50vh; }
 }
+#tache { background: var(--sel); border-radius: 6px; padding: 4px 8px; font-size: 12px; }
+.outils-rapides button { margin: 3px 3px 0 0; font-size: 12px; }
+.chemin { display: flex; gap: 4px; } .chemin input { flex: 1; min-width: 0; }
+#cmdForm h4 { margin: 10px 0 2px; font-size: 12px; color: var(--muted); }
+#cmdListe .badge { font-size: 10px; color: var(--muted); }
+.champ input[type=number] { width: 100%; background: var(--champ); border: 1px solid var(--bord); border-radius: 5px; padding: 4px 6px; }

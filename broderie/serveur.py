@@ -54,6 +54,7 @@ class Session:
         self.verrou = threading.RLock()
         self.journal = []
         self.vu = 0.0                     # dernier signe de vie du panneau
+        self.tache = None                 # commande Ink/Stitch en cours (fenêtre éventuelle)
         self.actif = time.time()
 
     # --- état -------------------------------------------------------------
@@ -65,7 +66,7 @@ class Session:
         objs = M.objets(self.document, self.ids)
         if self.ids and not objs:                       # sélection sans objet brodable : tout le document
             objs = M.objets(self.document)
-        cmds = [c for c in M.CATALOGUE["commandes"] if c["type"] == "effect"]
+        cmds = M.commandes()
         sorties = sorted({c["format"] for c in M.CATALOGUE["commandes"] if c["type"] == "output" and c["format"]})
         return {"objets": [M.decrire(o) for o in objs], "selection": self.ids, "nom": self.nom,
                 "attente": len(self.attente), "version": self.version,
@@ -121,7 +122,7 @@ class Session:
     def action(self, nom, d):
         if nom == "present":                           # signe de vie (sans verrou : jamais bloqué)
             self.vu = self.actif = time.time()
-            return {"version": self.version, "attente": len(self.attente)}
+            return {"version": self.version, "attente": len(self.attente), "tache": self.tache}
         with self.verrou:
             if nom == "etat":
                 return self.etat()
@@ -157,24 +158,95 @@ class Session:
                 return {"ok": True}
             if nom == "commande":
                 return self._commande(d)
+            if nom == "choisir":
+                return {"chemin": choisir(d.get("mode") or "file")}
             if nom == "quitter":
                 threading.Timer(0.3, os._exit, (0,)).start()
                 return {"ok": True}
             raise ValueError("action inconnue : %s" % nom)
 
     def _commande(self, d):
-        """Commande Ink/Stitch quelconque (catalogue complet) : le document renvoyé remplace l'actuel."""
+        """Commande Ink/Stitch quelconque (catalogue complet), lancée en arrière-plan : certaines ouvrent
+        une fenêtre (lettrage, paramètres…) et le panneau comme Inkscape doivent rester utilisables.
+        Le résultat remplace le dessin du panneau s'il n'a pas changé entre-temps."""
         ext = d["extension"]
-        if not any(c["extension"] == ext and c["type"] == "effect" for c in M.CATALOGUE["commandes"]):
+        cmd = next((c for c in M.CATALOGUE["commandes"] if c["extension"] == ext and c["type"] == "effect"), None)
+        if cmd is None:
             raise ValueError("commande inconnue")
-        code, out, err = E.executer(self.document, ext, d.get("ids") or None, d.get("params") or {})
-        doc = E.document_modifie(out)
-        if doc is not None:
-            self.document = doc
-            self.attente.append(("commande", ext))
-            self.log("Commande Ink/Stitch exécutée : %s" % ext)
-            return {"ok": True, "modifie": True, "erreur": err[-2000:] if code else None}
-        return {"ok": code == 0, "modifie": False, "erreur": err[-2000:] or None}
+        if self.tache and not self.tache.get("fini"):
+            raise ValueError("Une commande Ink/Stitch est déjà en cours : terminez-la d'abord.")
+        params = normaliser(cmd, d.get("params") or {})
+        avant = etree.tostring(self.document.getroot())
+        copie = _lire(avant)
+        version = self.version
+        self.tache = {"extension": ext, "nom": M.tr(cmd["nom"]), "fini": False, "debut": time.time()}
+
+        def travail():
+            try:
+                code, out, err = E.executer(copie, ext, d.get("ids") or None, params, delai=3600)
+                doc = E.document_modifie(out)
+                modifie = doc is not None and etree.tostring(doc.getroot()) != avant
+                msg = _message(err)
+                with self.verrou:
+                    if modifie and (self.version != version or etree.tostring(self.document.getroot()) != avant):
+                        res = {"modifie": False, "erreur": "Le dessin a changé pendant la commande : relancez-la."}
+                    elif modifie:
+                        self.document = doc
+                        self.ids = []                  # objets créés ou remplacés : on montre tout le dessin
+                        self.version += 1
+                        self.attente.append(("commande", ext))
+                        self.log("Commande Ink/Stitch : %s" % M.tr(cmd["nom"]))
+                        res = {"modifie": True, "message": msg}
+                    else:
+                        res = {"modifie": False, "message": msg, "erreur": msg if code else None}
+            except Exception as e:                   # le panneau doit toujours être prévenu
+                res = {"modifie": False, "erreur": "%s: %s" % (type(e).__name__, e)}
+            res.update(self.tache, fini=True)
+            self.tache = res
+
+        threading.Thread(target=travail, daemon=True).start()
+        return {"lance": True, "fenetre": bool(cmd.get("fenetre"))}
+
+
+def _message(err):
+    """Dernières lignes utiles de la sortie d'erreur d'Ink/Stitch (ses messages pour l'utilisateur)."""
+    lignes = [l for l in (err or "").strip().splitlines() if l.strip() and "Warning" not in l]
+    return "\n".join(lignes[-6:])[-1500:] or None
+
+
+def normaliser(cmd, params):
+    """Valeurs du panneau → format attendu par Ink/Stitch (comme Inkscape les passe)."""
+    types = {q["name"]: q["type"] for q in cmd["params"]}
+    out = {}
+    for k, v in params.items():
+        if types.get(k) == "color" and isinstance(v, str):
+            h = v.strip().lower().replace("#", "").replace("0x", "")
+            if len(h) == 6:
+                h += "ff"
+            try:
+                v = str(int(h, 16))                    # Inkscape passe les couleurs en entier RGBA
+            except ValueError:
+                pass
+        out[k] = v
+    return out
+
+
+def choisir(mode):
+    """Boîte de dialogue macOS de choix de fichier ou de dossier ; renvoie le chemin ou None."""
+    import subprocess
+    script = {"folder": "choose folder", "file_new": "choose file name",
+              "files": "choose file with multiple selections allowed"}.get(mode, "choose file")
+    if mode == "files":
+        prog = 'set L to (%s)\nset R to ""\nrepeat with f in L\nset R to R & POSIX path of f & "|"\nend repeat\nreturn R' % script
+    else:
+        prog = "POSIX path of (%s)" % script
+    try:
+        p = subprocess.run(["/usr/bin/osascript", "-e", 'tell application "System Events" to activate', "-e", prog],
+                           capture_output=True, text=True, timeout=600)
+    except (OSError, subprocess.SubprocessError):
+        return None
+    r = p.stdout.strip().rstrip("|")
+    return r.replace("|", ",") if r else None
 
 
 def _gestionnaire(session):

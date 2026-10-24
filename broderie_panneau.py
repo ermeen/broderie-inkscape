@@ -23,6 +23,15 @@ import inkex  # noqa: E402
 from lxml import etree  # noqa: E402
 
 PORT = int(os.environ.get("BRODERIE_PORT") or 47811)
+JOURNAL = os.path.join(tempfile.gettempdir(), "broderie-panneau.log")
+
+
+def note(msg):
+    try:
+        with open(JOURNAL, "a") as j:
+            j.write("%s [ext %d] %s\n" % (time.strftime("%H:%M:%S"), os.getpid(), msg))
+    except OSError:
+        pass
 URL = "http://127.0.0.1:%d/" % PORT
 
 
@@ -54,32 +63,59 @@ def _demarrer_serveur():
     raise inkex.AbortExtension("Le panneau de broderie n'a pas pu démarrer.")
 
 
-def ouvrir_navigateur():
-    """Ouvre le panneau dans le navigateur par défaut. `open` de macOS d'abord : le module
-    webbrowser passe par AppleScript, que macOS peut bloquer sans rien dire quand Inkscape le lance."""
+def navigateur_par_defaut():
+    """Identifiant du navigateur par défaut de macOS (Safari si aucun choix enregistré)."""
+    import plistlib
+    f = os.path.expanduser("~/Library/Preferences/com.apple.LaunchServices/com.apple.launchservices.secure.plist")
     try:
-        if sys.platform == "darwin":
-            subprocess.run(["/usr/bin/open", URL], check=True, timeout=10,
-                           stdin=subprocess.DEVNULL, stdout=subprocess.DEVNULL, stderr=subprocess.PIPE)
-            return
+        with open(f, "rb") as fh:
+            for h in plistlib.load(fh).get("LSHandlers", []):
+                if h.get("LSHandlerURLScheme") in ("https", "http") and h.get("LSHandlerRoleAll"):
+                    return h["LSHandlerRoleAll"]
+    except (OSError, ValueError):
+        pass
+    return "com.apple.Safari"
+
+
+def ouvrir_navigateur(deja_ouvert=False):
+    """Montre le panneau : nouvel onglet s'il n'existe pas, sinon met le navigateur au premier plan.
+    `open` de macOS plutôt que le module webbrowser (AppleScript, que macOS peut bloquer sans rien dire)."""
+    if sys.platform != "darwin":
+        if not deja_ouvert:
+            webbrowser.open(URL)
+        return
+    cmd = ["/usr/bin/open", "-b", navigateur_par_defaut()] + ([] if deja_ouvert else [URL])
+    try:
+        subprocess.run(cmd, check=True, timeout=10, stdin=subprocess.DEVNULL,
+                       stdout=subprocess.DEVNULL, stderr=subprocess.PIPE)
     except (OSError, subprocess.SubprocessError) as e:
-        with open(os.path.join(tempfile.gettempdir(), "broderie-panneau.log"), "a") as j:
-            j.write("ouverture du navigateur : %s\n" % e)
-    webbrowser.open(URL)
+        note("ouverture du navigateur : %s" % e)
+        if not deja_ouvert:
+            webbrowser.open(URL)
 
 
 class PanneauBroderie(inkex.EffectExtension):
     def effect(self):
+        note("début, sélection=%s" % list(self.options.ids or []))
         _demarrer_serveur()
+        note("serveur prêt")
         nom = os.path.splitext(os.path.basename(self.svg.get("sodipodi:docname") or "dessin"))[0] or "dessin"
         r = _appel("sync", {"svg": etree.tostring(self.document.getroot(), encoding="unicode"),
                             "ids": list(self.options.ids or []), "nom": nom}, delai=600)
-        if not r.get("panneau_ouvert") and not os.environ.get("BRODERIE_SANS_NAVIGATEUR"):
-            ouvrir_navigateur()
+        note("sync faite, panneau ouvert=%s, renvoi=%s" % (r.get("panneau_ouvert"), bool(r.get("svg"))))
+        # réglages renvoyés : on reste dans Inkscape ; sinon on montre le panneau
+        if not r.get("svg") and not os.environ.get("BRODERIE_SANS_NAVIGATEUR"):
+            ouvrir_navigateur(bool(r.get("panneau_ouvert")))
+            note("panneau montré")
         if r.get("svg"):
             self.document = inkex.load_svg(r["svg"].encode("utf-8"))
             self.svg = self.document.getroot()
 
 
 if __name__ == "__main__":
-    PanneauBroderie().run()
+    try:
+        PanneauBroderie().run()
+        note("fin")
+    except BaseException as e:
+        note("erreur : %r" % e)
+        raise
