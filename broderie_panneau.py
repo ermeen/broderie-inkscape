@@ -77,21 +77,46 @@ def navigateur_par_defaut():
     return "com.apple.Safari"
 
 
+SAFARI = """
+tell application "Safari"
+    repeat with w in windows
+        repeat with t in tabs of w
+            if (URL of t as text) starts with "%s" then
+                set current tab of w to t
+                set index of w to 1
+                activate
+                return "trouve"
+            end if
+        end repeat
+    end repeat
+end tell
+return "absent"
+"""
+
+
 def ouvrir_navigateur(deja_ouvert=False):
-    """Montre le panneau : nouvel onglet s'il n'existe pas, sinon met le navigateur au premier plan.
+    """Montre le panneau au premier plan : dans Safari, l'onglet existant est retrouvé et affiché
+    (sinon un onglet est ouvert) ; avec un autre navigateur, le panneau est ouvert par `open`.
     `open` de macOS plutôt que le module webbrowser (AppleScript, que macOS peut bloquer sans rien dire)."""
     if sys.platform != "darwin":
-        if not deja_ouvert:
-            webbrowser.open(URL)
+        webbrowser.open(URL)
         return
-    cmd = ["/usr/bin/open", "-b", navigateur_par_defaut()] + ([] if deja_ouvert else [URL])
+    nav = navigateur_par_defaut()
+    if nav.lower() == "com.apple.safari":
+        try:
+            p = subprocess.run(["/usr/bin/osascript", "-e", SAFARI % URL.rstrip("/")], capture_output=True,
+                               text=True, timeout=15, stdin=subprocess.DEVNULL)
+            note("Safari : %s %s" % (p.stdout.strip(), p.stderr.strip()[:200]))
+            if p.stdout.strip() == "trouve":
+                return
+        except (OSError, subprocess.SubprocessError) as e:
+            note("Safari : %s" % e)
     try:
-        subprocess.run(cmd, check=True, timeout=10, stdin=subprocess.DEVNULL,
+        subprocess.run(["/usr/bin/open", "-b", nav, URL], check=True, timeout=10, stdin=subprocess.DEVNULL,
                        stdout=subprocess.DEVNULL, stderr=subprocess.PIPE)
     except (OSError, subprocess.SubprocessError) as e:
         note("ouverture du navigateur : %s" % e)
-        if not deja_ouvert:
-            webbrowser.open(URL)
+        webbrowser.open(URL)
 
 
 class PanneauBroderie(inkex.EffectExtension):

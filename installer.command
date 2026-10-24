@@ -15,12 +15,12 @@ find "$DEST" -name __pycache__ -prune -exec rm -rf {} +
 # fichier créé s'il n'existe pas, sinon la ligne est ajoutée sans toucher au reste
 KEYS="$HOME/Library/Application Support/org.inkscape.Inkscape/config/inkscape/keys/default.xml"
 mkdir -p "$(dirname "$KEYS")"
-LIGNE='  <bind gaction="org.pointlibre.broderie.panneau" keys="&lt;primary&gt;&lt;shift&gt;b,&lt;primary&gt;&lt;alt&gt;b"/>'
+LIGNE='  <bind gaction="app.org.pointlibre.broderie.panneau" keys="&lt;primary&gt;&lt;shift&gt;b,&lt;primary&gt;&lt;alt&gt;b"/>'
 if [ ! -f "$KEYS" ]; then
   printf '<?xml version="1.0"?>\n<keys name="Raccourcis personnels">\n%s\n</keys>\n' "$LIGNE" > "$KEYS"
-elif grep -q 'gaction="app.org.pointlibre.broderie.panneau"' "$KEYS"; then
-  # nom d'action erroné des versions précédentes (sans effet) : corrigé
-  /usr/bin/sed -i '' 's/gaction="app.org.pointlibre.broderie.panneau"/gaction="org.pointlibre.broderie.panneau"/' "$KEYS"
+elif grep -q 'gaction="org.pointlibre.broderie.panneau"' "$KEYS"; then
+  # nom d'action sans « app. » d'une version précédente (sans effet) : corrigé
+  /usr/bin/sed -i '' 's/gaction="org.pointlibre.broderie.panneau"/gaction="app.org.pointlibre.broderie.panneau"/' "$KEYS"
 elif ! grep -q "org.pointlibre.broderie.panneau" "$KEYS"; then
   cp "$KEYS" "$KEYS.avant-broderie"
   /usr/bin/python3 - "$KEYS" "$LIGNE" <<'PY'
