@@ -1,7 +1,8 @@
 """Fabrique la notice PDF du Panneau de broderie (reportlab).
 
 Utilisation : python3 fabriquer_notice.py   →  docs/Notice-Broderie-<version>.pdf
-Les captures d'écran sont dans docs/notice/images (prises avec Chrome sans fenêtre sur un dessin d'essai).
+Les captures d'écran sont dans docs/notice/images (prises avec Chrome sans fenêtre sur un dessin d'essai) ;
+le logo dans docs/logo. Couleurs reprises du logo : rose poudré, vert sauge, crème.
 """
 import os
 
@@ -10,271 +11,414 @@ from reportlab.lib.enums import TA_CENTER
 from reportlab.lib.pagesizes import A4
 from reportlab.lib.styles import ParagraphStyle
 from reportlab.lib.units import mm
+from reportlab.lib.utils import ImageReader
 from reportlab.pdfbase import pdfmetrics
 from reportlab.pdfbase.ttfonts import TTFont
-from reportlab.platypus import (Image, KeepTogether, PageBreak, Paragraph, SimpleDocTemplate, Spacer, Table,
-                                TableStyle)
+from reportlab.platypus import (BaseDocTemplate, Flowable, Frame, KeepTogether, NextPageTemplate, PageBreak,
+                                PageTemplate, Paragraph, Spacer, Table, TableStyle)
 
 ICI = os.path.dirname(os.path.abspath(__file__))
 RACINE = os.path.normpath(os.path.join(ICI, "..", ".."))
 with open(os.path.join(RACINE, "VERSION"), encoding="utf-8") as f:
     VERSION = f.read().strip()
 SORTIE = os.path.join(RACINE, "docs", "Notice-Broderie-%s.pdf" % VERSION)
+LOGO = os.path.join(RACINE, "docs", "logo", "icone.png")
 
-POLICES = "/System/Library/Fonts/Supplemental/"
-pdfmetrics.registerFont(TTFont("Texte", POLICES + "Arial.ttf"))
-pdfmetrics.registerFont(TTFont("Texte-Gras", POLICES + "Arial Bold.ttf"))
-pdfmetrics.registerFont(TTFont("Texte-Italique", POLICES + "Arial Italic.ttf"))
-pdfmetrics.registerFontFamily("Texte", normal="Texte", bold="Texte-Gras", italic="Texte-Italique")
+# ---------------------------------------------------------------- polices et couleurs
+AVENIR = "/System/Library/Fonts/Avenir Next.ttc"
+for nom, i in (("Av", 7), ("Av-It", 4), ("Av-Demi", 2), ("Av-Gras", 0), ("Av-Fin", 10), ("Av-Moyen", 5)):
+    pdfmetrics.registerFont(TTFont(nom, AVENIR, subfontIndex=i))
+pdfmetrics.registerFontFamily("Av", normal="Av", bold="Av-Demi", italic="Av-It", boldItalic="Av-Gras")
 
-ACCENT = colors.HexColor("#2f6fdb")
-ENCRE = colors.HexColor("#1d1d1f")
-GRIS = colors.HexColor("#6e6e73")
-FOND = colors.HexColor("#f2f5fa")
+ROSE = colors.HexColor("#d4788c")
+ROSE_FONCE = colors.HexColor("#b25a6e")
+ROSE_PALE = colors.HexColor("#f7e4e8")
+SAUGE = colors.HexColor("#7d9a74")
+SAUGE_PALE = colors.HexColor("#e7efe3")
+CREME = colors.HexColor("#fcf8f4")
+SABLE = colors.HexColor("#f4ece4")
+ENCRE = colors.HexColor("#3d3438")
+GRIS = colors.HexColor("#8c8086")
+LIGNE = colors.HexColor("#eadfd9")
 
 S = {
-    "titre": ParagraphStyle("titre", fontName="Texte-Gras", fontSize=30, leading=36, textColor=ENCRE, alignment=TA_CENTER),
-    "soustitre": ParagraphStyle("soustitre", fontName="Texte", fontSize=13, leading=18, textColor=GRIS, alignment=TA_CENTER),
-    "h1": ParagraphStyle("h1", fontName="Texte-Gras", fontSize=18, leading=23, textColor=ACCENT, spaceBefore=4, spaceAfter=8),
-    "h2": ParagraphStyle("h2", fontName="Texte-Gras", fontSize=12.5, leading=16, textColor=ENCRE, spaceBefore=8, spaceAfter=4),
-    "p": ParagraphStyle("p", fontName="Texte", fontSize=10.5, leading=15, textColor=ENCRE, spaceAfter=5),
-    "liste": ParagraphStyle("liste", fontName="Texte", fontSize=10.5, leading=15, textColor=ENCRE, leftIndent=12,
-                            bulletIndent=2, spaceAfter=2),
-    "legende": ParagraphStyle("legende", fontName="Texte-Italique", fontSize=9, leading=12, textColor=GRIS,
-                              alignment=TA_CENTER, spaceAfter=8),
-    "cellule": ParagraphStyle("cellule", fontName="Texte", fontSize=9.5, leading=13, textColor=ENCRE),
-    "cellule_g": ParagraphStyle("cellule_g", fontName="Texte-Gras", fontSize=9.5, leading=13, textColor=ENCRE),
-    "encadre": ParagraphStyle("encadre", fontName="Texte", fontSize=10.5, leading=15, textColor=ENCRE),
+    "p": ParagraphStyle("p", fontName="Av", fontSize=10.3, leading=15.5, textColor=ENCRE, spaceAfter=6),
+    "intro": ParagraphStyle("intro", fontName="Av", fontSize=11.5, leading=17, textColor=GRIS, spaceAfter=8),
+    "h2": ParagraphStyle("h2", fontName="Av-Demi", fontSize=12.5, leading=16, textColor=ROSE_FONCE, spaceBefore=9, spaceAfter=4),
+    "liste": ParagraphStyle("liste", fontName="Av", fontSize=10.3, leading=15, textColor=ENCRE, leftIndent=13,
+                            bulletIndent=2, bulletFontName="Av-Demi", bulletColor=ROSE, spaceAfter=3),
+    "legende": ParagraphStyle("legende", fontName="Av-It", fontSize=8.8, leading=12, textColor=GRIS, alignment=TA_CENTER),
+    "cel": ParagraphStyle("cel", fontName="Av", fontSize=9.3, leading=12.5, textColor=ENCRE),
+    "cel_t": ParagraphStyle("cel_t", fontName="Av-Demi", fontSize=9.3, leading=12.5, textColor=colors.white),
+    "carte_t": ParagraphStyle("carte_t", fontName="Av-Demi", fontSize=11, leading=14, textColor=ENCRE, spaceAfter=4),
+    "carte": ParagraphStyle("carte", fontName="Av", fontSize=9.4, leading=13.5, textColor=ENCRE, leftIndent=9,
+                            bulletIndent=0, bulletColor=SAUGE, spaceAfter=2),
+    "encadre": ParagraphStyle("encadre", fontName="Av", fontSize=10, leading=14.5, textColor=ENCRE),
+    "encadre_t": ParagraphStyle("encadre_t", fontName="Av-Demi", fontSize=8.5, leading=11, textColor=ROSE_FONCE, spaceAfter=2),
 }
+
+
+def touche(t):
+    """Touche de clavier (Cmd, Option, B…)."""
+    return '<font name="Av-Demi" size="9" color="#b25a6e" backColor="#f7e4e8">&nbsp;%s&nbsp;</font>' % t
+
+
+CMD = touche("Cmd") + " " + touche("Option") + " " + touche("B")
 
 
 def p(t, st="p"):
     return Paragraph(t, S[st])
 
 
-def puces(*items):
-    return [Paragraph(t, S["liste"], bulletText="•") for t in items]
+def puces(*items, st="liste"):
+    return [Paragraph(t, S[st], bulletText="•") for t in items]
 
 
-def image(nom, largeur=170, legende=None):
-    f = os.path.join(ICI, "images", nom + ".png")
-    from reportlab.lib.utils import ImageReader
-    w, h = ImageReader(f).getSize()
-    el = [Image(f, width=largeur * mm, height=largeur * mm * h / w)]
+# ---------------------------------------------------------------- éléments de mise en page
+class Chapitre(Flowable):
+    """Ouverture de chapitre : numéro dans une pastille rose, titre, fil sauge."""
+    def __init__(self, num, titre, sous=None):
+        super().__init__()
+        self.num, self.titre, self.sous = num, titre, sous
+
+    def wrap(self, aw, ah):
+        self.aw = aw
+        return aw, 21 * mm if self.sous else 16 * mm
+
+    def draw(self):
+        c = self.canv
+        h = 21 * mm if self.sous else 16 * mm
+        y = h - 9 * mm
+        c.setFillColor(ROSE)
+        c.circle(5.2 * mm, y, 5.2 * mm, stroke=0, fill=1)
+        c.setFillColor(colors.white)
+        c.setFont("Av-Demi", 13)
+        c.drawCentredString(5.2 * mm, y - 1.6 * mm, str(self.num))
+        c.setFillColor(ENCRE)
+        c.setFont("Av-Demi", 19)
+        c.drawString(14 * mm, y - 2.4 * mm, self.titre)
+        if self.sous:
+            c.setFillColor(GRIS)
+            c.setFont("Av", 10.5)
+            c.drawString(14 * mm, y - 8.5 * mm, self.sous)
+        c.setStrokeColor(SAUGE)
+        c.setLineWidth(1.2)
+        c.line(14 * mm, 1.2 * mm, 40 * mm, 1.2 * mm)
+
+
+class Capture(Flowable):
+    """Capture d'écran dans un cadre arrondi, avec une ombre douce."""
+    def __init__(self, nom, largeur):
+        super().__init__()
+        self.f = os.path.join(ICI, "images", nom + ".png")
+        w, h = ImageReader(self.f).getSize()
+        self.w, self.h = largeur * mm, largeur * mm * h / w
+
+    def wrap(self, aw, ah):
+        self.dx = (aw - self.w) / 2
+        return aw, self.h + 3 * mm
+
+    def draw(self):
+        c, r, x, y = self.canv, 3 * mm, self.dx, 2 * mm
+        for k, a in ((2.2, 0.05), (1.4, 0.07), (0.7, 0.09)):           # ombre
+            c.setFillColor(colors.Color(0.35, 0.2, 0.25, alpha=a))
+            c.roundRect(x - k * 0.3 * mm, y - k * mm, self.w + k * 0.6 * mm, self.h + k * 0.6 * mm, r + k * mm, stroke=0, fill=1)
+        c.setFillAlpha(1)                      # l'ombre est transparente, pas la capture
+        c.saveState()
+        chemin = c.beginPath()
+        chemin.roundRect(x, y, self.w, self.h, r)
+        c.clipPath(chemin, stroke=0, fill=0)
+        c.drawImage(self.f, x, y, self.w, self.h)
+        c.restoreState()
+        c.setStrokeColor(LIGNE)
+        c.setLineWidth(0.6)
+        c.roundRect(x, y, self.w, self.h, r, stroke=1, fill=0)
+
+
+def capture(nom, largeur, legende=None):
+    el = [Capture(nom, largeur)]
     if legende:
-        el.append(p(legende, "legende"))
-    return KeepTogether(el)
+        el += [Spacer(1, 1.5 * mm), p(legende, "legende")]
+    return KeepTogether(el + [Spacer(1, 3 * mm)])
 
 
-def tableau(lignes, largeurs, entete=True):
-    data = [[Paragraph(str(c), S["cellule_g" if (entete and i == 0) else "cellule"]) for c in l] for i, l in enumerate(lignes)]
-    t = Table(data, colWidths=[w * mm for w in largeurs], repeatRows=1 if entete else 0)
-    style = [("VALIGN", (0, 0), (-1, -1), "TOP"), ("GRID", (0, 0), (-1, -1), 0.4, colors.HexColor("#d5dbe5")),
-             ("LEFTPADDING", (0, 0), (-1, -1), 5), ("RIGHTPADDING", (0, 0), (-1, -1), 5),
-             ("TOPPADDING", (0, 0), (-1, -1), 4), ("BOTTOMPADDING", (0, 0), (-1, -1), 4)]
-    if entete:
-        style.append(("BACKGROUND", (0, 0), (-1, 0), FOND))
+def encadre(texte, titre="À RETENIR", fond=ROSE_PALE, barre=ROSE):
+    t = Table([[[p(titre, "encadre_t"), p(texte, "encadre")]]], colWidths=[170 * mm])
+    t.setStyle(TableStyle([("BACKGROUND", (0, 0), (-1, -1), fond), ("LINEBEFORE", (0, 0), (0, -1), 3, barre),
+                           ("LEFTPADDING", (0, 0), (-1, -1), 12), ("RIGHTPADDING", (0, 0), (-1, -1), 12),
+                           ("TOPPADDING", (0, 0), (-1, -1), 8), ("BOTTOMPADDING", (0, 0), (-1, -1), 9),
+                           ("ROUNDEDCORNERS", [4, 4, 4, 4])]))
+    return KeepTogether([t, Spacer(1, 4 * mm)])
+
+
+def astuce(texte):
+    return encadre(texte, "ASTUCE", SAUGE_PALE, SAUGE)
+
+
+def tableau(lignes, largeurs):
+    data = [[Paragraph(str(c), S["cel_t" if i == 0 else "cel"]) for c in l] for i, l in enumerate(lignes)]
+    t = Table(data, colWidths=[w * mm for w in largeurs], repeatRows=1)
+    style = [("VALIGN", (0, 0), (-1, -1), "MIDDLE"), ("BACKGROUND", (0, 0), (-1, 0), ROSE),
+             ("LINEBELOW", (0, 1), (-1, -1), 0.4, LIGNE),
+             ("LEFTPADDING", (0, 0), (-1, -1), 7), ("RIGHTPADDING", (0, 0), (-1, -1), 7),
+             ("TOPPADDING", (0, 0), (-1, -1), 5), ("BOTTOMPADDING", (0, 0), (-1, -1), 5),
+             ("ROUNDEDCORNERS", [4, 4, 4, 4])]
+    for i in range(1, len(lignes)):
+        style.append(("BACKGROUND", (0, i), (-1, i), colors.white if i % 2 else SABLE))
     t.setStyle(TableStyle(style))
     return t
 
 
-def encadre(texte, couleur="#eaf1fd"):
-    t = Table([[Paragraph(texte, S["encadre"])]], colWidths=[170 * mm])
-    t.setStyle(TableStyle([("BACKGROUND", (0, 0), (-1, -1), colors.HexColor(couleur)),
+def cartes(*blocs):
+    """Cartes de conseils sur deux colonnes : (titre, [lignes])."""
+    cellules = []
+    for titre, lignes in blocs:
+        cellules.append([p(titre, "carte_t")] + puces(*lignes, st="carte"))
+    rangs = [cellules[i:i + 2] + ([] if i + 1 < len(cellules) else [""]) for i in range(0, len(cellules), 2)]
+    t = Table(rangs, colWidths=[84 * mm, 84 * mm], hAlign="CENTER")
+    t.setStyle(TableStyle([("VALIGN", (0, 0), (-1, -1), "TOP"), ("BACKGROUND", (0, 0), (-1, -1), colors.white),
+                           ("BOX", (0, 0), (-1, -1), 0, colors.white), ("INNERGRID", (0, 0), (-1, -1), 5, CREME),
                            ("LEFTPADDING", (0, 0), (-1, -1), 10), ("RIGHTPADDING", (0, 0), (-1, -1), 10),
-                           ("TOPPADDING", (0, 0), (-1, -1), 8), ("BOTTOMPADDING", (0, 0), (-1, -1), 8)]))
+                           ("TOPPADDING", (0, 0), (-1, -1), 9), ("BOTTOMPADDING", (0, 0), (-1, -1), 9),
+                           ("ROUNDEDCORNERS", [5, 5, 5, 5])]))
     return t
 
 
-def pied(canvas, doc):
-    canvas.saveState()
-    canvas.setFont("Texte", 8.5)
-    canvas.setFillColor(GRIS)
-    canvas.drawString(20 * mm, 12 * mm, "Panneau de broderie pour Inkscape · version %s" % VERSION)
-    canvas.drawRightString(190 * mm, 12 * mm, "page %d" % doc.page)
-    canvas.restoreState()
+def etapes(*items):
+    """Étapes numérotées (pastilles sauge)."""
+    lignes = [[Paragraph('<font name="Av-Demi" color="white">%d</font>' % (i + 1), ParagraphStyle(
+        "n", fontName="Av-Demi", fontSize=10, alignment=TA_CENTER, leading=12)), p(t)] for i, t in enumerate(items)]
+    t = Table(lignes, colWidths=[8 * mm, 160 * mm])
+    style = [("VALIGN", (0, 0), (-1, -1), "TOP"), ("LEFTPADDING", (1, 0), (1, -1), 8),
+             ("TOPPADDING", (0, 0), (-1, -1), 3), ("BOTTOMPADDING", (0, 0), (-1, -1), 3)]
+    for i in range(len(lignes)):
+        style += [("BACKGROUND", (0, i), (0, i), SAUGE), ("ROUNDEDCORNERS", [4, 4, 4, 4])]
+    t.setStyle(TableStyle(style))
+    return t
 
 
-R = "<b>Cmd+Option+B</b>"
-contenu = []
-# ---------------------------------------------------------------- couverture
-contenu += [Spacer(1, 30 * mm), p("Panneau de broderie", "titre"), Spacer(1, 4 * mm),
-            p("pour Inkscape et Ink/Stitch — notice d'utilisation", "soustitre"),
-            p("version %s" % VERSION, "soustitre"), Spacer(1, 12 * mm),
-            image("objets", 165), Spacer(1, 6 * mm),
-            encadre("<b>En une phrase :</b> vous dessinez dans <b>Inkscape</b>, vous réglez la broderie dans le "
-                    "<b>panneau</b>, et <b>Ink/Stitch</b> calcule les points. Un seul geste relie les deux : " + R + "."),
-            PageBreak()]
+# ---------------------------------------------------------------- pages
+def couverture(c, doc):
+    l, h = A4
+    c.setFillColor(CREME)
+    c.rect(0, 0, l, h, stroke=0, fill=1)
+    c.setFillColor(ROSE_PALE)                                    # grand cercle doux derrière le logo
+    c.circle(l / 2, h * 0.63, 78 * mm, stroke=0, fill=1)
+    c.setFillColor(colors.Color(1, 1, 1, alpha=0.55))
+    c.circle(l / 2, h * 0.63, 62 * mm, stroke=0, fill=1)
+    t = 92 * mm
+    c.drawImage(LOGO, (l - t) / 2, h * 0.63 - t / 2, t, t, mask="auto")
+    c.setFillColor(ENCRE)
+    c.setFont("Av-Fin", 30)
+    c.drawCentredString(l / 2, h * 0.30, "Panneau de broderie")
+    c.setFillColor(GRIS)
+    c.setFont("Av", 12)
+    c.drawCentredString(l / 2, h * 0.30 - 9 * mm, "pour Inkscape et Ink/Stitch · notice d'utilisation")
+    # devise
+    c.setFillColor(ROSE_FONCE)
+    c.setFont("Av-It", 15)
+    c.drawCentredString(l / 2, h * 0.19, "Dessiner  ·  Régler  ·  Broder")
+    c.setStrokeColor(ROSE)
+    c.setLineWidth(0.8)
+    c.line(l / 2 - 45 * mm, h * 0.19 - 5 * mm, l / 2 + 45 * mm, h * 0.19 - 5 * mm)
+    # version
+    c.setFillColor(ROSE)
+    c.roundRect(l / 2 - 16 * mm, 20 * mm, 32 * mm, 8 * mm, 4 * mm, stroke=0, fill=1)
+    c.setFillColor(colors.white)
+    c.setFont("Av-Demi", 10)
+    c.drawCentredString(l / 2, 22.6 * mm, "version %s" % VERSION)
 
-# ---------------------------------------------------------------- principe
-contenu += [p("1. Qui fait quoi ?", "h1"),
-            tableau([["Je veux…", "Où ?"],
-                     ["Dessiner une forme, une courbe, une colonne satin", "Inkscape"],
-                     ["Déplacer, tourner, agrandir, supprimer (formes et textes)", "Inkscape"],
-                     ["Choisir le type de point, la densité, l'angle, les sous-couches", "Panneau › Objets"],
-                     ["Créer un texte brodé, le courber sur un tracé", "Panneau › Objets › + Texte"],
-                     ["Voir les points, les sauts, la simulation", "Panneau › Aperçu et Points"],
-                     ["Choisir le cadre, centrer le motif, exporter pour la machine", "Panneau › Export"],
-                     ["Enregistrer le travail", "Inkscape (Cmd+S)"]], [115, 55]),
-            Spacer(1, 6 * mm),
-            p("2. Installer (une seule fois)", "h1"),
-            *puces("Il faut <b>Inkscape 1.4</b> et <b>Ink/Stitch 3</b> déjà installés.",
-                   "Double-cliquez sur <b>installer.command</b>. Si macOS refuse : clic droit › Ouvrir › Ouvrir.",
-                   "Quittez Inkscape (Cmd+Q) puis relancez-le : le raccourci " + R + " est alors actif.",
-                   "Facultatif : pour le bouton <b>Synchroniser avec Inkscape</b> du panneau, autorisez Inkscape dans "
-                   "Réglages Système › Confidentialité et sécurité › <b>Accessibilité</b>."),
-            p("Pour retirer le panneau : <b>desinstaller.command</b>. Ink/Stitch n'est jamais modifié."),
-            Spacer(1, 4 * mm),
-            p("3. Le geste à retenir", "h1"),
-            encadre("<b>" + R + " dans Inkscape</b> (ou Extensions › Broderie › Panneau de broderie)<br/>"
-                    "• après avoir dessiné ou sélectionné : le panneau s'ouvre ou se met à jour avec votre dessin ;<br/>"
-                    "• après avoir changé des réglages dans le panneau : ils sont appliqués au dessin "
-                    "(Cmd+Z dans Inkscape les annule).<br/>"
-                    "Le bas du panneau indique combien de modifications attendent d'être envoyées."),
-            Spacer(1, 3 * mm),
-            encadre("<b>Avant de fermer Inkscape : " + R + " puis Cmd+S.</b> Les réglages de broderie sont enregistrés "
-                    "<b>dans votre fichier .svg</b>, exactement comme Ink/Stitch les enregistre : le fichier reste "
-                    "utilisable avec les menus Ink/Stitch habituels.", "#fdf3e1"),
-            PageBreak()]
 
-# ---------------------------------------------------------------- objets
-contenu += [p("4. Onglet Objets : régler la broderie", "h1"),
-            image("objets", 140, "L'aperçu à gauche (fenêtre large) ; la liste des calques et objets et les réglages à droite."),
-            p("Choisir des objets", "h2"),
-            *puces("<b>Clic</b> : un objet. <b>Cmd-clic</b> : en ajouter ou en retirer. <b>Maj-clic</b> : toute une suite.",
-                   "<b>Clic sur le nom d'un calque</b> : tous ses objets.",
-                   "Plusieurs objets choisis : les réglages s'appliquent à tous. Le signe <b>≠</b> indique des valeurs "
-                   "différentes ; en changer une la rend identique partout.",
-                   "Les objets choisis sont entourés de pointillés bleus dans l'aperçu."),
-            p("Régler", "h2"),
-            *puces("<b>Type de point</b> en tuiles : Tatami, Contour, Spirale, Méandre… pour un remplissage ; "
-                   "Point droit, Triple, Ripple, Zigzag, Satin pour un trait.",
-                   "<b>Paramètres</b> essentiels en curseurs : densité, angle, longueur de point, compensation.",
-                   "<b>Sous-couche</b> en tuiles ; <b>Couper le fil</b> et <b>Arrêter la machine</b> après l'objet.",
-                   "<b>Plus de réglages</b> : tous les autres réglages d'Ink/Stitch, rangés par thèmes (fermés).",
-                   "<b>Copier les réglages</b> puis <b>Coller</b> sur une autre forme du même type, ou sur toutes.",
-                   "La petite flèche circulaire à côté d'un réglage le remet à sa valeur par défaut."),
-            p("L'aperçu", "h2"),
-            *puces("<b>Points</b> : les points d'aiguille, les <b>sauts</b> (pointillés et grenouille), les coupes, "
-                   "les arrêts et les changements de couleur (cases à cocher).",
-                   "<b>Réaliste</b> : rendu photo du fil sur le tissu ; choisissez la couleur du <b>tissu</b>.",
-                   "Molette : zoom · glisser : déplacer · double-clic : tout voir. La barre sous l'aperçu change sa hauteur."),
-            PageBreak()]
+def page_courante(c, doc):
+    l, h = A4
+    c.setFillColor(CREME)
+    c.rect(0, 0, l, h, stroke=0, fill=1)
+    c.drawImage(LOGO, 20 * mm, h - 15 * mm, 8 * mm, 8 * mm, mask="auto")
+    c.setFillColor(GRIS)
+    c.setFont("Av", 8.5)
+    c.drawString(30 * mm, h - 12 * mm, "Panneau de broderie · notice")
+    c.drawRightString(l - 20 * mm, h - 12 * mm, "version %s" % VERSION)
+    c.setStrokeColor(LIGNE)
+    c.setLineWidth(0.6)
+    c.line(20 * mm, h - 17 * mm, l - 20 * mm, h - 17 * mm)
+    c.setFillColor(ROSE)
+    c.roundRect(l / 2 - 7 * mm, 9 * mm, 14 * mm, 6 * mm, 3 * mm, stroke=0, fill=1)
+    c.setFillColor(colors.white)
+    c.setFont("Av-Demi", 8.5)
+    c.drawCentredString(l / 2, 11 * mm, str(doc.page))
 
-# ---------------------------------------------------------------- satin et texte
-contenu += [p("5. Colonnes satin", "h1"),
-            image("satin", 150, "Une colonne satin choisie : type Satin, Point E, Point S ou Zigzag, densité, sous-couches."),
-            p("Deux façons de faire :", "p"),
-            *puces("<b>La plus simple</b> : dans Inkscape, tracez un trait (outil Plume) avec l'<b>épaisseur</b> voulue "
-                   "— elle devient la largeur du satin. Dans le panneau, choisissez la tuile <b>Satin</b>.",
-                   "<b>Comme dans Ink/Stitch</b> : dessinez deux <b>rails</b> et des <b>traverses</b> (qui donnent le sens des "
-                   "points). Dans le panneau, choisissez un rail : la rubrique <b>Rails et traverses</b> propose de les "
-                   "<b>assembler</b> en une seule colonne (Ink/Stitch l'exige)."),
-            Spacer(1, 3 * mm),
-            p("6. Texte brodé", "h1"),
-            *puces("<b>+ Texte</b> (en haut de la liste) : tapez votre texte, choisissez une des <b>140 polices</b> "
-                   "de broderie (aperçu de chacune), la taille et l'alignement, puis <b>Ajouter au dessin</b>.",
-                   "« Espacements, coupes et couleurs » : espace entre lettres et mots, interligne, coupe du fil.",
-                   "<b>Texte courbé</b> : dessinez une courbe dans Inkscape (" + R + "), choisissez le texte dans la "
-                   "liste, puis la courbe à suivre.",
-                   "Le texte se <b>déplace</b> et se <b>tourne</b> dans Inkscape, comme une forme.",
-                   "Une police de votre Mac : tapez le texte dans Inkscape, puis <i>Chemin › Objet en chemin</i> ; les "
-                   "lettres deviennent des formes à régler en remplissage ou en satin."),
-            PageBreak()]
 
-# ---------------------------------------------------------------- points
-contenu += [p("7. Onglet Points : la simulation", "h1"),
-            image("points", 165, "La machine brode le motif ; ici avec les sauts (grenouilles), les changements de couleur "
-                                 "(bobines) et la mire sur l'aiguille."),
-            tableau([["Bouton / touche", "Effet"],
-                     ["P", "lecture / pause"], ["R", "recommencer"], ["Flèches haut / bas", "plus rapide / plus lent"],
-                     ["Flèches gauche / droite", "sens de l'animation"], ["+ / −", "un point en avant / en arrière"],
-                     ["Page haut / bas", "commande suivante / précédente (saut, coupe, couleur)"],
-                     ["O", "afficher les pénétrations de l'aiguille"],
-                     ["Molette, glisser, double-clic", "zoom, déplacer, tout voir"]], [60, 110]),
-            Spacer(1, 3 * mm),
-            p("Les boutons du bas affichent ou masquent : pénétrations, sauts, coupes, arrêts, changements de couleur, "
-              "mire, page (cadre), informations (dimensions, nombre de points, de sauts, de coupes…). La roue dentée "
-              "ouvre les préférences (épaisseur du fil, taille des pénétrations, mire)."),
-            PageBreak()]
+cadre = Frame(20 * mm, 20 * mm, 170 * mm, 252 * mm, id="texte", leftPadding=0, rightPadding=0, topPadding=0, bottomPadding=0)
+doc = BaseDocTemplate(SORTIE, pagesize=A4, title="Panneau de broderie — notice %s" % VERSION,
+                      author="Panneau de broderie", subject="Notice d'utilisation et astuces de réglages")
+doc.addPageTemplates([PageTemplate("couverture", [cadre], onPage=couverture),
+                      PageTemplate("page", [cadre], onPage=page_courante)])
 
-# ---------------------------------------------------------------- aperçu / export
-contenu += [p("8. Onglet Aperçu", "h1"),
-            image("apercu", 118, "Rendu réaliste sur tissu, avec le nombre de points, la durée estimée, la taille et les fils."),
-            p("9. Onglet Export : cadre et fichier machine", "h1"),
-            image("export", 118),
-            *puces("<b>Fichier de broderie</b> : le format de votre machine (.pes Brother, .dst Tajima, .jef Janome, "
-                   ".exp Bernina, .vp3 Husqvarna/Pfaff…). Le fichier arrive dans Téléchargements.",
-                   "<b>Cadre de la brodeuse</b> : choisissez votre cadre ; le panneau vérifie que le motif y tient. "
-                   "<b>Ajouter un cadre</b> (nom, largeur, hauteur) ou <b>Supprimer</b> ceux que vous n'avez pas.",
-                   "<b>Centrer le motif dans le cadre</b> : le motif est centré et la <b>page d'Inkscape prend la taille "
-                   "du cadre</b> (son bord montre le cadre). Puis " + R + "."),
-            PageBreak()]
+c = [NextPageTemplate("page"), PageBreak()]
 
-# ---------------------------------------------------------------- astuces
-contenu += [p("10. Astuces de réglages", "h1"),
-            p("Valeurs de départ courantes en broderie machine : faites toujours un <b>essai sur une chute du même tissu</b>, "
-              "avec le même stabilisateur."),
-            p("Selon le tissu", "h2"),
-            tableau([["Tissu", "Densité remplissage", "Sous-couche", "Compensation", "Stabilisateur"],
-                     ["Coton, lin, toile (tissé)", "0,40 mm", "oui", "0,2 mm", "à déchirer"],
-                     ["Tissu fin, soie, voile", "0,45 – 0,50 mm (plus léger)", "légère", "0,1 mm", "soluble ou fin à déchirer"],
-                     ["Jersey, tee-shirt (maille)", "0,40 – 0,45 mm", "oui, toujours", "0,3 – 0,4 mm", "à découper"],
-                     ["Sweat, polaire, éponge", "0,35 – 0,40 mm", "oui", "0,3 mm", "à découper + film soluble dessus"],
-                     ["Jean, toile épaisse", "0,35 – 0,40 mm", "oui", "0,2 mm", "à déchirer, épais"],
-                     ["Cuir, simili", "0,45 – 0,50 mm", "légère", "0,1 mm", "à déchirer ; points pas trop serrés"]],
-                    [36, 36, 26, 28, 44]),
-            Spacer(1, 3 * mm),
-            p("Colonnes satin", "h2"),
-            *puces("Largeur conseillée : <b>1,5 à 7 mm</b>. Plus étroit, le satin se perd ; plus large, les points sont trop "
-                   "longs et accrochent : utilisez un remplissage, ou « Découpe des longs points ».",
-                   "Densité : <b>0,35 à 0,45 mm</b>.",
-                   "Sous-couche : <b>Centre</b> sous 2 mm de large ; <b>Contour</b> de 2 à 5 mm ; <b>Contour + Zigzag</b> "
-                   "au-delà de 5 mm.",
-                   "Compensation : <b>0,2 à 0,4 mm</b> — le fil tire et rétrécit le satin, surtout sur la maille."),
-            p("Remplissages", "h2"),
-            *puces("Changez l'<b>angle</b> entre deux zones voisines (par ex. 45° et 135°) : elles se distinguent mieux.",
-                   "Longueur de point : 3 à 4 mm ; les grandes zones gagnent à une sous-couche.",
-                   "Méandre, Spirale, Contour : des effets décoratifs ; vérifiez-les dans l'aperçu Réaliste."),
-            p("Traits et textes", "h2"),
-            *puces("Point droit : 2 à 2,5 mm ; 1,5 mm dans les courbes serrées. <b>Triple</b> pour un trait bien visible.",
-                   "Texte : au moins <b>5 mm</b> de haut pour les majuscules ; en dessous, choisissez une police « small » "
-                   "ou « tiny ».",
-                   "Petits détails : moins de 1 mm de large ne se brode pas bien."),
-            p("Organisation", "h2"),
-            *puces("Ordre de couture : le fond d'abord, les détails ensuite ; regroupez les objets de même couleur pour "
-                   "limiter les changements de fil (▲▼ dans la liste).",
-                   "Activez <b>Couper le fil</b> après un objet suivi d'un long saut (plus de 5 mm environ).",
-                   "Regardez la simulation (onglet Points) avant d'exporter : sauts, coupes, ordre."),
-            PageBreak()]
+# ---------------------------------------------------------------- 1. principe et installation
+c += [Chapitre(1, "Le principe", "Chacun son rôle : le dessin, les réglages, les points"),
+      p("Vous <b>dessinez dans Inkscape</b>, vous <b>réglez la broderie dans le panneau</b>, et <b>Ink/Stitch calcule "
+        "les points</b>. Le panneau ne remplace ni Inkscape ni Ink/Stitch : il les rend simples à utiliser ensemble.", "intro"),
+      tableau([["Je veux…", "Où ?"],
+               ["Dessiner une forme, une courbe, une colonne satin", "Inkscape"],
+               ["Déplacer, tourner, agrandir, supprimer (formes et textes)", "Inkscape"],
+               ["Choisir le type de point, la densité, l'angle, les sous-couches", "Panneau › Objets"],
+               ["Créer un texte brodé, le courber sur un tracé", "Panneau › Objets › + Texte"],
+               ["Voir les points, les sauts, simuler la broderie", "Panneau › Aperçu, Points"],
+               ["Choisir le cadre, centrer le motif, exporter pour la machine", "Panneau › Export"],
+               ["Enregistrer le travail", "Inkscape (Cmd S)"]], [112, 58]),
+      Spacer(1, 7 * mm),
+      Chapitre(2, "Installer", "Une seule fois"),
+      etapes("Il faut <b>Inkscape 1.4</b> et <b>Ink/Stitch 3</b> déjà installés.",
+             "Double-cliquez sur <b>installer.command</b>. Si macOS refuse : clic droit › Ouvrir › Ouvrir.",
+             "Quittez Inkscape puis relancez-le : le raccourci " + CMD + " est alors actif.",
+             "Facultatif, pour le bouton <b>Synchroniser avec Inkscape</b> : autorisez Inkscape dans Réglages Système › "
+             "Confidentialité et sécurité › <b>Accessibilité</b>."),
+      Spacer(1, 3 * mm),
+      p("Pour retirer le panneau : <b>desinstaller.command</b>. Ink/Stitch n'est jamais modifié."),
+      PageBreak()]
 
-# ---------------------------------------------------------------- dépannage
-contenu += [p("11. En cas de souci", "h1"),
-            tableau([["Ce que je vois", "Que faire"],
-                     [R + " ne fait rien", "Quittez et relancez Inkscape (les raccourcis sont lus au démarrage). "
-                                            "Le menu Extensions › Broderie › Panneau de broderie fait la même chose."],
-                     ["Le panneau affiche « Panneau arrêté »", "Appuyez sur " + R + " dans Inkscape : il redémarre, "
-                                                               "sans perdre les modifications en attente."],
-                     ["Bandeau « Dessin d'une ancienne version d'Ink/Stitch »",
-                      "Ancien dessin : cliquez « Mettre à jour avec Ink/Stitch » et suivez l'indication, "
-                      "ou « Ce dessin est récent » si seul le numéro de version manque."],
-                     ["Une fenêtre « Ink/Stitch » s'ouvre", "Certaines commandes avancées ont leur propre fenêtre : "
-                                                            "terminez-la, le résultat arrive dans le panneau."],
-                     ["Inkscape semble ne pas démarrer", "Sa fenêtre d'accueil s'est peut-être ouverte sur un autre "
-                                                         "bureau : Ctrl+flèche haut (Mission Control) pour la retrouver."],
-                     ["Le bouton Synchroniser ne fait rien", "Autorisez Inkscape dans Réglages Système › Confidentialité "
-                                                             "et sécurité › Accessibilité."]], [60, 110]),
-            Spacer(1, 6 * mm),
-            p("12. Versions", "h1"),
-            p("Le numéro de version est affiché en haut du panneau. Pour mettre à jour : remplacez le dossier par la "
-              "nouvelle version et double-cliquez de nouveau sur <b>installer.command</b>. Les modifications en attente "
-              "sont conservées ; le panneau se met à jour au " + R + " suivant. Le détail des changements est dans "
-              "<b>CHANGELOG.md</b>."),
-            Spacer(1, 4 * mm),
-            p("Testé avec Inkscape 1.4.2 et Ink/Stitch 3.3.0 sur macOS (Mac M1). Licence GPL v3, comme Ink/Stitch.", "legende")]
+# ---------------------------------------------------------------- 3. le geste
+c += [Chapitre(3, "Le geste à retenir", "Un raccourci relie Inkscape et le panneau"),
+      encadre(CMD + "&nbsp; dans Inkscape (ou Extensions › Broderie › Panneau de broderie)<br/>"
+              "• après avoir <b>dessiné ou sélectionné</b> : le panneau s'ouvre, ou se met à jour avec votre dessin ;<br/>"
+              "• après avoir <b>changé des réglages</b> dans le panneau : ils passent dans le dessin "
+              "(Cmd Z dans Inkscape les annule).", "LE RACCOURCI"),
+      p("Le bas du panneau indique combien de modifications attendent d'être envoyées. Le bouton "
+        "<b>Synchroniser avec Inkscape</b> fait la même chose que le raccourci."),
+      encadre("<b>Avant de fermer Inkscape : " + CMD + " puis Cmd S.</b> Les réglages de broderie sont enregistrés "
+              "<b>dans votre fichier .svg</b>, exactement comme Ink/Stitch les enregistre : le fichier reste utilisable "
+              "avec les menus Ink/Stitch habituels.", "SAUVEGARDE", SABLE, ROSE_FONCE),
+      astuce("Vous avez oublié d'envoyer vos réglages ? Ils ne sont pas perdus : le panneau les garde, même fermé, "
+             "et les rattache à leur dessin. Ils partiront au prochain " + CMD + " sur ce dessin."),
+      capture("etroit", 50, "En fenêtre étroite, le panneau se place à droite d'Inkscape ; élargissez-la pour avoir "
+                            "l'aperçu à gauche des réglages."),
+      PageBreak()]
 
-doc = SimpleDocTemplate(SORTIE, pagesize=A4, leftMargin=20 * mm, rightMargin=20 * mm, topMargin=18 * mm,
-                        bottomMargin=20 * mm, title="Panneau de broderie — notice %s" % VERSION,
-                        author="Panneau de broderie", subject="Notice d'utilisation")
-doc.build(contenu, onFirstPage=pied, onLaterPages=pied)
+# ---------------------------------------------------------------- 4. objets
+c += [Chapitre(4, "Onglet Objets", "Régler la broderie de chaque forme"),
+      capture("objets", 132, "L'aperçu des points à gauche ; les calques, les objets et leurs réglages à droite."),
+      p("Choisir", "h2"),
+      *puces(touche("clic") + " un objet · " + touche("Cmd") + " " + touche("clic") + " en ajouter ou en retirer · "
+             + touche("Maj") + " " + touche("clic") + " toute une suite.",
+             "Un clic sur le <b>nom d'un calque</b> choisit tous ses objets.",
+             "Plusieurs objets : les réglages s'appliquent à tous ; <b>≠</b> signale une valeur différente d'un objet "
+             "à l'autre. Les objets choisis sont entourés de pointillés bleus dans l'aperçu."),
+      p("Régler", "h2"),
+      *puces("<b>Type de point</b> en tuiles : Tatami, Contour, Spirale, Méandre… pour un remplissage ; Point droit, "
+             "Triple, Ripple, Zigzag, Satin pour un trait.",
+             "<b>Paramètres</b> essentiels en curseurs ; <b>sous-couche</b> en tuiles ; <b>couper le fil</b> et "
+             "<b>arrêter la machine</b> après l'objet.",
+             "<b>Plus de réglages</b> : tous les réglages d'Ink/Stitch, rangés par thèmes.",
+             "<b>Copier les réglages</b> puis <b>Coller</b> sur une autre forme, ou sur toutes celles du même type. "
+             "La petite flèche circulaire remet un réglage à sa valeur par défaut."),
+      p("Lire l'aperçu", "h2"),
+      *puces("<b>Points</b> : les points d'aiguille, les sauts (pointillés et grenouille), les coupes, les arrêts et les "
+             "changements de couleur.",
+             "<b>Réaliste</b> : le fil sur votre tissu (choisissez sa couleur). Molette : zoom · glisser : déplacer · "
+             "double-clic : tout voir."),
+      PageBreak()]
+
+# ---------------------------------------------------------------- 5-6. satin et texte
+c += [Chapitre(5, "Colonnes satin", "Le point brillant des bordures et des lettres"),
+      capture("satin", 130, "Une colonne satin : type Satin, Point E, Point S ou Zigzag, densité, sous-couches."),
+      p("La plus simple", "h2"),
+      p("Dans Inkscape, tracez un trait (outil Plume) avec l'<b>épaisseur</b> voulue : elle devient la largeur du satin. "
+        "Dans le panneau, choisissez la tuile <b>Satin</b>."),
+      p("Comme dans Ink/Stitch", "h2"),
+      p("Dessinez deux <b>rails</b> et des <b>traverses</b> (elles donnent le sens des points). Dans le panneau, choisissez "
+        "un rail : la rubrique <b>Rails et traverses</b> propose de les <b>assembler</b> en une seule colonne."),
+      Spacer(1, 4 * mm),
+      Chapitre(6, "Texte brodé", "140 polices faites pour la broderie"),
+      *puces("<b>+ Texte</b> : votre texte, la police (avec son aperçu), la taille et l'alignement, puis "
+             "<b>Ajouter au dessin</b>. « Espacements, coupes et couleurs » règle les espaces, l'interligne et les coupes.",
+             "<b>Texte courbé</b> : dessinez une courbe dans Inkscape, envoyez-la (" + CMD + "), choisissez le texte "
+             "dans la liste, puis la courbe à suivre.",
+             "Le texte se déplace et se tourne dans Inkscape, comme une forme."),
+      astuce("Une police de votre Mac ? Tapez le texte dans Inkscape puis <i>Chemin › Objet en chemin</i> : les lettres "
+             "deviennent des formes, à régler en remplissage ou en satin."),
+      PageBreak()]
+
+# ---------------------------------------------------------------- 7. points
+c += [Chapitre(7, "Onglet Points", "Regarder la machine broder avant de lancer"),
+      capture("points", 168, "La simulation, avec les sauts (grenouilles), les changements de couleur (bobines) et la mire."),
+      tableau([["Touche", "Effet"],
+               [touche("P"), "lecture / pause"], [touche("R"), "recommencer"],
+               [touche("flèche haut") + " " + touche("flèche bas"), "plus rapide / plus lent"],
+               [touche("flèche gauche") + " " + touche("flèche droite"), "sens de l'animation"],
+               [touche("+") + " " + touche("−"), "un point en avant / en arrière"],
+               [touche("page haut") + " " + touche("page bas"), "commande suivante / précédente (saut, coupe, couleur)"],
+               [touche("O"), "afficher les pénétrations de l'aiguille"]], [50, 120]),
+      Spacer(1, 3 * mm),
+      p("Les boutons du bas affichent ou masquent les pénétrations, sauts, coupes, arrêts, changements de couleur, la mire, "
+        "la page (le cadre) et les informations. La roue dentée ouvre les préférences du simulateur."),
+      PageBreak()]
+
+# ---------------------------------------------------------------- 8-9. aperçu, export
+c += [Chapitre(8, "Onglets Aperçu et Export", "Vérifier, choisir le cadre, envoyer à la machine"),
+      capture("apercu", 128, "Rendu réaliste sur tissu, avec le nombre de points, la durée estimée, la taille et les fils."),
+      capture("export", 128),
+      *puces("<b>Fichier de broderie</b> : le format de votre machine (.pes Brother, .dst Tajima, .jef Janome, .exp Bernina, "
+             ".vp3 Husqvarna / Pfaff…), enregistré dans Téléchargements.",
+             "<b>Cadre de la brodeuse</b> : le panneau vérifie que le motif y tient. <b>Ajouter un cadre</b> ou "
+             "<b>Supprimer</b> ceux que vous n'avez pas.",
+             "<b>Centrer le motif dans le cadre</b> : le motif est centré et la <b>page d'Inkscape prend la taille du "
+             "cadre</b>. Puis " + CMD + "."),
+      PageBreak()]
+
+# ---------------------------------------------------------------- 10. astuces
+c += [Chapitre(9, "Astuces de réglages", "Des valeurs de départ, à affiner par un essai"),
+      p("Ce sont des valeurs courantes en broderie machine. Faites toujours un <b>essai sur une chute du même tissu</b>, "
+        "avec le même stabilisateur.", "intro"),
+      tableau([["Tissu", "Densité", "Sous-couche", "Compensation", "Stabilisateur"],
+               ["Coton, lin, toile", "0,40 mm", "oui", "0,2 mm", "à déchirer"],
+               ["Tissu fin, soie, voile", "0,45 – 0,50 mm", "légère", "0,1 mm", "soluble ou fin"],
+               ["Jersey, tee-shirt", "0,40 – 0,45 mm", "toujours", "0,3 – 0,4 mm", "à découper"],
+               ["Sweat, polaire, éponge", "0,35 – 0,40 mm", "oui", "0,3 mm", "à découper + film soluble dessus"],
+               ["Jean, toile épaisse", "0,35 – 0,40 mm", "oui", "0,2 mm", "à déchirer, épais"],
+               ["Cuir, simili", "0,45 – 0,50 mm", "légère", "0,1 mm", "à déchirer"]], [38, 30, 26, 30, 46]),
+      Spacer(1, 6 * mm),
+      cartes(("Colonnes satin", ["Largeur : <b>1,5 à 7 mm</b>. Au-delà, remplissage ou « Découpe des longs points ».",
+                                 "Densité : <b>0,35 à 0,45 mm</b>.",
+                                 "Sous-couche : <b>Centre</b> sous 2 mm ; <b>Contour</b> de 2 à 5 mm ; "
+                                 "<b>Contour + Zigzag</b> au-delà.",
+                                 "Compensation : <b>0,2 à 0,4 mm</b>, plus sur la maille."]),
+             ("Remplissages", ["Changez l'<b>angle</b> entre deux zones voisines (45° et 135°).",
+                               "Longueur de point : <b>3 à 4 mm</b>.",
+                               "Une sous-couche pour les grandes zones.",
+                               "Méandre, Spirale, Contour : effets décoratifs, à voir en rendu Réaliste."]),
+             ("Traits et textes", ["Point droit : <b>2 à 2,5 mm</b> ; 1,5 mm dans les courbes serrées.",
+                                   "<b>Triple</b> pour un trait bien visible.",
+                                   "Texte : au moins <b>5 mm</b> de haut ; en dessous, une police « small » ou « tiny ».",
+                                   "Moins de 1 mm de large ne se brode pas bien."]),
+             ("Organisation", ["Le fond d'abord, les détails ensuite.",
+                               "Regroupez les objets de même couleur (petites flèches de la liste).",
+                               "<b>Couper le fil</b> après un saut de plus de 5 mm environ.",
+                               "Regardez la simulation avant d'exporter."])),
+      PageBreak()]
+
+# ---------------------------------------------------------------- 11. dépannage
+c += [Chapitre(10, "En cas de souci"),
+      tableau([["Ce que je vois", "Que faire"],
+               [CMD + " ne fait rien", "Quittez et relancez Inkscape. Le menu Extensions › Broderie › Panneau de broderie "
+                                       "fait la même chose."],
+               ["« Panneau arrêté »", "Appuyez sur " + CMD + " : il redémarre, sans perdre les modifications en attente."],
+               ["Bandeau « ancienne version d'Ink/Stitch »", "Cliquez « Mettre à jour avec Ink/Stitch » et suivez "
+                                                             "l'indication, ou « Ce dessin est récent »."],
+               ["Une fenêtre « Ink/Stitch » s'ouvre", "Certaines commandes avancées ont leur propre fenêtre : terminez-la, "
+                                                      "le résultat arrive dans le panneau."],
+               ["Inkscape semble ne pas démarrer", "Sa fenêtre d'accueil est peut-être sur un autre bureau : "
+                                                   + touche("Ctrl") + " " + touche("flèche haut") + " (Mission Control) pour la retrouver."],
+               ["Le bouton Synchroniser ne fait rien", "Autorisez Inkscape dans Réglages Système › Confidentialité et "
+                                                       "sécurité › Accessibilité."]], [58, 112]),
+      Spacer(1, 8 * mm),
+      Chapitre(11, "Versions et mises à jour"),
+      p("Le numéro de version est affiché en haut du panneau. Pour mettre à jour : remplacez le dossier par la nouvelle "
+        "version et double-cliquez de nouveau sur <b>installer.command</b>. Les modifications en attente sont conservées ; "
+        "le panneau se met à jour au " + CMD + " suivant. Le détail des changements est dans <b>CHANGELOG.md</b>."),
+      Spacer(1, 10 * mm),
+      p("Testé avec Inkscape 1.4.2 et Ink/Stitch 3.3.0 sur macOS (Mac M1). Licence GPL v3, comme Ink/Stitch.", "legende")]
+
+doc.build(c)
 print(SORTIE)

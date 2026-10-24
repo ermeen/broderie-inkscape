@@ -7,7 +7,7 @@ Le numéro de version suit le schéma `MAJEUR.MINEUR.CORRECTIF` :
 
 ## 1.0.0 — 24 octobre 2026
 
-Première version publiée.
+Première version publiée, avec son logo et une notice PDF illustrée (9 pages, astuces de réglages).
 
 **Panneau et liaison avec Inkscape**
 - Panneau de broderie dans une fenêtre Safari, placée à droite d'Inkscape. La fenêtre garde la taille choisie.

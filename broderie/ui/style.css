@@ -225,3 +225,4 @@ dialog { border: 1px solid var(--bord); border-radius: 12px; background: var(--p
 body { display: flex; flex-direction: column; }
 body > main { flex: 1 1 auto; min-height: 0; }
 body > header, body > footer, body > #journal, body > #tache, body > #bandeauAncien { flex: none; }
+.titre img.logo { width: 26px; height: 26px; background: none; border-radius: 6px; }

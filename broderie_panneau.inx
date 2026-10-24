@@ -4,6 +4,7 @@
     <id>org.pointlibre.broderie.panneau</id>
     <effect needs-live-preview="false">
         <object-type>all</object-type>
+        <icon>broderie/ui/logo.png</icon>
         <menu-tip>Ouvre le panneau de broderie et y envoie le dessin ; applique les réglages modifiés dans le panneau (moteur Ink/Stitch)</menu-tip>
         <effects-menu>
             <submenu name="Broderie"/>

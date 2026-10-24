@@ -493,7 +493,7 @@ def _gestionnaire(session):
             if not f.startswith(UI) or not os.path.isfile(f):
                 return self._envoyer(404, "introuvable", "text/plain")
             types = {".html": "text/html; charset=utf-8", ".js": "text/javascript; charset=utf-8",
-                     ".css": "text/css; charset=utf-8", ".svg": "image/svg+xml"}
+                     ".css": "text/css; charset=utf-8", ".svg": "image/svg+xml", ".png": "image/png"}
             with open(f, "rb") as fh:
                 corps = fh.read()
             self._envoyer(200, corps, types.get(os.path.splitext(f)[1], "application/octet-stream"))

@@ -1,3 +1,5 @@
+<p align="center"><img src="docs/logo/icone.png" width="160" alt="Broderie"></p>
+
 # Panneau de broderie pour Inkscape
 
 Une interface simple pour [Ink/Stitch](https://inkstitch.org), dans [Inkscape](https://inkscape.org).
