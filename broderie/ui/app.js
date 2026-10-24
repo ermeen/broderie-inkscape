@@ -300,6 +300,28 @@ function outils(o) {
   return bloc('Outils', d);
 }
 
+// texte courbé : outil « Lettrage le long d'un chemin » d'Ink/Stitch (texte + tracé dessiné dans Inkscape)
+function texteCourbe(o) {
+  const traces = S.etat.objets.filter((x) => x.balise === 'path' && x.types.includes('stroke'));
+  const d = document.createElement('div');
+  if (!traces.length) {
+    d.className = 'aide';
+    d.innerHTML = '<b>Texte courbé :</b> dessinez dans Inkscape une ligne ou une courbe (outil Plume), appuyez sur ⌘⌥B, puis revenez ici : le texte pourra suivre ce tracé.';
+    return bloc('Texte courbé', d);
+  }
+  d.innerHTML = `<div class="reglage"><div class="haut"><label>Tracé à suivre</label></div>
+    <select id="tcTrace">${traces.map((t) => `<option value="${esc(t.id)}">${esc(t.nom)}</option>`).join('')}</select></div>
+    <div class="reglage"><div class="haut"><label>Position sur le tracé</label></div>
+    <select id="tcPos"><option value="left">Au début</option><option value="center">Au milieu</option><option value="right">À la fin</option><option value="stretch">Étiré sur tout le tracé</option></select></div>
+    <div class="reglage"><div class="haut"><label>Le texte se pose</label></div>
+    <select id="tcVert"><option value="baseline">Sur le tracé</option><option value="top">Sous le tracé</option><option value="bottom">Au-dessus du tracé</option></select></div>`;
+  const b = document.createElement('button'); b.className = 'principal'; b.textContent = 'Courber le texte sur ce tracé';
+  b.onclick = () => commande('lettering_along_path', { 'text-position': $('#tcPos').value, 'vertical-alignment': $('#tcVert').value },
+    [o.id, $('#tcTrace').value]);
+  d.appendChild(b);
+  return bloc('Texte courbé', d);
+}
+
 // copier / coller les réglages d'une forme à l'autre
 const NON_COPIES = new Set(['lettering', 'satin_column']);
 function boutonsCopie(o) {
@@ -356,6 +378,10 @@ function rendreProps() {
     const b = document.createElement('button'); b.className = 'principal'; b.textContent = 'Modifier le texte';
     b.onclick = () => { S.texte = true; rendreTout(); };
     div.appendChild(bloc('Texte brodé', b));
+    div.appendChild(texteCourbe(o));
+    const a = document.createElement('div'); a.className = 'aide';
+    a.innerHTML = 'Pour <b>déplacer, tourner ou agrandir</b> le texte : faites-le dans Inkscape, comme une forme (après ⌘⌥B).';
+    div.appendChild(bloc(null, a));
     return;
   }
   const typs = o.types.filter((x) => TYPES[x]);
