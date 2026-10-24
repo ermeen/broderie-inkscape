@@ -318,3 +318,25 @@ Les 50 formats d'import (100 file input, 10O file input, BRO file input, COL fil
 | Menu Extensions › Broderie › Panneau de broderie lancé dans Inkscape | testé (dessin réel reçu par le panneau) |
 | Commandes en arrière-plan (Inkscape et panneau restent utilisables) | testé |
 | Abandonner les modifications en attente | accessible |
+
+## 6. Contrôle automatique des 139 réglages (24/10/2026)
+
+Méthode :
+1. Pour chaque réglage, le moteur Ink/Stitch calcule les points d'un dessin d'essai avec la valeur par défaut, puis avec une autre valeur, dans les conditions où le réglage s'applique (bon type de point, sous-couche activée…).
+2. Les deux listes de points sont comparées, coupes, sauts et arrêts compris.
+3. Trois passages successifs, pour affiner les conditions.
+
+Résultat : **131 réglages sur 137 changent bien les points**. Les 2 réglages restants (« Colonne satin personnalisée », trait et satin) sont les tuiles Satin du panneau, testées par ailleurs.
+
+Réglages sans différence observée dans les conditions d'essai : ils sont présents et enregistrés comme les autres, mais leur effet n'a pas été démontré.
+
+| Type | Réglage | Remarque |
+|---|---|---|
+| fill_stitch | `clip` (Contraindre le chemin à la forme) | méandre : l'essai sur petite forme a échoué (« forme trop petite ») |
+| satin_column | `center_walk_underlay_stitch_tolerance_mm` (Tolérance) | sous-couche centrale : tracé trop régulier pour que la tolérance change les points |
+| satin_column | `min_random_split_length_mm` (Longueur minimum du point si découpage totalement aléatoire) | satin découpé avec phase aléatoire : seuil non atteint dans l'essai |
+| stroke | `rotate_ripples` (Tourner) | idem (cercle symétrique) |
+| stroke | `satin_guide_pattern_position` (Position du motif) | ripple sur rails : nécessite un motif de guidage particulier |
+| stroke | `scale_axis` (Mettre à l'échelle sur l'axe) | ripple avec ligne guide : effet non visible sur un cercle (symétrique) |
+
+Réglages qui agissent : tous les autres, dont tous ceux affichés en curseurs et en tuiles dans le panneau.
