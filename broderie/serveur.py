@@ -9,6 +9,7 @@ rapide (/api/sync) qui
 """
 import json
 import os
+import re
 import threading
 import time
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
@@ -236,6 +237,8 @@ class Session:
         if nom == "present":                           # signe de vie (sans verrou : jamais bloqué)
             self.vu = self.actif = time.time()
             return {"version": self.version, "attente": len(self.attente), "tache": self.tache}
+        if nom == "apercu_texte":
+            return self._apercu_texte(d)
         if nom in ("apercu", "points", "densite"):     # calculs longs : sur une copie, sans bloquer le panneau
             with self.verrou:
                 if self.document is None:
@@ -350,30 +353,101 @@ class Session:
                 return {"ok": True}
             raise ValueError("action inconnue : %s" % nom)
 
-    def _lettrage(self, d):
-        """Ajoute (ou remplace) un texte brodé, sans fenêtre d'Ink/Stitch."""
-        doc = _lire(etree.tostring(self.document.getroot()))
-        ancien = M.par_id(doc, d["remplacer"]) if d.get("remplacer") else None
-        transform = ancien.get("transform") if ancien is not None else None
-        if ancien is not None:
-            ancien.getparent().remove(ancien)
+    def _guide(self, doc, d):
+        """Texte sur une courbe dessinée dans Inkscape : met son tracé (repère du dessin) dans d["arc"]["trace"]."""
+        arc = d.get("arc") or {}
+        if not arc.get("chemin"):
+            return None
+        arc["trace"] = M.trace_absolu(doc, arc["chemin"])
+        if not arc["trace"]:
+            raise ValueError("Cette courbe est introuvable ou n'est pas un tracé : synchronisez, puis choisissez-en une autre.")
+        return arc["chemin"]
+
+    def _texte(self, doc, d):
+        """Fabrique un texte brodé dans doc (lettrage par lots d'Ink/Stitch), éventuellement courbé en arc
+        (tracé guide provisoire + « lettrage le long d'un chemin », puis guide retiré). Renvoie (doc, groupe)."""
         avant = {el.get("id") for el in doc.getroot().iter() if isinstance(el.tag, str) and el.get("id")}
         res, err = E.lettrage(doc, d.get("params") or {})
         if res is None:
             raise ValueError(_message(err) or "Lettrage impossible.")
         groupes = [g for g in res.getroot().iter("{http://www.w3.org/2000/svg}g")
                    if g.get("{%s}lettering" % M.INKSTITCH_NS) is not None and g.get("id") not in avant]
-        for k, g in enumerate(groupes):                       # identifiant pour le retrouver ensuite
-            if not g.get("id"):
-                g.set("id", "lettrage_%d_%d" % (int(time.time()), k))
-        if groupes and transform:
-            groupes[-1].set("transform", transform)          # le texte modifié reste à sa place
+        if not groupes:
+            raise ValueError("Lettrage impossible.")
+        g = groupes[-1]
+        if not g.get("id"):
+            g.set("id", "lettrage_%d" % int(time.time() * 1000))
+        arc = d.get("arc") or {}
+        courbure = float(arc.get("courbure") or 0)
+        trace = arc.get("trace")                            # courbe dessinée dans Inkscape (spline, spirale…)
+        if trace or abs(courbure) >= 1:
+            b = M.emprise(res, [g.get("id")])
+            if b:
+                guide = etree.SubElement(g.getparent(), "{%s}path" % M.SVG_NS)
+                guide.set("id", "guide_arc_%d" % int(time.time() * 1000))
+                guide.set("style", "fill:none;stroke:#000000;stroke-width:0.1")
+                guide.set("d", trace or M.chemin_arc(b[2] - b[0], (b[0] + b[2]) / 2, b[3], courbure))
+                if trace:
+                    options = {"text-position": arc.get("position") or "center", "vertical-alignment": "baseline"}
+                else:
+                    # « stretch » répartit les lettres sur tout l'arc (essayé : « center » les décale) ; vers le bas,
+                    # les lettres pendent sous l'arc (sinon elles s'entassent dans le creux)
+                    options = {"text-position": "stretch", "vertical-alignment": "baseline" if courbure > 0 else "bottom"}
+                code, out, err = E.executer(res, "lettering_along_path", [g.get("id"), guide.get("id")], options, delai=120)
+                courbe = E.document_modifie(out)
+                if courbe is None:
+                    raise ValueError(_message(err) or "Impossible de courber le texte.")
+                res = courbe
+                vieux = M.par_id(res, guide.get("id"))
+                if vieux is not None:
+                    vieux.getparent().remove(vieux)
+                g = M.par_id(res, g.get("id"))
+            if trace:                                       # retrouvés quand on modifie le texte
+                g.set("data-broderie-trace", arc.get("chemin") or "")
+                g.set("data-broderie-position", options["text-position"])
+            else:
+                g.set("data-broderie-arc", str(courbure))
+        return res, g
+
+    def _lettrage(self, d):
+        """Ajoute (ou remplace) un texte brodé, sans fenêtre d'Ink/Stitch."""
+        doc = _lire(etree.tostring(self.document.getroot()))
+        chemin = self._guide(doc, d)
+        ancien = M.par_id(doc, d["remplacer"]) if d.get("remplacer") else None
+        place = M.emprise(doc, [ancien.get("id")]) if ancien is not None else None
+        if ancien is not None:
+            ancien.getparent().remove(ancien)
+        res, g = self._texte(doc, d)
+        b = M.emprise(res, [g.get("id")]) if place else None
+        if place and b and not chemin:                       # le texte modifié reste centré au même endroit
+            dx = (place[0] + place[2]) / 2 - (b[0] + b[2]) / 2
+            dy = (place[1] + place[3]) / 2 - (b[1] + b[3]) / 2
+            g.set("transform", ("translate(%g,%g) %s" % (dx, dy, g.get("transform") or "")).strip())
+        if chemin:                                           # la courbe guide ne se brode pas (œil fermé)
+            M.montrer(res, chemin, False)
         self.document = res
-        self.ids = [groupes[-1].get("id")] if groupes and groupes[-1].get("id") else []
+        self.ids = []                      # on garde tout le dessin dans la liste ; le panneau choisit le texte
         self.version += 1
         self.attente.append(("commande", "batch_lettering"))
         self.log("Texte brodé ajouté")
-        return {"id": self.ids[0] if self.ids else None}
+        return {"id": g.get("id")}
+
+    def _apercu_texte(self, d):
+        """Aperçu d'un texte avant de l'ajouter : fabriqué sur un dessin vide, points calculés par Ink/Stitch."""
+        with self.verrou:
+            if self.document is None:
+                raise ValueError("Aucun dessin : appuyez sur ⌘⌥B dans Inkscape.")
+            vide = M.dessin_vide(self.document)
+            self._guide(self.document, d)
+        res, g = self._texte(vide, d)
+        b = M.emprise(res, [g.get("id")])
+        k = M.mm_par_unite(res)
+        svg, err = E.apercu(res, None, d.get("mode") or "points", {"sauts": False, "penetrations": False})
+        if not svg:
+            raise ValueError(_message(err) or "Aperçu impossible.")
+        n = len(re.findall(r"[-\d.]+[ ,][-\d.]+", " ".join(re.findall(r' d="([^"]*)"', svg))))
+        return {"svg": svg, "largeur": round((b[2] - b[0]) * k, 1) if b else 0,
+                "hauteur": round((b[3] - b[1]) * k, 1) if b else 0, "points": n}
 
     def _commande(self, d):
         """Commande Ink/Stitch quelconque (catalogue complet), lancée en arrière-plan : certaines ouvrent

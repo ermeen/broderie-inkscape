@@ -15,7 +15,7 @@ On **dessine dans Inkscape**, on **règle la broderie dans le panneau**, et **In
   - Types de point en tuiles et réglages essentiels en curseurs ; tous les réglages d'Ink/Stitch rangés par thèmes.
   - Copier et coller des réglages.
   - Colonnes satin : conversion d'un trait, assemblage des rails et traverses.
-  - Texte brodé (140 polices) et texte courbé.
+  - Texte brodé (140 polices) avec aperçu en direct : droit, en arc (jusqu'au cercle) ou sur une courbe dessinée dans Inkscape.
 - **Aperçu**
   - Points d'aiguille, sauts, coupes et changements de couleur.
   - Rendu réaliste sur tissu.
@@ -35,7 +35,7 @@ Il faut Inkscape 1.4 et Ink/Stitch 3, testés avec Inkscape 1.4.2 et Ink/Stitch 
 3. Quittez puis relancez Inkscape.
 4. Appuyez sur **Cmd+Option+B**.
 
-Mode d'emploi complet et astuces de réglages : [docs/Notice-Broderie-1.1.0.pdf](docs/Notice-Broderie-1.1.0.pdf).
+Mode d'emploi complet et astuces de réglages : [docs/Notice-Broderie-1.2.0.pdf](docs/Notice-Broderie-1.2.0.pdf).
 
 ## Où sont les réglages ?
 

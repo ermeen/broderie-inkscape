@@ -9,14 +9,14 @@
 </head>
 <body>
 <header>
-  <div class="titre"><img class="logo" src="logo.png" alt=""> Broderie
-    <button id="bLarge" class="petit" title="Aperçu à gauche des réglages (élargit la fenêtre) / panneau étroit">⇆ Aperçu à gauche</button></div>
+  <div class="titre"><img class="logo" src="logo.png" alt=""><span class="nom-appli">Broderie</span></div>
   <nav class="onglets" id="vues">
-    <button data-vue="objets" class="on"><svg viewBox="0 0 24 24"><path d="M5 5l14 14M19 5L5 19M12 3v18M3 12h18"/></svg>Objets</button>
-    <button data-vue="points"><svg viewBox="0 0 24 24"><path d="M4 7h16M4 12h16M4 17h16"/><circle cx="9" cy="7" r="2"/><circle cx="15" cy="12" r="2"/><circle cx="8" cy="17" r="2"/></svg>Points</button>
-    <button data-vue="apercu"><svg viewBox="0 0 24 24"><path d="M2 12s4-7 10-7 10 7 10 7-4 7-10 7S2 12 2 12z"/><circle cx="12" cy="12" r="3"/></svg>Aperçu</button>
-    <button data-vue="export"><svg viewBox="0 0 24 24"><path d="M12 3v12M7 10l5 5 5-5M5 20h14"/></svg>Export</button>
+    <button data-vue="objets" class="on" title="Objets : choisir et régler"><svg viewBox="0 0 24 24"><path d="M5 5l14 14M19 5L5 19M12 3v18M3 12h18"/></svg><span>Objets</span></button>
+    <button data-vue="points" title="Points : simulation de la broderie"><svg viewBox="0 0 24 24"><path d="M4 7h16M4 12h16M4 17h16"/><circle cx="9" cy="7" r="2"/><circle cx="15" cy="12" r="2"/><circle cx="8" cy="17" r="2"/></svg><span>Points</span></button>
+    <button data-vue="apercu" title="Aperçu : rendu, densité, statistiques"><svg viewBox="0 0 24 24"><path d="M2 12s4-7 10-7 10 7 10 7-4 7-10 7S2 12 2 12z"/><circle cx="12" cy="12" r="3"/></svg><span>Aperçu</span></button>
+    <button data-vue="export" title="Export : cadre et fichier machine"><svg viewBox="0 0 24 24"><path d="M12 3v12M7 10l5 5 5-5M5 20h14"/></svg><span>Export</span></button>
   </nav>
+  <button id="bLarge" class="ico-entete" title="Aperçu à gauche des réglages (élargit la fenêtre) / panneau étroit"><svg viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="M10 5v14"/></svg></button>
 </header>
 <div id="bandeauAncien" hidden></div>
 <main>
@@ -87,9 +87,9 @@
 <div id="tache" hidden></div>
 <div id="journal" class="muted small"></div>
 <footer>
-  <span id="attenteInfo" class="small"></span>
-  <button id="bEnvoyer" class="principal petit" title="Comme ⌘⌥B dans Inkscape : envoie les réglages au dessin et reçoit les nouvelles formes">⇄ Synchroniser avec Inkscape</button>
-  <button id="bAbandonner" class="petit" hidden>Annuler</button>
+  <span id="attenteInfo"></span>
+  <button id="bAbandonner" hidden title="Oublier les modifications pas encore envoyées à Inkscape">Annuler</button>
+  <button id="bEnvoyer" class="synchro ok" title="Comme ⌘⌥B dans Inkscape : envoie les réglages au dessin et reçoit les nouvelles formes">⇄ Synchroniser</button>
 </footer>
 <dialog id="dlgCmd">
   <form method="dialog" class="dlg">

@@ -202,6 +202,8 @@ def decrire(el):
         "remplissage": _style_herite(el, "fill"),
         "contour": _style_herite(el, "stroke"),
         "sous_chemins": nombre_sous_chemins(el) if local(el) == "path" else 1,
+        "arc": el.get("data-broderie-arc"),
+        "trace": el.get("data-broderie-trace"), "position": el.get("data-broderie-position"),
         "calque": cid, "calque_nom": cnom, "masque": masque(el),
         "calque_masque": bool(cid) and masque(par_id(el.getroottree(), cid)),
         "valeurs": {etree.QName(k).localname: v for k, v in el.attrib.items() if k.startswith("{%s}" % INKSTITCH_NS)},
@@ -528,3 +530,59 @@ def placer(svg, i, cible, apres=False):
     else:
         ci.addprevious(el)
     return True
+
+
+def chemin_arc(largeur, cx, y_base, courbure):
+    """Tracé en arc pour courber un texte : longueur égale à la largeur du texte (il garde sa taille).
+    courbure de -100 à 100 : positive = arc vers le haut (arc-en-ciel), négative = vers le bas (sourire) ;
+    à ±100, l'arc fait presque un cercle complet (340°)."""
+    import math
+    theta = math.radians(340) * min(1.0, abs(courbure) / 100.0)
+    if theta < 1e-3 or largeur <= 0:
+        return "M %g,%g L %g,%g" % (cx - largeur / 2, y_base, cx + largeur / 2, y_base)
+    r = largeur / theta
+    haut = courbure > 0
+    cy = y_base + r if haut else y_base - r
+    pts = []
+    for k in range(73):
+        phi = -theta / 2 + theta * k / 72
+        x = cx + r * math.sin(phi)
+        y = cy - r * math.cos(phi) if haut else cy + r * math.cos(phi)
+        pts.append("%.3f,%.3f" % (x, y))
+    return "M " + " L ".join(pts)
+
+
+def trace_absolu(svg, i):
+    """Tracé de l'objet i dans le repère du dessin (transformations de l'objet et de ses groupes appliquées) :
+    sert de guide pour courber un texte le long d'une courbe dessinée dans Inkscape."""
+    ix = _inkex()
+    el = par_id(svg, i)
+    if el is None or not _tracé(el):
+        return None
+    t = ix.transforms.Transform()
+    for a in reversed(list(el.iterancestors())):
+        if a.get("transform"):
+            t = t @ ix.transforms.Transform(a.get("transform"))
+    return str(ix.paths.Path(_tracé(el)).transform(t @ ix.transforms.Transform(el.get("transform") or "")).to_absolute())
+
+
+def dessin_vide(svg):
+    """Copie du dessin sans ses objets (même page, mêmes définitions) : pour essayer un texte à part."""
+    import copy
+    r = copy.deepcopy(svg.getroot() if hasattr(svg, "getroot") else svg)
+    for enfant in list(r):
+        if isinstance(enfant.tag, str) and local(enfant) not in ("defs", "metadata", "namedview"):
+            r.remove(enfant)
+    return etree.ElementTree(r)
+
+
+def mm_par_unite(svg):
+    """Millimètres par unité du dessin (viewBox)."""
+    ix = _inkex()
+    r = svg.getroot() if hasattr(svg, "getroot") else svg
+    vb = [float(x) for x in (r.get("viewBox") or "").replace(",", " ").split()]
+    try:
+        w = ix.units.convert_unit(r.get("width"), "mm") if r.get("width") else None
+    except Exception:
+        w = None
+    return (w / vb[2]) if w and len(vb) == 4 and vb[2] else 1.0

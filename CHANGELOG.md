@@ -5,7 +5,27 @@ Le numéro de version suit le schéma `MAJEUR.MINEUR.CORRECTIF` :
 - **MINEUR** : nouvelle fonction ;
 - **CORRECTIF** : correction sans nouvelle fonction.
 
-## 1.1.0 — 24 octobre 2026
+## 1.2.0 — 24 octobre 2026
+
+**Texte brodé**
+- Aperçu des points en direct : le texte s'affiche quelques secondes après chaque changement, avec sa taille en mm et son nombre de points.
+- Avertissements : lettres de moins de 5 mm, texte plus grand que le cadre choisi, taille hors de la plage de la police. Ink/Stitch impose cette plage : la case Taille s'y limite maintenant.
+- Arcs prêts à l'emploi : vers le haut, vers le bas, et presque un cercle avec le curseur Courbure (100 %).
+- Sur une courbe : le texte suit une courbe libre dessinée dans Inkscape (Bézier, spirale, cercle), au début, au centre ou sur toute la courbe. La courbe guide est ensuite retirée de la broderie (œil fermé).
+- Ces formes passent par « Lettrage le long d'un chemin » d'Ink/Stitch : les lettres tournent sans être déformées.
+- Modifier un texte courbé retrouve sa forme ; un texte droit modifié reste à sa place.
+
+**Interface**
+- Bandeau du haut sur une ligne : logo, onglets avec icônes, bouton d'élargissement.
+- Bandeau du bas plus grand. Le bouton Synchroniser est orange quand des modifications attendent, vert quand tout est à jour.
+- Onglet Points : la simulation ne peut plus être agrandie au-delà de la fenêtre.
+- Aperçu : la vue de départ montre la page et tout le motif, même ce qui dépasse de la page (un texte posé au-dessus restait coupé).
+
+**Corrections**
+- Après l'ajout d'un texte, la liste ne montrait plus que ce texte ; elle montre de nouveau tout le dessin.
+- Un doublon dans le code du clavier de la simulation annulait la limite de hauteur après un appui sur « O ».
+
+ — 24 octobre 2026
 
 **Liste des calques et objets**
 - Glisser-déposer pour changer l'ordre, comme dans Inkscape (l'ordre est l'ordre de couture) : un objet avant ou après un autre, dans un autre calque, ou un calque avant un autre.

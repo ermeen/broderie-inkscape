@@ -46,6 +46,10 @@ const PICTO = {
   zigzag_sc: '<path d="M4 23l5-14 5 14 5-14 5 14 5-14 5 14 5-14" stroke-dasharray="4 2"/>',
   avec: '<path d="M4 9l36 14M4 16l36 14M4 2l36 14" stroke-dasharray="4 2" opacity=".7"/>',
   texte: '<path d="M8 26l7-20 7 20M11 19h8M28 12h8M32 12v14"/>',
+  texte_droit: '<path d="M4 20h36" stroke-dasharray="2 2"/><path d="M8 18l3-9 3 9M18 18v-9h3a2 2 0 0 1 0 4h-3M26 9h6M29 9v9M35 9l4 9"/>',
+  texte_haut: '<path d="M4 26C12 6 32 6 40 26" stroke-dasharray="2 2"/><path d="M9 17l2-7 4 5M18 11l2-6 3 5M26 10l3-5 2 6M34 14l3-5 1 7"/>',
+  texte_bas: '<path d="M4 6c8 20 28 20 36 0" stroke-dasharray="2 2"/><path d="M8 11l3 6 2-6M17 15l2 6 3-5M26 16l2-6 3 5M34 11l1 7 3-5"/>',
+  texte_trace: '<path d="M3 22c6-14 12-14 18 0s12 14 20-4" stroke-dasharray="2 2"/><circle cx="3" cy="22" r="1.5"/><circle cx="41" cy="18" r="1.5"/><path d="M7 12l2-6 3 5M27 22l2 6 3-5"/>',
 };
 const picto = (k) => `<svg viewBox="0 0 44 32" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round">${PICTO[k] || ''}</svg>`;
 
@@ -623,9 +627,11 @@ function rendreAncien() {
 }
 function rendreAttente() {
   const n = S.etat.attente || 0, i = $('#attenteInfo');
-  i.className = 'small' + (n ? ' on' : '');
-  i.textContent = n ? `${n} modification(s) à envoyer` : '✓ À jour avec Inkscape';
+  i.className = n ? 'on' : '';
+  i.textContent = n ? `${n} modification${n > 1 ? 's' : ''} à envoyer à Inkscape` : 'Le dessin est à jour dans Inkscape';
   $('#bAbandonner').hidden = !n;
+  const b = $('#bEnvoyer');
+  if (!b.disabled) { b.className = 'synchro ' + (n ? 'attente' : 'ok'); b.textContent = n ? `⇄ Synchroniser (${n})` : '✓ Synchronisé'; }
   const r = Object.entries(S.etat.reserve || {});
   if (r.length) i.title = 'Modifications gardées pour d\'autres dessins : ' + r.map(([k, v]) => `« ${k} » (${v})`).join(', ');
   if (S.etat.sans_dessin) i.textContent = 'Aucun dessin reçu : appuyez sur ⌘⌥B dans Inkscape.';
@@ -637,14 +643,14 @@ function changerVue(v) {
   $$('#vues button').forEach((b) => b.classList.toggle('on', b.dataset.vue === v));
   for (const k of ['objets', 'points', 'apercu', 'export']) $('#v-' + k).hidden = k !== v;
   // un seul aperçu, déplacé dans l'onglet affiché : en haut des Objets pour voir l'effet des réglages
-  if (v === 'objets') { $('#emplApercuObjets').insertBefore($('#apercu'), $('#poignee')); apercu(); }
+  if (v === 'objets') { $('#emplApercuObjets').insertBefore($('#apercu'), $('#poignee')); if (S.texte) apercuTexteBientot(); else apercu(); }
   if (v === 'apercu') $('#emplApercu').appendChild($('#apercu'));
   if (v === 'points') chargerSimulation(); else arreterSimulation();
   if (v === 'apercu') { apercu(); rendreStats('#stats'); }
   if (v === 'export') rendreExport();
 }
 $$('#vues button').forEach((b) => { b.onclick = () => changerVue(b.dataset.vue); });
-$('#bTexte').onclick = () => { S.texte = true; const o = S.etat.objets.find((x) => x.id === S.sel); if (o && typePrincipal(o) !== 'lettrage') S.sel = null; TX.pour = null; rendreTout(); };
+$('#bTexte').onclick = () => { S.texte = true; S.texteVu = null; TX.dims = null; const o = S.etat.objets.find((x) => x.id === S.sel); if (o && typePrincipal(o) !== 'lettrage') S.sel = null; TX.pour = null; rendreTout(); };
 
 // ---------------------------------------------------------------- aperçu des points (zoom net par viewBox)
 let vb0 = null, vb = null, apercuDemande = 0, apercuEnCours = false;
@@ -663,18 +669,19 @@ function interrupteursAffichage(liste, apres) {
   return d;
 }
 try { MODE = localStorage.getItem('broderie.mode') || 'points'; if (MODE !== 'points') MODE = 'realiste'; TISSU = localStorage.getItem('broderie.tissu') || '#ffffff'; } catch (e) { /* sans stockage */ }
+const rafraichirApercu = () => (S.texte ? apercuTexte() : apercu());
 function barreRendu() {
   const d = document.createElement('div'); d.className = 'barre-rendu';
   for (const [k, l, t] of [['points', 'Points', 'Les points et leur trajet'], ['realiste', 'Réaliste', 'Rendu photo du fil (image haute définition)']]) {
     const b = document.createElement('button'); b.textContent = l; b.title = t; if (k === MODE) b.className = 'on';
-    b.onclick = (e) => { e.stopPropagation(); MODE = k; try { localStorage.setItem('broderie.mode', k); } catch (x) { /* rien */ } apercu(); };
+    b.onclick = (e) => { e.stopPropagation(); MODE = k; try { localStorage.setItem('broderie.mode', k); } catch (x) { /* rien */ } rafraichirApercu(); };
     d.appendChild(b);
   }
   if (MODE === 'points') d.appendChild(interrupteursAffichage([
     ['sauts', 'Sauts', 'Déplacements du fil sans broder (pointillés et grenouille)'],
     ['coupes', 'Coupes et arrêts', 'Coupes ✂, arrêts machine et changements de couleur'],
     ['densite', 'Densité', 'Carte de densité d’Ink/Stitch : rouge = trop dense, jaune = limite, vert = correct'],
-    ['penetrations', 'Pénétrations', 'Points d\'entrée de l\'aiguille']], () => apercu()));
+    ['penetrations', 'Pénétrations', 'Points d\'entrée de l\'aiguille']], () => rafraichirApercu()));
   const c = document.createElement('label'); c.title = 'Couleur du tissu';
   c.innerHTML = `Tissu <input type="color" value="${TISSU}">`;
   $('input', c).oninput = (e) => { TISSU = e.target.value; $('#apercu').style.background = TISSU; majTissu(); try { localStorage.setItem('broderie.tissu', TISSU); } catch (x) { /* rien */ } };
@@ -699,7 +706,22 @@ async function apercu() {
     a.appendChild(barreRendu());
     const svg = $('svg', a);
     svg.removeAttribute('width'); svg.removeAttribute('height');
-    const v = (svg.getAttribute('viewBox') || '0 0 100 100').split(/[ ,]+/).map(Number);
+    let v = (svg.getAttribute('viewBox') || '0 0 100 100').split(/[ ,]+/).map(Number);
+    // vue de départ : la page et tout le motif (un texte posé hors de la page reste visible)
+    const plan = [...svg.children].find((g) => g.tagName === 'g' || g.tagName === 'image');   // réaliste : une image
+    if (plan) {
+      try {
+        const b = plan.getBBox(), m = svg.getCTM().inverse().multiply(plan.getCTM());
+        const p0 = new DOMPoint(b.x, b.y).matrixTransform(m), p1 = new DOMPoint(b.x + b.width, b.y + b.height).matrixTransform(m);
+        const x0 = Math.min(v[0], p0.x, p1.x), y0 = Math.min(v[1], p0.y, p1.y);
+        const x1 = Math.max(v[0] + v[2], p0.x, p1.x), y1 = Math.max(v[1] + v[3], p0.y, p1.y);
+        if (b.width && (x0 < v[0] || y0 < v[1] || x1 > v[0] + v[2] || y1 > v[1] + v[3])) {
+          const marge = 0.03 * Math.max(x1 - x0, y1 - y0);
+          v = [x0 - marge, y0 - marge, x1 - x0 + 2 * marge, y1 - y0 + 2 * marge];
+          svg.setAttribute('viewBox', v.join(' '));
+        }
+      } catch (e) { /* SVG pas encore mesurable : vue de la page */ }
+    }
     vb0 = v; if (!garder) vb = v.slice();
     if (MODE !== 'points') habiller(svg, v); else { pointsAiguille(svg); superposerCommandes(svg); if (AFF.densite) carteDensite(svg); }
     zonesCliquables(svg);
@@ -912,7 +934,7 @@ function apercuBientot() {
     S.simu = null;
     if (S.vue === 'points') chargerSimulation();
     else if (S.vue === 'apercu') { apercu(); rendreStats('#stats'); }
-    else if (S.vue === 'objets') apercu();
+    else if (S.vue === 'objets') { if (S.texte) apercuTexteBientot(); else apercu(); }
     else if (S.vue === 'export') rendreExport();
   }, 400);
 }
@@ -1251,7 +1273,10 @@ $('#poigneeSimu').addEventListener('pointerdown', (e) => {
   const v = $('.simu-vue'), h0 = v.getBoundingClientRect().height, y0 = e.clientY;
   let h = h0;
   $('#v-points').classList.add('taille-fixe');
-  const mv = (ev) => { h = Math.max(140, h0 + ev.clientY - y0); document.documentElement.style.setProperty('--hauteur-simu', h + 'px'); dessinerSimulation(); };
+  // hauteur maximale : la place disponible, moins les commandes du simulateur (la poignée reste visible)
+  const autres = [...$('#simu').children].filter((x) => x !== v).reduce((t, x) => t + x.getBoundingClientRect().height, 0);
+  const hMax = Math.max(140, $('#v-points').clientHeight - autres - 16);
+  const mv = (ev) => { h = Math.max(140, Math.min(hMax, h0 + ev.clientY - y0)); document.documentElement.style.setProperty('--hauteur-simu', h + 'px'); dessinerSimulation(); };
   const up = () => { document.removeEventListener('pointermove', mv); document.removeEventListener('pointerup', up);
     try { localStorage.setItem('broderie.hauteurSimu', Math.round(h)); } catch (x) { /* rien */ } dessinerPiste(); };
   document.addEventListener('pointermove', mv); document.addEventListener('pointerup', up);
@@ -1268,24 +1293,7 @@ document.addEventListener('keydown', (e) => {
   const touches = { p: 'play', P: 'play', r: 'restart', R: 'restart', ArrowUp: 'faster', ArrowDown: 'slower', '+': 'forward_stitch',
     '=': 'forward_stitch', '-': 'backward_stitch', PageUp: 'forward_command', PageDown: 'backward_command' };
   if (e.key === 'ArrowLeft' || e.key === 'ArrowRight') { SIM.sens = e.key === 'ArrowLeft' ? -1 : 1; majBoutonsSimu(); e.preventDefault(); return; }
-  if (e.key === 'o' || e.key === 'O') { SIM_AFF.npp = !SIM_AFF.npp; memoriser(); construireBarresSimu();
-// poignée : hauteur de la simulation (double-clic : toute la hauteur disponible)
-try { const h = localStorage.getItem('broderie.hauteurSimu'); if (h) { document.documentElement.style.setProperty('--hauteur-simu', h + 'px'); $('#v-points').classList.add('taille-fixe'); } } catch (e) { /* rien */ }
-$('#poigneeSimu').addEventListener('pointerdown', (e) => {
-  e.preventDefault();
-  const v = $('.simu-vue'), h0 = v.getBoundingClientRect().height, y0 = e.clientY;
-  let h = h0;
-  $('#v-points').classList.add('taille-fixe');
-  const mv = (ev) => { h = Math.max(140, h0 + ev.clientY - y0); document.documentElement.style.setProperty('--hauteur-simu', h + 'px'); dessinerSimulation(); };
-  const up = () => { document.removeEventListener('pointermove', mv); document.removeEventListener('pointerup', up);
-    try { localStorage.setItem('broderie.hauteurSimu', Math.round(h)); } catch (x) { /* rien */ } dessinerPiste(); };
-  document.addEventListener('pointermove', mv); document.addEventListener('pointerup', up);
-});
-$('#poigneeSimu').addEventListener('dblclick', () => {
-  $('#v-points').classList.remove('taille-fixe'); document.documentElement.style.removeProperty('--hauteur-simu');
-  try { localStorage.removeItem('broderie.hauteurSimu'); } catch (x) { /* rien */ }
-  dessinerSimulation();
-}); dessinerSimulation(); return; }
+  if (e.key === 'o' || e.key === 'O') { SIM_AFF.npp = !SIM_AFF.npp; memoriser(); construireBarresSimu(); dessinerSimulation(); return; }
   if (touches[e.key]) { ACTIONS_SIMU[touches[e.key]][1](); e.preventDefault(); }
 });
 // molette : zoom autour du pointeur · glisser : déplacer · double-clic : tout voir
@@ -1306,7 +1314,68 @@ $('#simuCanvas').addEventListener('pointerdown', (e) => {
 $('#simuCanvas').addEventListener('dblclick', () => { SIM.vue = { k: 1, x: 0, y: 0 }; dessinerSimulation(); });
 
 // ---------------------------------------------------------------- texte brodé (sans fenêtre Ink/Stitch)
-const TX = { texte: 'Bonjour', police: null, echelle: 100, align: 'left', pour: null,
+// Aperçu avant d'ajouter : Ink/Stitch fabrique le texte sur un dessin vide (≈ 10 s, il recharge la police)
+function lireTexte() {
+  if (!$('#txTexte')) return;
+  TX.texte = $('#txTexte').value;
+  TX.lettres = +$('#txLet').value || 0; TX.mots = +$('#txMot').value || 0; TX.lignes = +$('#txLig').value || 0;
+  TX.coupes = $('#txCoupe').value; TX.tri = $('#txTri').value; TX.symboles = $('#txSym').checked;
+}
+function requeteTexte() {
+  return { params: { text: TX.texte, font: TX.police, scale: TX.echelle, 'text-align': TX.align, letter_spacing: TX.lettres,
+    word_spacing: TX.mots, line_height: TX.lignes, trim: TX.coupes, 'color-sort': TX.tri, 'use-command-symbols': TX.symboles },
+  arc: TX.trace ? { chemin: TX.trace, position: TX.position } : { courbure: TX.courbure } };
+}
+const cleTexte = () => JSON.stringify([requeteTexte(), MODE]);
+let minuterieTexte = null, texteDemande = 0;
+function apercuTexteBientot() { clearTimeout(minuterieTexte); minuterieTexte = setTimeout(apercuTexte, 1000); }
+async function apercuTexte() {
+  if (!S.texte || !TX.texte.trim()) return;
+  const n = ++texteDemande, cle = cleTexte();
+  const a = $('#apercu');
+  $$('.calcul', a).forEach((x) => x.remove());
+  const badge = document.createElement('div'); badge.className = 'calcul'; a.appendChild(badge);
+  const t0 = Date.now();
+  const tic = setInterval(() => { badge.textContent = `Aperçu du texte · Ink/Stitch calcule… ${Math.round((Date.now() - t0) / 1000)} s`; }, 250);
+  try {
+    const r = await api('apercu_texte', { ...requeteTexte(), mode: MODE });
+    if (n !== texteDemande || !S.texte) return;                   // un aperçu plus récent est en route
+    a.className = ''; a.innerHTML = r.svg; a.style.background = TISSU;
+    const svg = $('svg', a);
+    svg.removeAttribute('width'); svg.removeAttribute('height');
+    const g = [...svg.children].find((x) => x.tagName === 'g');
+    if (g) {                                                       // cadrer sur le texte
+      const b = g.getBBox(), m = svg.getCTM().inverse().multiply(g.getCTM());
+      const p0 = new DOMPoint(b.x, b.y).matrixTransform(m), p1 = new DOMPoint(b.x + b.width, b.y + b.height).matrixTransform(m);
+      const marge = Math.max(p1.x - p0.x, p1.y - p0.y) * 0.08;
+      vb0 = [p0.x - marge, p0.y - marge, p1.x - p0.x + 2 * marge, p1.y - p0.y + 2 * marge]; vb = vb0.slice();
+    }
+    if (MODE !== 'points') habiller(svg, vb); else pointsAiguille(svg);
+    appliquerVue();
+    a.appendChild(barreRendu());
+    const et = document.createElement('div'); et.className = 'etiquette-texte'; et.textContent = 'Aperçu du texte (pas encore dans le dessin)';
+    a.appendChild(et);
+    TX.dims = r; S.texteVu = cle;
+    rendreInfoTexte();
+  } catch (e) { if (n === texteDemande) message(e.message, true); } finally { clearInterval(tic); badge.remove(); }
+}
+function rendreInfoTexte() {
+  const d = $('#txInfo'); if (!d) return;
+  const r = TX.dims;
+  if (!r) { d.innerHTML = '<span class="muted">L’aperçu apparaît à gauche quelques secondes après chaque changement.</span>'; return; }
+  const lignes = Math.max(1, TX.texte.split('\n').length);
+  const pol = (S.polices || []).find((p) => p.nom === TX.police) || {};
+  const alertes = [];
+  const hLigne = r.hauteur / lignes;
+  if (TX.courbure === 0 && !TX.trace && hLigne < 5) alertes.push(`Lettres d’environ ${hLigne.toFixed(1)} mm : trop petit pour la plupart des polices ; agrandissez ou choisissez une police « small » / « tiny ».`);
+  if (pol.min && (TX.echelle < pol.min * 100 - 0.5 || TX.echelle > pol.max * 100 + 0.5)) alertes.push(`Ink/Stitch limite cette police à ${Math.round(pol.min * 100)} – ${Math.round(pol.max * 100)} % : pour plus petit ou plus grand, choisissez une autre police (ex. version « small »).`);
+  const c = (S.cadres || [])[+(localStorage.getItem('broderie.cadreN') || 0)];
+  if (c && (r.largeur > c.largeur || r.hauteur > c.hauteur)) alertes.push(`Plus grand que le cadre ${c.largeur} × ${c.hauteur} mm.`);
+  d.innerHTML = `<div class="dims-texte"><b>${r.largeur} × ${r.hauteur} mm</b> · ${r.points.toLocaleString('fr')} points</div>`
+    + (alertes.length ? alertes.map((x) => `<div class="alerte">⚠ ${esc(x)}</div>`).join('') : '<div class="ok-texte">✓ Taille adaptée</div>');
+}
+
+const TX = { texte: 'Bonjour', police: null, echelle: 100, align: 'left', pour: null, courbure: 0, trace: null, position: 'center',
   lettres: 0, mots: 0, lignes: 0, coupes: 'off', tri: 'off', symboles: false };
 async function rendreTexte() {
   const div = $('#texte');
@@ -1325,6 +1394,8 @@ async function rendreTexte() {
       TX.lettres = j.letter_spacing || 0; TX.mots = j.word_spacing || 0; TX.lignes = j.line_height || 0;
       TX.coupes = ['off', 'line', 'word', 'glyph'][j.trim_option || 0] || 'off';
       TX.tri = ['off', 'all', 'line', 'word'][j.color_sort || 0] || 'off'; TX.symboles = !!j.use_trim_symbols;
+      TX.courbure = parseFloat(existant.arc || 0) || 0;
+      TX.trace = existant.trace || null; TX.position = existant.position || 'center';
     } catch (e) { /* lettrage illisible : valeurs actuelles */ }
     TX.pour = existant.id;
   }
@@ -1338,6 +1409,13 @@ async function rendreTexte() {
     <div class="bloc reglage"><div class="haut"><label>Taille</label><span class="val"><input type="number" id="txEchN" value="${TX.echelle}"><span class="unite">%</span></span></div>
       <input type="range" id="txEch" min="${mi}" max="${ma}" step="5" value="${TX.echelle}"><span class="muted small">Conseillé pour cette police : ${mi} à ${ma} %</span></div>
     <div class="bloc"><h2>Alignement</h2><div class="outils" id="txAlign"></div></div>
+    <div class="bloc"><h2>Forme</h2><div id="txForme"></div>
+      <div class="reglage" id="txCourbeBloc"><div class="haut"><label>Courbure</label><span class="val"><input type="number" id="txCourbeN" min="5" max="100" step="5" value="${Math.abs(TX.courbure) || 40}"><span class="unite">%</span></span></div>
+      <input type="range" id="txCourbe" min="5" max="100" step="5" value="${Math.abs(TX.courbure) || 40}"><span class="muted small">100 % : presque un cercle complet (écussons)</span></div>
+      <div id="txTraceBloc"><div class="reglage"><div class="haut"><label>Courbe à suivre</label></div><select id="txTraceSel"></select></div>
+      <div class="reglage"><div class="haut"><label>Placement sur la courbe</label></div><div class="outils" id="txPos"></div></div>
+      <p class="muted small">Dessinez la courbe dans Inkscape (outil Bézier, Spirale, cercle…), synchronisez, puis choisissez-la ici. Elle doit être plus longue que le texte. Une fois le texte ajouté, la courbe est retirée de la broderie (œil fermé).</p></div></div>
+    <div id="txInfo" class="small"></div>
     <details class="theme"><summary>Espacements, coupes et couleurs</summary>
       <div class="reglage"><div class="haut"><label>Espace entre les lettres</label><span class="val"><input type="number" step="0.5" id="txLet" value="${TX.lettres}"><span class="unite">mm</span></span></div></div>
       <div class="reglage"><div class="haut"><label>Espace entre les mots</label><span class="val"><input type="number" step="0.5" id="txMot" value="${TX.mots}"><span class="unite">mm</span></span></div></div>
@@ -1349,7 +1427,7 @@ async function rendreTexte() {
       <label class="interrupteur"><span>Coupes par symboles de commande</span><input type="checkbox" id="txSym" ${TX.symboles ? 'checked' : ''}></label>
     </details>
     <button class="principal" id="txOk">${existant ? 'Mettre à jour le texte' : 'Ajouter au dessin'}</button>`;
-  $('#txFermer').onclick = () => { S.texte = false; rendreTout(); };
+  $('#txFermer').onclick = () => { S.texte = false; S.texteVu = null; rendreTout(); apercu(); };
   const liste = $('#polListe');
   const remplir = () => {
     const q = $('#polRecherche').value.trim().toLowerCase();
@@ -1367,25 +1445,56 @@ async function rendreTexte() {
   liste.querySelector('.on')?.scrollIntoView({ block: 'nearest' });
   $('#txTexte').oninput = (e) => { TX.texte = e.target.value; };
   $('#txEch').oninput = (e) => { TX.echelle = +e.target.value; $('#txEchN').value = TX.echelle; };
-  $('#txEchN').onchange = (e) => { TX.echelle = +e.target.value; $('#txEch').value = TX.echelle; };
+  // Ink/Stitch ramène de toute façon la taille dans la plage de la police : la case fait de même
+  $('#txEchN').onchange = (e) => { TX.echelle = Math.max(mi, Math.min(ma, +e.target.value || 100)); e.target.value = TX.echelle; $('#txEch').value = TX.echelle; };
   for (const [k, lib] of [['left', 'Gauche'], ['center', 'Centre'], ['right', 'Droite']]) {
     const b = document.createElement('button'); b.textContent = lib; if (TX.align === k) b.className = 'principal';
     b.onclick = () => { TX.align = k; TX.texte = $('#txTexte').value; rendreTexte(); };
     $('#txAlign').appendChild(b);
   }
+  // forme : droit, arc vers le haut (arc-en-ciel), arc vers le bas (sourire)
+  // ou sur une courbe dessinée dans Inkscape (spline, spirale, cercle…), avec « Lettrage le long d'un chemin »
+  const courbes = S.etat.objets.filter((x) => typePrincipal(x) !== 'lettrage');
+  if (TX.trace && !courbes.some((x) => x.id === TX.trace)) TX.trace = null;
+  const forme = TX.trace ? 'trace' : TX.courbure > 0 ? 'haut' : TX.courbure < 0 ? 'bas' : 'droit';
+  $('#txForme').appendChild(tuiles([['droit', 'Droit', 'texte_droit'], ['haut', 'Arc vers le haut', 'texte_haut'], ['bas', 'Arc vers le bas', 'texte_bas'],
+    ['trace', 'Sur une courbe', 'texte_trace']], forme, (k) => {
+    if (k === 'trace') {
+      if (!courbes.length) { message('Dessinez d’abord une courbe dans Inkscape, puis synchronisez.', true); return; }
+      TX.trace = TX.trace || (courbes.find((x) => x.types.includes('stroke')) || courbes[0]).id;
+    } else {
+      const c = Math.abs(TX.courbure) || +$('#txCourbe').value || 40;
+      TX.trace = null; TX.courbure = k === 'droit' ? 0 : k === 'haut' ? c : -c;
+    }
+    lireTexte(); rendreTexte(); apercuTexteBientot();
+  }));
+  $('#txCourbeBloc').hidden = forme === 'droit' || forme === 'trace';
+  $('#txTraceBloc').hidden = forme !== 'trace';
+  $('#txTraceSel').innerHTML = courbes.map((x) => `<option value="${esc(x.id)}" ${x.id === TX.trace ? 'selected' : ''}>${esc(x.nom)}${x.calque_nom ? ' · ' + esc(x.calque_nom) : ''}</option>`).join('');
+  $('#txTraceSel').onchange = (e) => { TX.trace = e.target.value; apercuTexteBientot(); };
+  for (const [k, lib] of [['left', 'Au début'], ['center', 'Au centre'], ['stretch', 'Sur toute la courbe']]) {
+    const b = document.createElement('button'); b.type = 'button'; b.textContent = lib; if (TX.position === k) b.className = 'principal';
+    b.onclick = () => { TX.position = k; lireTexte(); rendreTexte(); apercuTexteBientot(); };
+    $('#txPos').appendChild(b);
+  }
+  const courbe = (v) => { TX.courbure = Math.sign(TX.courbure || 1) * Math.max(5, Math.min(100, +v)); $('#txCourbe').value = $('#txCourbeN').value = Math.abs(TX.courbure); apercuTexteBientot(); };
+  $('#txCourbe').oninput = (e) => { $('#txCourbeN').value = e.target.value; };
+  $('#txCourbe').onchange = (e) => courbe(e.target.value);
+  $('#txCourbeN').onchange = (e) => courbe(e.target.value);
+  // tout changement relance l'aperçu du texte
+  for (const id of ['#txTexte', '#txLet', '#txMot', '#txLig', '#txCoupe', '#txTri']) $(id).addEventListener('input', () => { lireTexte(); apercuTexteBientot(); });
+  $('#txEch').addEventListener('change', apercuTexteBientot); $('#txEchN').addEventListener('change', apercuTexteBientot);
+  rendreInfoTexte();
+  if (!S.texteVu || S.texteVu !== cleTexte()) apercuTexteBientot();
   $('#txOk').onclick = async () => {
     TX.texte = $('#txTexte').value;
     if (!TX.texte.trim()) { message('Écrivez un texte.', true); return; }
     try {
-      TX.lettres = +$('#txLet').value || 0; TX.mots = +$('#txMot').value || 0; TX.lignes = +$('#txLig').value || 0;
-      TX.coupes = $('#txCoupe').value; TX.tri = $('#txTri').value; TX.symboles = $('#txSym').checked;
-      const r = await api('lettrage', { remplacer: existant ? existant.id : null,
-        params: { text: TX.texte, font: TX.police, scale: TX.echelle, 'text-align': TX.align, letter_spacing: TX.lettres,
-          word_spacing: TX.mots, line_height: TX.lignes, trim: TX.coupes, 'color-sort': TX.tri, 'use-command-symbols': TX.symboles } },
-        'Création du texte brodé…');
-      S.etat = await api('etat'); S.sel = r.id || S.sel; TX.pour = null; S.texte = false;
+      lireTexte();
+      const r = await api('lettrage', { remplacer: existant ? existant.id : null, ...requeteTexte() }, 'Création du texte brodé (environ 10 secondes)…');
+      S.etat = await api('etat'); S.sel = r.id || S.sel; TX.pour = null; S.texte = false; S.texteVu = null;
       rendreTout(); apercuBientot();
-      message('Texte prêt. Appuyez sur ⌘⌥B dans Inkscape pour l\'ajouter au dessin.');
+      message('Texte prêt. Appuyez sur « Synchroniser » (ou ⌘⌥B dans Inkscape) pour l\'ajouter au dessin.');
     } catch (e) { message(e.message, true); }
   };
 }
@@ -1483,7 +1592,7 @@ $('#bExport').onclick = () => {
   location.href = `/export?format=${encodeURIComponent(f)}&ids=${encodeURIComponent((S.etat.selection || []).join(','))}`;
   message(`Fichier ${f.toUpperCase()} enregistré dans Téléchargements.`);
 };
-function rendreBoutonLarge() { $('#bLarge').textContent = window.innerWidth >= 760 ? '⇆ Panneau étroit' : '⇆ Aperçu à gauche'; }
+function rendreBoutonLarge() { $('#bLarge').classList.toggle('on', window.innerWidth >= 760); }
 $('#bLarge').onclick = async () => {
   const large = window.innerWidth < 760;
   try {
@@ -1499,7 +1608,7 @@ $('#bEnvoyer').onclick = async () => {
     const r = await api('envoyer');
     if (!r.ok) message(r.message, true); else message('Synchronisé avec Inkscape.');
   } catch (e) { message(e.message, true); } finally {
-    setTimeout(() => { b.disabled = false; b.textContent = '⇄ Synchroniser avec Inkscape'; }, 1500);
+    setTimeout(() => { b.disabled = false; rendreAttente(); }, 1500);
   }
 };
 $('#bFichePdf').onclick = () => commande('print');
@@ -1520,8 +1629,7 @@ setInterval(surveiller, 2000);
   try {
     [S.etat, S.schema] = await Promise.all([api('etat'), api('schema')]);
   } catch (e) { message('Impossible de joindre le panneau : ' + e.message, true); return; }
-  $('.titre').insertAdjacentHTML('beforeend', `<span class="muted small" title="Version du panneau">v${esc(S.etat.version_panneau || '')}</span>`);
-  $('.titre').appendChild($('#bLarge'));
+  $('.titre').insertAdjacentHTML('beforeend', `<span class="version-appli" title="Version du panneau">v${esc(S.etat.version_panneau || '')}</span>`);
   const prefere = ['dst', 'pes', 'jef', 'exp', 'vp3', 'xxx'];
   const fmts = S.etat.formats.length ? S.etat.formats : prefere;
   const NOMS_FMT = { dst: 'Tajima', pes: 'Brother', jef: 'Janome', exp: 'Melco / Bernina', vp3: 'Husqvarna / Pfaff', xxx: 'Singer' };

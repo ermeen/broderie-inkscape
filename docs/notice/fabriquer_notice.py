@@ -273,7 +273,7 @@ c += [Chapitre(1, "Le principe", "Chacun son rôle : le dessin, les réglages, l
       etapes("Il faut <b>Inkscape 1.4</b> et <b>Ink/Stitch 3</b> déjà installés.",
              "Double-cliquez sur <b>installer.command</b>. Si macOS refuse : clic droit › Ouvrir › Ouvrir.",
              "Quittez Inkscape puis relancez-le : le raccourci " + CMD + " est alors actif.",
-             "Facultatif, pour le bouton <b>Synchroniser avec Inkscape</b> : autorisez Inkscape dans Réglages Système › "
+             "Facultatif, pour le bouton <b>Synchroniser</b> : autorisez Inkscape dans Réglages Système › "
              "Confidentialité et sécurité › <b>Accessibilité</b>."),
       Spacer(1, 3 * mm),
       p("Pour retirer le panneau : <b>desinstaller.command</b>. Ink/Stitch n'est jamais modifié."),
@@ -286,7 +286,8 @@ c += [Chapitre(3, "Le geste à retenir", "Un raccourci relie Inkscape et le pann
               "• après avoir <b>changé des réglages</b> dans le panneau : ils passent dans le dessin "
               "(Cmd Z dans Inkscape les annule).", "LE RACCOURCI"),
       p("Le bas du panneau indique combien de modifications attendent d'être envoyées. Le bouton "
-        "<b>Synchroniser avec Inkscape</b> fait la même chose que le raccourci."),
+        "<b>Synchroniser</b> fait la même chose que le raccourci : il est <b>orange</b> quand des modifications "
+        "attendent, <b>vert</b> quand tout est à jour. <b>Annuler</b> oublie les modifications pas encore envoyées."),
       encadre("<b>Avant de fermer Inkscape : " + CMD + " puis Cmd S.</b> Les réglages de broderie sont enregistrés "
               "<b>dans votre fichier .svg</b>, exactement comme Ink/Stitch les enregistre : le fichier reste utilisable "
               "avec les menus Ink/Stitch habituels.", "SAUVEGARDE", SABLE, ROSE_FONCE),
@@ -325,7 +326,7 @@ c += [Chapitre(4, "Onglet Objets", "Régler la broderie de chaque forme"),
 
 # ---------------------------------------------------------------- 5-6. satin et texte
 c += [Chapitre(5, "Colonnes satin", "Le point brillant des bordures et des lettres"),
-      capture("satin", 130, "Une colonne satin : type Satin, Point E, Point S ou Zigzag, densité, sous-couches."),
+      capture("satin", 100, "Une colonne satin : type Satin, Point E, Point S ou Zigzag, densité, sous-couches."),
       p("La plus simple", "h2"),
       p("Dans Inkscape, tracez un trait (outil Plume) avec l'<b>épaisseur</b> voulue : elle devient la largeur du satin. "
         "Dans le panneau, choisissez la tuile <b>Satin</b>."),
@@ -334,11 +335,14 @@ c += [Chapitre(5, "Colonnes satin", "Le point brillant des bordures et des lettr
         "un rail : la rubrique <b>Rails et traverses</b> propose de les <b>assembler</b> en une seule colonne."),
       Spacer(1, 4 * mm),
       Chapitre(6, "Texte brodé", "140 polices faites pour la broderie"),
-      *puces("<b>+ Texte</b> : votre texte, la police (avec son aperçu), la taille et l'alignement, puis "
-             "<b>Ajouter au dessin</b>. « Espacements, coupes et couleurs » règle les espaces, l'interligne et les coupes.",
-             "<b>Texte courbé</b> : dessinez une courbe dans Inkscape, envoyez-la (" + CMD + "), choisissez le texte "
-             "dans la liste, puis la courbe à suivre.",
-             "Le texte se déplace et se tourne dans Inkscape, comme une forme."),
+      *puces("<b>+ Texte</b> : votre texte, la police (avec son aperçu), la taille et l'alignement. L'<b>aperçu des "
+             "points</b> s'affiche en haut quelques secondes après chaque changement, avec la taille en mm ; un "
+             "avertissement signale des lettres trop petites ou un texte plus grand que le cadre.",
+             "<b>Forme</b> : Droit, <b>Arc vers le haut</b>, <b>Arc vers le bas</b> (curseur Courbure ; 100 % = presque "
+             "un cercle, pour les écussons) ou <b>Sur une courbe</b> : dessinez une courbe libre dans Inkscape (Bézier, "
+             "spirale, cercle), synchronisez, choisissez-la et le placement (début, centre, toute la courbe). "
+             "La courbe est ensuite retirée de la broderie.",
+             "<b>Ajouter au dessin</b>, puis <b>Synchroniser</b>. Le texte se déplace et se tourne dans Inkscape."),
       astuce("Une police de votre Mac ? Tapez le texte dans Inkscape puis <i>Chemin › Objet en chemin</i> : les lettres "
              "deviennent des formes, à régler en remplissage ou en satin."),
       PageBreak()]
