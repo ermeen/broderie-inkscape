@@ -660,11 +660,11 @@ const AFF = { sauts: true, penetrations: true, coupes: true, commandes: false, d
 try { Object.assign(AFF, JSON.parse(localStorage.getItem('broderie.affichage') || '{}')); } catch (e) { /* défaut */ }
 function interrupteursAffichage(liste, apres) {
   const d = document.createElement('span'); d.className = 'affichage';
-  for (const [k, l, t] of liste) {
-    const c = document.createElement('label'); c.title = t;
-    c.innerHTML = `<input type="checkbox" ${AFF[k] ? 'checked' : ''}> ${l}`;
-    $('input', c).onchange = (e) => { AFF[k] = e.target.checked; try { localStorage.setItem('broderie.affichage', JSON.stringify(AFF)); } catch (x) { /* rien */ } apres(); };
-    d.appendChild(c);
+  for (const [k, ic, t] of liste) {
+    const b = document.createElement('button'); b.type = 'button'; b.className = 'ico-rendu' + (AFF[k] ? ' on' : '');
+    b.title = t; b.setAttribute('aria-pressed', !!AFF[k]); b.innerHTML = icone(ic);
+    b.onclick = (e) => { e.stopPropagation(); AFF[k] = !AFF[k]; try { localStorage.setItem('broderie.affichage', JSON.stringify(AFF)); } catch (x) { /* rien */ } apres(); };
+    d.appendChild(b);
   }
   return d;
 }
@@ -678,10 +678,10 @@ function barreRendu() {
     d.appendChild(b);
   }
   if (MODE === 'points') d.appendChild(interrupteursAffichage([
-    ['sauts', 'Sauts', 'Déplacements du fil sans broder (pointillés et grenouille)'],
-    ['coupes', 'Coupes et arrêts', 'Coupes ✂, arrêts machine et changements de couleur'],
-    ['densite', 'Densité', 'Carte de densité d’Ink/Stitch : rouge = trop dense, jaune = limite, vert = correct'],
-    ['penetrations', 'Pénétrations', 'Points d\'entrée de l\'aiguille']], () => rafraichirApercu()));
+    ['sauts', 'jump', 'Sauts : déplacements du fil sans broder (pointillés et grenouille)'],
+    ['coupes', 'trim', 'Coupes, arrêts machine et changements de couleur'],
+    ['densite', 'densite', 'Densité : rouge = trop dense, jaune = limite, vert = correct'],
+    ['penetrations', 'npp', 'Pénétrations : points d\'entrée de l\'aiguille']], () => rafraichirApercu()));
   const c = document.createElement('label'); c.title = 'Couleur du tissu';
   c.innerHTML = `Tissu <input type="color" value="${TISSU}">`;
   $('input', c).oninput = (e) => { TISSU = e.target.value; $('#apercu').style.background = TISSU; majTissu(); try { localStorage.setItem('broderie.tissu', TISSU); } catch (x) { /* rien */ } };
@@ -825,7 +825,7 @@ function pointsAiguille(svg) {
   }
 }
 
-function appliquerVue() { const s = $('#apercu svg'); if (s && vb) s.setAttribute('viewBox', vb.join(' ')); }
+function appliquerVue() { const s = $('#apercu > svg'); if (s && vb) s.setAttribute('viewBox', vb.join(' ')); }
 function versDessin(e) {
   const r = $('#apercu').getBoundingClientRect();
   const k = Math.max(vb[2] / r.width, vb[3] / r.height);
@@ -910,7 +910,7 @@ $('#poignee').addEventListener('pointerdown', (e) => {
 // contour de l'objet choisi, en pointillés bleus par-dessus l'aperçu
 let selAffichee = null;
 async function afficherSelection(force = false) {
-  const svg = $('#apercu svg');
+  const svg = $('#apercu > svg');
   if (!svg) return;
   const ids = S.choix.size ? [...S.choix] : (S.sel ? [S.sel] : []);
   const cle = ids.join(',') + '|' + S.etat.version + '|' + S.etat.attente;
@@ -920,9 +920,9 @@ async function afficherSelection(force = false) {
   for (const id of ids.slice(0, 60)) {
     try {
       const r = await api('contour', { id });
-      if (!r.svg || !$('#apercu svg') || selAffichee !== cle) return;
+      if (!r.svg || !$('#apercu > svg') || selAffichee !== cle) return;
       const doc = new DOMParser().parseFromString(r.svg, 'image/svg+xml');
-      $('#apercu svg').appendChild(document.importNode(doc.documentElement, true));
+      $('#apercu > svg').appendChild(document.importNode(doc.documentElement, true));
     } catch (e) { /* contour indisponible : l'aperçu reste utilisable */ }
   }
 }
@@ -1036,7 +1036,32 @@ const memoriser = () => { try { localStorage.setItem('broderie.simAff', JSON.str
 const NOM_CMD = { JUMP: 'Saut', TRIM: 'Coupe', STOP: 'Arrêt', COLOR_CHANGE: 'Changement de couleur', END: 'Fin' };
 const ICONES = {};
 for (const n of ['jump', 'trim', 'stop', 'color_change']) { const im = new Image(); im.src = `/icone/${n}.png`; ICONES[n] = im; }
-const icone = (n) => `<img src="/icone/${n}_dark.png" alt="">`;
+// icônes des boutons, dessinées dans l'esprit des SF Symbols d'Apple (traits arrondis, couleur du texte)
+const F = 'fill="currentColor" stroke="none"';
+const SF = {
+  npp: `<path d="M12 3v10.5"/><ellipse cx="12" cy="6.2" rx=".9" ry="1.9"/><path d="M11 13.5h2L12 16z" ${F}/><circle cx="6.5" cy="20" r="1.3" ${F}/><circle cx="12" cy="20" r="1.3" ${F}/><circle cx="17.5" cy="20" r="1.3" ${F}/>`,
+  jump: `<path d="M4.5 15.2c0-3.6 3.4-6.2 7.5-6.2s7.5 2.6 7.5 6.2c0 2.4-3.4 4.3-7.5 4.3s-7.5-1.9-7.5-4.3z"/><circle cx="8.3" cy="8.3" r="2.6"/><circle cx="15.7" cy="8.3" r="2.6"/><circle cx="8.3" cy="8.3" r="1" ${F}/><circle cx="15.7" cy="8.3" r="1" ${F}/><path d="M9.3 15.4c1.7 1.1 3.7 1.1 5.4 0"/>`,
+  trim: `<circle cx="6.5" cy="17.3" r="2.7"/><circle cx="17.5" cy="17.3" r="2.7"/><path d="M8.5 15.4 18.5 4M15.5 15.4 5.5 4"/>`,
+  stop: `<circle cx="12" cy="12" r="8.5"/><path d="M10 9v6M14 9v6"/>`,
+  color_change: `<rect x="6" y="3.5" width="12" height="3" rx="1.2"/><rect x="6" y="17.5" width="12" height="3" rx="1.2"/><path d="M8 6.5v11M16 6.5v11M8 9.7h8M8 12h8M8 14.3h8"/>`,
+  densite: `<rect x="4" y="4" width="16" height="16" rx="3.5"/><path d="M4 12h16M12 4v16"/><path d="M12 4h4.5A3.5 3.5 0 0 1 20 7.5V12h-8z" ${F} opacity=".75"/><path d="M4 12h8v8H7.5A3.5 3.5 0 0 1 4 16.5z" ${F} opacity=".35"/>`,
+  cursor: `<circle cx="12" cy="12" r="6.5"/><path d="M12 2.5v5M12 16.5v5M2.5 12h5M16.5 12h5"/>`,
+  page: `<rect x="4" y="5" width="16" height="14" rx="2.5"/>`,
+  info: `<circle cx="12" cy="12" r="8.5"/><path d="M12 11v5.5"/><circle cx="12" cy="7.7" r="1" ${F}/>`,
+  settings: `<path d="M4 7h9M17 7h3M4 17h3M11 17h9"/><circle cx="15" cy="7" r="2"/><circle cx="9" cy="17" r="2"/>`,
+  restart: `<path d="M4.8 12A7.2 7.2 0 1 0 7 6.8"/><path d="M4.5 3.8v4.4h4.4"/>`,
+  backward_command: `<path d="M6 5.5v13"/><path d="M18 6.5 9.5 12l8.5 5.5z" ${F}/>`,
+  backward_stitch: `<path d="M14.5 6 8.5 12l6 6"/>`,
+  play: `<path d="M8 5.8v12.4c0 .8.9 1.3 1.6.8l9.4-6.2a1 1 0 0 0 0-1.6L9.6 5c-.7-.5-1.6 0-1.6.8z" ${F}/>`,
+  pause: `<rect x="6.5" y="5" width="3.6" height="14" rx="1.2" ${F}/><rect x="13.9" y="5" width="3.6" height="14" rx="1.2" ${F}/>`,
+  forward_stitch: `<path d="M9.5 6l6 6-6 6"/>`,
+  forward_command: `<path d="M18 5.5v13"/><path d="M6 6.5l8.5 5.5L6 17.5z" ${F}/>`,
+  direction: `<path d="M4 8.5h15M15.5 5l3.5 3.5-3.5 3.5M20 15.5H5M8.5 12 5 15.5 8.5 19"/>`,
+  slower: `<path d="M4.5 16.5a7.5 7.5 0 1 1 15 0"/><path d="M12 16.5 8 12.5"/><circle cx="12" cy="16.5" r="1.2" ${F}/>`,
+  faster: `<path d="M4.5 16.5a7.5 7.5 0 1 1 15 0"/><path d="M12 16.5l4-4"/><circle cx="12" cy="16.5" r="1.2" ${F}/>`,
+};
+const icone = (n) => SF[n] ? `<svg class="sf" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">${SF[n]}</svg>`
+  : `<img src="/icone/${n}_dark.png" alt="">`;
 
 async function chargerSimulation() {
   if (!S.simu || SIM.pts !== S.simu.points) {
@@ -1261,7 +1286,7 @@ function construireBarresSimu() {
 }
 function majBoutonsSimu() {
   const p = $('#simuControles [data-action=play]');
-  if (p) p.innerHTML = icone(SIM.lecture ? 'stop' : 'play');
+  if (p) p.innerHTML = icone(SIM.lecture ? 'pause' : 'play');
   const d = $('#simuControles [data-action=direction]');
   if (d) d.classList.toggle('on', SIM.sens < 0);
 }

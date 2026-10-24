@@ -5,7 +5,17 @@ Le numéro de version suit le schéma `MAJEUR.MINEUR.CORRECTIF` :
 - **MINEUR** : nouvelle fonction ;
 - **CORRECTIF** : correction sans nouvelle fonction.
 
-## 1.2.0 — 24 octobre 2026
+## 1.2.1 — 24 octobre 2026
+
+**Icônes**
+- Barre de l'aperçu : boutons-icônes à la place des cases à cocher. Grenouille pour les sauts, ciseaux pour les coupes et arrêts, carreaux pour la densité, aiguille pour les pénétrations. Le nom s'affiche au survol.
+- Simulation : toutes les icônes redessinées dans le même style, proche d'Apple (traits arrondis, lisibles en clair comme en sombre).
+
+**Logo** : traits épaissis et couleurs renforcées pour rester lisible en petit (bandeau, onglet, menu Inkscape). Il est un peu plus grand dans le bandeau. Le logo d'origine est conservé dans `docs/logo/icone.png`.
+
+**Notice** : à jour avec toutes les fonctions (nouvelles icônes, outils par type d'objet, préférences du simulateur) et avec des captures refaites.
+
+ — 24 octobre 2026
 
 **Texte brodé**
 - Aperçu des points en direct : le texte s'affiche quelques secondes après chaque changement, avec sa taille en mm et son nombre de points.

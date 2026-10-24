@@ -103,7 +103,7 @@ details.theme summary .nb { color: var(--muted); font-weight: 400; margin-left: 
 .empl-apercu.grand #apercu { flex: 1; min-height: 280px; }
 #apercu { flex: 1; min-height: 140px; background: #fff; border: 1px solid var(--bord); border-radius: 10px; position: relative; overflow: hidden; cursor: grab; }
 #apercu.vide { display: flex; align-items: center; justify-content: center; color: #888; padding: 20px; text-align: center; cursor: default; }
-#apercu svg { position: absolute; inset: 0; width: 100%; height: 100%; }
+#apercu > svg { position: absolute; inset: 0; width: 100%; height: 100%; }
 #apercu .calcul { position: absolute; right: 8px; top: 8px; background: rgba(0,0,0,.6); color: #fff; border-radius: 6px; padding: 2px 8px; font-size: 11px; }
 .stats { display: grid; grid-template-columns: 1fr 1fr; gap: 6px 12px; }
 .stats b { display: block; font-size: 16px; }
@@ -169,10 +169,14 @@ dialog { border: 1px solid var(--bord); border-radius: 12px; background: var(--p
 .barre-rendu label { display: flex; align-items: center; gap: 4px; padding: 0 4px 0 8px; cursor: pointer; }
 .barre-rendu input[type=color] { width: 20px; height: 18px; border: none; padding: 0; background: none; cursor: pointer; }
 #apercu.vide .barre-rendu { position: absolute; }
-.affichage { display: inline-flex; gap: 8px; flex-wrap: wrap; font-size: 11px; }
-.affichage label { display: inline-flex; align-items: center; gap: 3px; cursor: pointer; }
-.affichage input { accent-color: var(--accent); margin: 0; }
-.barre-rendu .affichage { padding: 0 6px; border-left: 1px solid rgba(255,255,255,.2); }
+.affichage { display: inline-flex; gap: 3px; flex-wrap: wrap; }
+.barre-rendu .affichage { padding: 0 5px; margin-left: 3px; border-left: 1px solid rgba(255,255,255,.2); }
+.barre-rendu .ico-rendu { width: 34px; height: 30px; padding: 0; display: inline-flex; align-items: center; justify-content: center;
+  border-radius: 7px; color: rgba(255,255,255,.72); background: rgba(255,255,255,.08); border: 1px solid rgba(255,255,255,.22);
+  transition: background .12s, color .12s; }
+.barre-rendu .ico-rendu:hover { color: #fff; background: rgba(255,255,255,.16); }
+.barre-rendu .ico-rendu.on { background: var(--sel); border-color: var(--accent); color: #fff; }
+.ico-rendu svg.sf { width: 21px; height: 21px; }
 .motifs { display: grid; grid-template-columns: repeat(auto-fill, minmax(52px, 1fr)); gap: 4px; max-height: 190px; overflow: auto; margin-top: 4px; }
 .motif { padding: 2px; background: #fff; border: 2px solid transparent; border-radius: 6px; height: 52px; }
 .motif img { width: 100%; height: 100%; object-fit: contain; }
@@ -191,7 +195,8 @@ dialog { border: 1px solid var(--bord); border-radius: 12px; background: var(--p
 .simu-piste #sPos { width: 100%; margin: 0; accent-color: var(--accent); }
 .simu-barre.controles, .simu-barre.vues { justify-content: center; gap: 4px; flex-wrap: wrap; }
 .ico-btn { width: 32px; height: 32px; padding: 4px; display: inline-flex; align-items: center; justify-content: center; border-radius: 7px; background: var(--tuile); border: 1px solid var(--bord); cursor: pointer; }
-.ico-btn img { width: 20px; height: 20px; }
+.ico-btn img, .ico-btn svg.sf { width: 20px; height: 20px; }
+.ico-btn { color: var(--texte); }
 .ico-btn.bascule { opacity: .45; } .ico-btn.bascule.on, .ico-btn.on { opacity: 1; background: var(--sel); border-color: var(--accent); }
 .ico-btn input[type=color] { width: 22px; height: 22px; border: none; padding: 0; background: none; cursor: pointer; }
 .simu-barre.vues .ico-btn:nth-child(6) { margin-left: 10px; }
@@ -252,7 +257,7 @@ body > header, body > footer, body > #journal, body > #tache, body > #bandeauAnc
 /* bandeau du haut : une seule ligne (logo, onglets, disposition) */
 header { display: flex; align-items: stretch; gap: 6px; padding: 0 8px 0 12px; }
 header .titre { padding: 0; gap: 8px; flex: none; }
-.titre img.logo { width: 30px; height: 30px; }
+.titre img.logo { width: 38px; height: 38px; }
 .nom-appli { font-weight: 700; font-size: 15px; }
 .version-appli { font-size: 10.5px; color: var(--muted); margin-left: -3px; }
 header .onglets { flex: 1; display: flex; justify-content: center; gap: 2px; }

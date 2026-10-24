@@ -23,6 +23,7 @@ with open(os.path.join(RACINE, "VERSION"), encoding="utf-8") as f:
     VERSION = f.read().strip()
 SORTIE = os.path.join(RACINE, "docs", "Notice-Broderie-%s.pdf" % VERSION)
 LOGO = os.path.join(RACINE, "docs", "logo", "icone.png")
+LOGO_PETIT = os.path.join(RACINE, "docs", "logo", "icone-lisible.png")   # traits épaissis, lisible en petit
 
 # ---------------------------------------------------------------- polices et couleurs
 AVENIR = "/System/Library/Fonts/Avenir Next.ttc"
@@ -233,7 +234,7 @@ def page_courante(c, doc):
     l, h = A4
     c.setFillColor(CREME)
     c.rect(0, 0, l, h, stroke=0, fill=1)
-    c.drawImage(LOGO, 20 * mm, h - 15 * mm, 8 * mm, 8 * mm, mask="auto")
+    c.drawImage(LOGO_PETIT, 20 * mm, h - 15 * mm, 8 * mm, 8 * mm, mask="auto")
     c.setFillColor(GRIS)
     c.setFont("Av", 8.5)
     c.drawString(30 * mm, h - 12 * mm, "Panneau de broderie · notice")
@@ -299,7 +300,7 @@ c += [Chapitre(3, "Le geste à retenir", "Un raccourci relie Inkscape et le pann
 
 # ---------------------------------------------------------------- 4. objets
 c += [Chapitre(4, "Onglet Objets", "Régler la broderie de chaque forme"),
-      capture("objets", 108, "L'aperçu des points à gauche ; les calques, les objets et leurs réglages à droite."),
+      capture("objets", 88, "L'aperçu des points à gauche ; les calques, les objets et leurs réglages à droite."),
       p("Choisir", "h2"),
       *puces(touche("clic") + " un objet · " + touche("Cmd") + " " + touche("clic") + " en ajouter ou en retirer · "
              + touche("Maj") + " " + touche("clic") + " toute une suite.",
@@ -312,14 +313,16 @@ c += [Chapitre(4, "Onglet Objets", "Régler la broderie de chaque forme"),
       p("Régler", "h2"),
       *puces("<b>Type de point</b> en tuiles : Tatami, Contour, Spirale, Méandre… pour un remplissage ; Point droit, "
              "Triple, Ripple, Zigzag, Satin pour un trait.",
-             "<b>Paramètres</b> essentiels en curseurs ; <b>sous-couche</b> en tuiles ; <b>couper le fil</b> et "
+             "<b>Paramètres</b> essentiels en curseurs, tous les autres dans <b>Plus de réglages</b> ; <b>sous-couche</b> en tuiles ; <b>couper le fil</b> et "
              "<b>arrêter la machine</b> après l'objet.",
-             "<b>Plus de réglages</b> : tous les réglages d'Ink/Stitch, rangés par thèmes.",
              "<b>Copier les réglages</b> puis <b>Coller</b> sur une autre forme, ou sur toutes celles du même type. "
-             "La petite flèche circulaire remet un réglage à sa valeur par défaut."),
+             "La petite flèche circulaire remet un réglage à sa valeur par défaut.",
+             "<b>Outils</b> selon le type d'objet (agencement automatique des satins, remplissage en satin, contour, "
+             "redwork…) ; <b>Plus d'outils</b> pour les autres. Toutes les commandes d'Ink/Stitch restent dans "
+             "Export › Outils avancés."),
       p("Lire l'aperçu", "h2"),
       *puces("<b>Points</b> : les points d'aiguille, les sauts (pointillés et grenouille), les coupes, les arrêts et les "
-             "changements de couleur. Case <b>Densité</b> : points rouges = trop serré (risque de casse), jaunes = limite.",
+             "changements de couleur. Les boutons de la barre les affichent ou les masquent : grenouille (sauts), ciseaux (coupes et arrêts), carreaux (<b>densité</b> : rouge = trop serré, risque de casse ; jaune = limite) et aiguille (pénétrations).",
              "<b>Réaliste</b> : le fil sur votre tissu (choisissez sa couleur). Molette : zoom · glisser ou bouton du "
              "milieu : déplacer · double-clic : tout voir."),
       PageBreak()]
@@ -359,7 +362,8 @@ c += [Chapitre(7, "Onglet Points", "Regarder la machine broder avant de lancer")
                [touche("O"), "afficher les pénétrations de l'aiguille"]], [50, 120]),
       Spacer(1, 3 * mm),
       p("Les boutons du bas affichent ou masquent les pénétrations, sauts, coupes, arrêts, changements de couleur, la mire, "
-        "la page (le cadre) et les informations. La roue dentée ouvre les préférences du simulateur."),
+        "la page (le cadre) et les informations. Le dernier bouton ouvre les préférences du simulateur (épaisseur du fil, "
+        "taille des pénétrations, mire)."),
       PageBreak()]
 
 # ---------------------------------------------------------------- 8-9. aperçu, export
@@ -401,7 +405,7 @@ c += [Chapitre(9, "Astuces de réglages", "Des valeurs de départ, à affiner pa
                                    "Texte : au moins <b>5 mm</b> de haut ; en dessous, une police « small » ou « tiny ».",
                                    "Moins de 1 mm de large ne se brode pas bien."]),
              ("Organisation", ["Le fond d'abord, les détails ensuite.",
-                               "Regroupez les objets de même couleur (petites flèches de la liste).",
+                               "Regroupez les objets de même couleur (glissez-les dans la liste).",
                                "<b>Couper le fil</b> après un saut de plus de 5 mm environ.",
                                "Regardez la simulation avant d'exporter."])),
       PageBreak()]
