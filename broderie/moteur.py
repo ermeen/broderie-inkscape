@@ -78,6 +78,28 @@ INKSTITCH_NS = "http://inkstitch.org/namespace"
 SVG_VERSION = "4"       # INKSTITCH_SVG_VERSION d'Ink/Stitch 3.3
 
 
+def ancien(document):
+    """Dessin avec des réglages Ink/Stitch mais sans numéro de version : Ink/Stitch ouvrirait sa fenêtre
+    « Unversioned Ink/Stitch SVG file » et attendrait une réponse."""
+    r = document.getroot()
+    if r.find(".//{%s}inkstitch_svg_version" % INKSTITCH_NS) is not None:
+        return False
+    return any(isinstance(k, str) and k.startswith("{%s}" % INKSTITCH_NS)
+               for el in r.iter() if isinstance(el.tag, str) for k in el.attrib)
+
+
+def marquer_a_jour(document):
+    """Note la version actuelle du format Ink/Stitch (le dessin est déclaré récent par l'utilisateur)."""
+    r = document.getroot()
+    if r.find(".//{%s}inkstitch_svg_version" % INKSTITCH_NS) is not None:
+        return
+    meta = r.find("{http://www.w3.org/2000/svg}metadata")
+    if meta is None:
+        meta = etree.Element("{http://www.w3.org/2000/svg}metadata")
+        r.insert(0, meta)
+    etree.SubElement(meta, "{%s}inkstitch_svg_version" % INKSTITCH_NS).text = SVG_VERSION
+
+
 def versionner(document):
     """Dessin sans numéro de version Ink/Stitch et sans aucun réglage Ink/Stitch : rien à
     convertir, on note la version actuelle (sinon Ink/Stitch demande « Unversioned … » à chaque
@@ -108,6 +130,8 @@ def executer(document, extension, ids=None, params=None, attendre=True, delai=60
     b = binaire()
     if not b:
         return 1, b"", "Ink/Stitch est introuvable."
+    if ancien(document):
+        return 1, b"", ("Dessin d'une ancienne version d'Ink/Stitch : à mettre à jour d'abord (bandeau en haut du panneau).")
     f = ecrire_temp(document)
     cmd = [b] + _args(extension, ids, params) + [f]
     if not attendre:                   # fenêtre d'Ink/Stitch (simulateur…) : on ne bloque pas

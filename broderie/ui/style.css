@@ -10,7 +10,7 @@
 * { box-sizing: border-box; }
 html, body { height: 100%; margin: 0; }
 body { background: var(--fond); color: var(--texte); font: 13px/1.4 -apple-system, BlinkMacSystemFont, "Helvetica Neue", sans-serif;
-       display: grid; grid-template-rows: auto 1fr auto auto auto; }
+       display: grid; grid-template-rows: auto auto 1fr auto auto auto; }
 h2 { font-size: 11px; text-transform: uppercase; letter-spacing: .05em; color: var(--muted); margin: 14px 0 6px; font-weight: 600; }
 h3 { font-size: 14px; margin: 0; }
 .muted { color: var(--muted); } .small { font-size: 11px; }
@@ -202,3 +202,8 @@ dialog { border: 1px solid var(--bord); border-radius: 12px; background: var(--p
 .mixte { color: #f2b45a; font-weight: 700; margin-left: 4px; }
 .pastille-mini { width: 14px; height: 14px; border-radius: 3px; display: inline-block; margin: 1px; }
 .vignette { flex-wrap: wrap; align-content: center; }
+#bandeauAncien { background: #5a3d10; color: #fde7c0; padding: 8px 12px; font-size: 12px; line-height: 1.45; }
+#bandeauAncien[hidden] { display: none; }
+#bandeauAncien button { margin: 6px 6px 0 0; font-size: 12px; }
+.sauts-panneau { fill: none; stroke: #555; stroke-width: 1.5px; vector-effect: non-scaling-stroke; stroke-dasharray: 6 4; }
+.icone-cmd { pointer-events: none; }

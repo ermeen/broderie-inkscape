@@ -547,10 +547,19 @@ function rendreTout() {
   S.choix = new Set([...S.choix].filter((i) => existants.has(i)));
   if (S.sel && !existants.has(S.sel)) S.sel = null;
   if (!S.sel && S.etat.objets.length) S.sel = (S.etat.objets.find((o) => S.etat.selection.includes(o.id)) || S.etat.objets[0]).id;
-  rendreListe(); rendreProps(); rendreAttente(); afficherSelection();
+  rendreListe(); rendreProps(); rendreAttente(); rendreAncien(); afficherSelection();
   $('#props').hidden = S.texte; $('#texte').hidden = !S.texte;
   if (S.texte) rendreTexte();
   if (S.vue === 'export') rendreExport();
+}
+function rendreAncien() {
+  const b = $('#bandeauAncien');
+  b.hidden = !S.etat.ancien;
+  if (!S.etat.ancien) return;
+  b.innerHTML = `<b>Dessin d'une ancienne version d'Ink/Stitch.</b> Ink/Stitch doit le mettre à jour avant de calculer les points.<br>
+    <button id="baMaj">Mettre à jour avec Ink/Stitch</button><button id="baRecent">Ce dessin est récent : le marquer à jour</button>`;
+  $('#baMaj').onclick = () => message('Dans Inkscape : menu Extensions › Ink/Stitch › Visualiser et exporter › Simulateur. Ink/Stitch propose « Update » : cliquez-le, fermez le simulateur, puis appuyez sur ⌘⌥B.');
+  $('#baRecent').onclick = async () => { S.etat = await api('marquer_a_jour'); rendreTout(); apercuBientot(); };
 }
 function rendreAttente() {
   const n = S.etat.attente || 0, i = $('#attenteInfo');
@@ -602,7 +611,8 @@ function barreRendu() {
     d.appendChild(b);
   }
   if (MODE === 'points') d.appendChild(interrupteursAffichage([
-    ['sauts', 'Sauts', 'Déplacements du fil sans broder (sauts)'],
+    ['sauts', 'Sauts', 'Déplacements du fil sans broder (pointillés et grenouille)'],
+    ['coupes', 'Coupes et arrêts', 'Coupes ✂, arrêts machine et changements de couleur'],
     ['penetrations', 'Pénétrations', 'Points d\'entrée de l\'aiguille']], () => apercu()));
   const c = document.createElement('label'); c.title = 'Couleur du tissu';
   c.innerHTML = `Tissu <input type="color" value="${TISSU}">`;
@@ -621,7 +631,7 @@ async function apercu() {
   a.appendChild(badge);
   try {
     badge.textContent = MODE === 'points' ? 'Calcul des points…' : 'Rendu réaliste…';
-    const r = await api('apercu', { ids: S.etat.selection, mode: MODE, options: { sauts: AFF.sauts, penetrations: AFF.penetrations } });
+    const r = await api('apercu', { ids: S.etat.selection, mode: MODE, options: { sauts: false, penetrations: AFF.penetrations } });
     if (!r.svg) { a.className = 'vide'; a.textContent = r.erreur || 'Aucun point.'; a.appendChild(barreRendu()); vb = vb0 = null; return; }
     const garder = vb && vb0;
     a.className = ''; a.innerHTML = r.svg; a.style.background = TISSU;
@@ -630,7 +640,7 @@ async function apercu() {
     svg.removeAttribute('width'); svg.removeAttribute('height');
     const v = (svg.getAttribute('viewBox') || '0 0 100 100').split(/[ ,]+/).map(Number);
     vb0 = v; if (!garder) vb = v.slice();
-    if (MODE !== 'points') habiller(svg, v); else pointsAiguille(svg);
+    if (MODE !== 'points') habiller(svg, v); else { pointsAiguille(svg); superposerCommandes(svg); }
     appliquerVue();
     afficherSelection(true);
     message('Molette : zoom · glisser : déplacer · double-clic : tout voir');
@@ -663,6 +673,53 @@ function habiller(svg, v) {
   majTissu();
 }
 function majTissu() { $$('#apercu .tissu-fond').forEach((r) => r.setAttribute('fill', TISSU)); }
+
+// Sauts, coupes, arrêts et changements de couleur par-dessus l'aperçu (Ink/Stitch dessine les sauts comme du fil).
+// Les points d'Ink/Stitch (0,1 mm, centrés sur le motif) sont recalés sur l'emprise du tracé de l'aperçu.
+async function superposerCommandes(svg) {
+  if (!AFF.sauts && !AFF.coupes) return;
+  let d;
+  try { d = await donneesPoints(); } catch (e) { return; }
+  if (!svg.isConnected || !d.points.length) return;
+  const plan = [...svg.children].find((g) => g.tagName === 'g' && !g.classList.contains('selection-panneau'));
+  if (!plan) return;
+  const b = plan.getBBox(), m = plan.getCTM && svg.getCTM ? svg.getCTM().inverse().multiply(plan.getCTM()) : null;
+  const coin = (x, y) => (m ? new DOMPoint(x, y).matrixTransform(m) : { x, y });
+  const h0 = coin(b.x, b.y), h1 = coin(b.x + b.width, b.y + b.height);
+  let x0 = Infinity, x1 = -Infinity, y0 = Infinity, y1 = -Infinity;
+  for (const [x, y, c] of d.points) {
+    if (c !== 'STITCH') continue;                    // l'aperçu d'Ink/Stitch est demandé sans les sauts
+    if (x < x0) x0 = x; if (x > x1) x1 = x; if (y < y0) y0 = y; if (y > y1) y1 = y;
+  }
+  const k = (h1.x - h0.x) / Math.max(1e-6, x1 - x0);
+  const X = (x) => h0.x + (x - x0) * k, Y = (y) => h0.y + (y - y0) * k;
+  const NS = 'http://www.w3.org/2000/svg';
+  const g = document.createElementNS(NS, 'g'); g.setAttribute('class', 'commandes-panneau');
+  let prec = null, saut = false, chemin = '';
+  const icones = [];
+  for (const [x, y, c] of d.points) {
+    if (c === 'STITCH') { if (saut && prec) chemin += `M${prec[0]},${prec[1]}L${X(x)},${Y(y)}`; prec = [X(x), Y(y)]; saut = false; continue; }
+    if (c === 'JUMP') { if (!saut) icones.push(['jump', prec || [X(x), Y(y)]]); if (prec) chemin += `M${prec[0]},${prec[1]}L${X(x)},${Y(y)}`; prec = [X(x), Y(y)]; saut = true; }
+    else if (c === 'TRIM') icones.push(['trim', [X(x), Y(y)]]);
+    else if (c === 'STOP') icones.push(['stop', [X(x), Y(y)]]);
+    else if (c === 'COLOR_CHANGE') { icones.push(['color_change', [X(x), Y(y)]]); saut = true; }
+  }
+  if (AFF.sauts && chemin) {
+    const p = document.createElementNS(NS, 'path');
+    p.setAttribute('d', chemin); p.setAttribute('class', 'sauts-panneau');
+    g.appendChild(p);
+  }
+  const t = (vb ? vb[2] : 100) / 28;                  // taille des icônes : ~1/28 de la vue
+  for (const [n, [x, y]] of icones) {
+    if (n === 'jump' ? !AFF.sauts : !AFF.coupes) continue;
+    const im = document.createElementNS(NS, 'image');
+    im.setAttribute('href', `/icone/${n}.png`); im.setAttribute('class', 'icone-cmd');
+    im.setAttribute('x', x + t * 0.15); im.setAttribute('y', y - t * 1.1); im.setAttribute('width', t); im.setAttribute('height', t);
+    g.appendChild(im);
+  }
+  $$('.commandes-panneau', svg).forEach((x) => x.remove());
+  svg.appendChild(g);
+}
 
 // Points d'aiguille de l'aperçu : Ink/Stitch les dessine en « marqueurs » prévus pour Inkscape ; le navigateur
 // les rogne presque entièrement (markerWidth 0,1) et ignore « context-stroke ». On les refait, un par couleur de fil.

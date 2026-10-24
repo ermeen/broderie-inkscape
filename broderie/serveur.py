@@ -111,6 +111,7 @@ class Session:
         return {"objets": [M.decrire(o) for o in objs], "selection": self.ids, "nom": self.nom,
                 "attente": len(self.attente), "version": self.version,
                 "reserve": {k: len(v) for k, v in self.reserve.items()},
+                "ancien": E.ancien(self.document),
                 "moteur": {"chemin": E.binaire(), "version": E.version()},
                 "commandes": cmds, "formats": sorties, "journal": self.journal[-20:]}
 
@@ -161,6 +162,9 @@ class Session:
                     "perime": perime() and not self.attente and not (self.tache and not self.tache.get("fini"))}
 
     def _rejouer(self, doc, op):
+        if op[0] == "version":
+            E.marquer_a_jour(doc)
+            return
         el = M.par_id(doc, op[1]) if op[0] != "commande" else None
         if op[0] != "commande" and el is None:
             return                                     # objet supprimé dans Inkscape entre-temps
@@ -174,7 +178,7 @@ class Session:
     # --- actions du panneau -------------------------------------------------
     def action(self, nom, d):
         r = self._action(nom, d)
-        if nom in ("params", "couleur", "ordre", "abandonner", "sync", "lettrage", "assembler"):
+        if nom in ("params", "couleur", "ordre", "abandonner", "sync", "lettrage", "assembler", "marquer_a_jour"):
             self.sauver()
         return r
 
@@ -240,6 +244,11 @@ class Session:
                 from . import fenetre
                 ok, msg = fenetre.placer("http://127.0.0.1:%d" % PORT, int(d.get("largeur") or 440), forcer=True)
                 return {"ok": ok, "message": msg}
+            if nom == "marquer_a_jour":               # « Ce dessin est récent »
+                E.marquer_a_jour(self.document)
+                self.attente.append(("version",))
+                self.version += 1
+                return self.etat()
             if nom == "traverses":
                 return {"ids": M.traverses_possibles(self.document, d["id"])}
             if nom == "assembler":
