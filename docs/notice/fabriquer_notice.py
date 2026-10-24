@@ -298,7 +298,7 @@ c += [Chapitre(3, "Le geste à retenir", "Un raccourci relie Inkscape et le pann
 
 # ---------------------------------------------------------------- 4. objets
 c += [Chapitre(4, "Onglet Objets", "Régler la broderie de chaque forme"),
-      capture("objets", 124, "L'aperçu des points à gauche ; les calques, les objets et leurs réglages à droite."),
+      capture("objets", 108, "L'aperçu des points à gauche ; les calques, les objets et leurs réglages à droite."),
       p("Choisir", "h2"),
       *puces(touche("clic") + " un objet · " + touche("Cmd") + " " + touche("clic") + " en ajouter ou en retirer · "
              + touche("Maj") + " " + touche("clic") + " toute une suite.",
@@ -360,8 +360,8 @@ c += [Chapitre(7, "Onglet Points", "Regarder la machine broder avant de lancer")
 
 # ---------------------------------------------------------------- 8-9. aperçu, export
 c += [Chapitre(8, "Onglets Aperçu et Export", "Vérifier, choisir le cadre, envoyer à la machine"),
-      capture("apercu", 128, "Rendu réaliste sur tissu, avec le nombre de points, la durée estimée, la taille et les fils."),
-      capture("export", 128),
+      capture("apercu", 112, "Rendu réaliste sur tissu, avec le nombre de points, la durée estimée, la taille et les fils."),
+      capture("export", 112),
       *puces("<b>Fichier de broderie</b> : le format de votre machine (.pes Brother, .dst Tajima, .jef Janome, .exp Bernina, "
              ".vp3 Husqvarna / Pfaff…), enregistré dans Téléchargements.",
              "<b>Fiche PDF pour la machine</b> : la fiche d'Ink/Stitch à imprimer (aperçu, fils, ordre des couleurs).",
