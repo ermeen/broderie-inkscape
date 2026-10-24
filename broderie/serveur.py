@@ -6,6 +6,7 @@
 import json
 import os
 import threading
+import time
 import webbrowser
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from urllib.parse import urlparse, parse_qs
@@ -26,6 +27,7 @@ class Session:
         self.appliquer = False
         self.verrou = threading.Lock()
         self.journal = []
+        self.vu = None                    # dernier signe de vie du panneau
 
     # --- état -------------------------------------------------------------
     def etat(self):
@@ -44,6 +46,9 @@ class Session:
     # --- actions ----------------------------------------------------------
     def action(self, nom, d):
         with self.verrou:
+            if nom == "present":                    # signe de vie du panneau (onglet ouvert)
+                self.vu = time.time()
+                return {"ok": True}
             if nom == "etat":
                 return self.etat()
             if nom == "schema":
@@ -152,6 +157,11 @@ def lancer(session, port=None, ouvrir=True):
     t.start()
     if ouvrir and not os.environ.get("BRODERIE_SANS_NAVIGATEUR"):
         webbrowser.open(url)
-    session.fini.wait()
+    # onglet fermé (plus de signe de vie pendant 45 s) : on libère Inkscape sans rien changer
+    delai = float(os.environ.get("BRODERIE_DELAI") or 45)
+    while not session.fini.wait(2):
+        if session.vu and time.time() - session.vu > delai and not session.verrou.locked():
+            session.appliquer = False
+            break
     srv.shutdown()
     return session.appliquer

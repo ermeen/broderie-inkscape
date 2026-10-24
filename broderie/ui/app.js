@@ -39,7 +39,7 @@ function rendreListe() {
     };
     ul.appendChild(li);
   }
-  if (!S.etat.objets.length) ul.innerHTML = '<li class="muted">Aucun objet brodable.</li>';
+  if (!S.etat.objets.length) ul.innerHTML = '<li class="muted">Aucun objet brodable.<br>Dessinez d\'abord une forme dans Inkscape (rectangle, tracé…), sélectionnez-la, puis rouvrez le panneau. Cliquez « Annuler » en bas à droite pour revenir à Inkscape.</li>';
   const cs = new Map();
   for (const o of S.etat.objets) for (const [k, q] of [['fill', o.remplissage], ['stroke', o.contour]]) {
     if (q && q !== 'none' && /^#[0-9a-f]{3,8}$/i.test(q) && (k === 'fill' ? o.types.includes('fill_stitch') : true)) {
@@ -275,6 +275,10 @@ $('#avance').checked = S.avance;
 $('#avance').onchange = (e) => { S.avance = e.target.checked; try { localStorage.setItem('broderie.avance', S.avance ? '1' : '0'); } catch (x) { /* rien */ } rendreProps(); };
 $('#bAnnuler').onclick = async () => { await api('terminer', { appliquer: false }); document.body.innerHTML = '<p style="padding:30px">Fermé sans modifier le dessin. Vous pouvez fermer cet onglet et revenir à Inkscape.</p>'; };
 $('#bAppliquer').onclick = async () => { await api('terminer', { appliquer: true }); document.body.innerHTML = '<p style="padding:30px">Réglages appliqués. Vous pouvez fermer cet onglet et revenir à Inkscape (Cmd+Z pour annuler).</p>'; };
+
+// signe de vie : si cet onglet est fermé, l'extension rend la main à Inkscape (sans modification)
+setInterval(() => { fetch('/api/present', { method: 'POST', body: '{}' }).catch(() => {}); }, 3000);
+fetch('/api/present', { method: 'POST', body: '{}' }).catch(() => {});
 
 (async () => {
   try {

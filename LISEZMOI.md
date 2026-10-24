@@ -31,5 +31,6 @@ Les réglages sont enregistrés exactement comme Ink/Stitch les enregistre. Le d
 ## Limites connues du prototype
 
 - Le panneau s'ouvre dans le navigateur et non dans une fenêtre ancrée d'Inkscape. Les extensions Inkscape 1.4 ne peuvent pas créer de panneau ancré (voir `docs/ETUDE_TECHNIQUE.md`).
-- Inkscape est bloqué tant que le panneau est ouvert : cliquez Appliquer ou Annuler pour le libérer.
+- Inkscape est bloqué tant que le panneau est ouvert : cliquez Appliquer ou Annuler (en bas à droite du panneau) pour le libérer. Si vous fermez l'onglet du navigateur, Inkscape est libéré automatiquement au bout de 45 secondes, sans modification.
+- Le panneau ne montre que les objets déjà dessinés : dessinez d'abord dans Inkscape, puis ouvrez le panneau.
 - Ce qui a été réellement testé est indiqué dans `docs/MATRICE_FONCTIONS.md`.
