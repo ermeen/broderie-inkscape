@@ -20,6 +20,11 @@ from . import modele as M
 from . import moteur as E
 
 UI = os.path.join(M.ICI, "ui")
+try:
+    with open(os.path.join(M.ICI, "..", "VERSION"), encoding="utf-8") as _f:
+        VERSION_PANNEAU = _f.read().strip()
+except OSError:
+    VERSION_PANNEAU = "?"
 DEMARRAGE = time.time()
 
 
@@ -131,6 +136,7 @@ class Session:
     def etat(self):
         if self.document is None:
             return {"objets": [], "selection": [], "nom": self.nom, "attente": 0, "version": self.version,
+                    "version_panneau": VERSION_PANNEAU,
                     "moteur": {"chemin": E.binaire(), "version": E.version()}, "commandes": [], "formats": [],
                     "journal": self.journal[-20:], "sans_dessin": True}
         objs = M.objets(self.document, self.ids)
@@ -141,6 +147,7 @@ class Session:
         return {"objets": [M.decrire(o) for o in objs], "selection": self.ids, "nom": self.nom,
                 "attente": len(self.attente), "version": self.version,
                 "reserve": {k: len(v) for k, v in self.reserve.items()},
+                "version_panneau": VERSION_PANNEAU,
                 "ancien": E.ancien(self.document),
                 "moteur": {"chemin": E.binaire(), "version": E.version()},
                 "commandes": cmds, "formats": sorties, "journal": self.journal[-20:]}

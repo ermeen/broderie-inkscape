@@ -1412,6 +1412,8 @@ setInterval(surveiller, 2000);
   try {
     [S.etat, S.schema] = await Promise.all([api('etat'), api('schema')]);
   } catch (e) { message('Impossible de joindre le panneau : ' + e.message, true); return; }
+  $('.titre').insertAdjacentHTML('beforeend', `<span class="muted small" title="Version du panneau">v${esc(S.etat.version_panneau || '')}</span>`);
+  $('.titre').appendChild($('#bLarge'));
   const prefere = ['dst', 'pes', 'jef', 'exp', 'vp3', 'xxx'];
   const fmts = S.etat.formats.length ? S.etat.formats : prefere;
   const NOMS_FMT = { dst: 'Tajima', pes: 'Brother', jef: 'Janome', exp: 'Melco / Bernina', vp3: 'Husqvarna / Pfaff', xxx: 'Singer' };
@@ -1419,5 +1421,10 @@ setInterval(surveiller, 2000);
     .map((f) => `<option value="${f}">.${f}${NOMS_FMT[f] ? ' (' + NOMS_FMT[f] + ')' : ''}</option>`).join('');
   await api('present');
   rendreTout();
-  changerVue('objets');
+  // lien direct vers un onglet : …/#points, #apercu, #export, #texte
+  const [h, arg] = decodeURIComponent(location.hash.slice(1)).split('/');
+  if (arg && h === 'objets') choisir([arg]);
+  if (arg === 'realiste') MODE = 'realiste';
+  if (h === 'texte') { changerVue('objets'); S.texte = true; rendreTout(); }
+  else changerVue(['points', 'apercu', 'export'].includes(h) ? h : 'objets');
 })();

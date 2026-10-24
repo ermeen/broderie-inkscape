@@ -7,7 +7,7 @@ DEST="$HOME/Library/Application Support/org.inkscape.Inkscape/config/inkscape/ex
 mkdir -p "$DEST"
 rm -rf "$DEST/broderie"
 cp -R "$ICI/broderie" "$DEST/"
-cp "$ICI/broderie_panneau.py" "$ICI/broderie_panneau.inx" "$ICI/broderie_serveur.py" "$DEST/"
+cp "$ICI/broderie_panneau.py" "$ICI/broderie_panneau.inx" "$ICI/broderie_serveur.py" "$ICI/VERSION" "$DEST/"
 # arrête l'ancien serveur du panneau s'il tourne (il redémarre avec la nouvelle version)
 # … sauf s'il garde des modifications pas encore envoyées à Inkscape (l'affichage est mis à jour quand même)
 ATTENTE=$(curl -s -m 2 -X POST http://127.0.0.1:47811/api/present -d '{}' 2>/dev/null | /usr/bin/sed -n 's/.*"attente": *\([0-9]*\).*/\1/p')
@@ -41,5 +41,5 @@ open(f, "w", encoding="utf-8").write(s[:i] + ligne + "\n" + s[i:])
 PY
 fi
 echo "Raccourci : Cmd+Option+B dans Inkscape"
-echo "Installé dans : $DEST"
+echo "Panneau de broderie $(cat "$ICI/VERSION") installé dans : $DEST"
 echo "Quittez et relancez Inkscape, puis appuyez sur Cmd+Option+B (ou Extensions › Broderie › Panneau de broderie)"

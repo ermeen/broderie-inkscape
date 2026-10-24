@@ -442,7 +442,10 @@ def emprise(svg, ids=None):
     """Emprise des objets brodés en unités du dessin (x0, y0, x1, y1), transformations comprises."""
     ix = _inkex()
     boite = None
-    for el in objets(svg, ids):
+    formes = []
+    for el in objets(svg, ids):                  # un texte brodé est un groupe : on mesure ses lettres
+        formes += [f for f in el.iter() if isinstance(f.tag, str) and local(f) in FORMES - {"use"}] if local(el) == "g" else [el]
+    for el in formes:
         try:
             t = ix.transforms.Transform()
             for a in reversed(list(el.iterancestors())):
