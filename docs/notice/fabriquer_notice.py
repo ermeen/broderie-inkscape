@@ -318,7 +318,7 @@ c += [Chapitre(4, "Onglet Objets", "Régler la broderie de chaque forme"),
              "La petite flèche circulaire remet un réglage à sa valeur par défaut."),
       p("Lire l'aperçu", "h2"),
       *puces("<b>Points</b> : les points d'aiguille, les sauts (pointillés et grenouille), les coupes, les arrêts et les "
-             "changements de couleur.",
+             "changements de couleur. Case <b>Densité</b> : points rouges = trop serré (risque de casse), jaunes = limite.",
              "<b>Réaliste</b> : le fil sur votre tissu (choisissez sa couleur). Molette : zoom · glisser ou bouton du "
              "milieu : déplacer · double-clic : tout voir."),
       PageBreak()]
@@ -364,6 +364,7 @@ c += [Chapitre(8, "Onglets Aperçu et Export", "Vérifier, choisir le cadre, env
       capture("export", 128),
       *puces("<b>Fichier de broderie</b> : le format de votre machine (.pes Brother, .dst Tajima, .jef Janome, .exp Bernina, "
              ".vp3 Husqvarna / Pfaff…), enregistré dans Téléchargements.",
+             "<b>Fiche PDF pour la machine</b> : la fiche d'Ink/Stitch à imprimer (aperçu, fils, ordre des couleurs).",
              "<b>Cadre de la brodeuse</b> : le panneau vérifie que le motif y tient. <b>Ajouter un cadre</b> ou "
              "<b>Supprimer</b> ceux que vous n'avez pas.",
              "<b>Centrer le motif dans le cadre</b> : le motif est centré et la <b>page d'Inkscape prend la taille du "

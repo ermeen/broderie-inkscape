@@ -18,6 +18,17 @@ Le numéro de version suit le schéma `MAJEUR.MINEUR.CORRECTIF` :
 
 **Sélection multiple** : les outils (agencement automatique des colonnes satin…) s'appliquent à tous les objets choisis.
 
+**Menus Ink/Stitch vérifiés un par un** : les 70 commandes sont dans le panneau.
+- **Outils selon le type d'objet** : les principaux en boutons, les autres dans « Plus d'outils ».
+  - Satin : agencement automatique, scinder, intervertir les rails, satin en trait, satin multicolore.
+  - Trait : trait en satin, agencement automatique des points droits, redwork, ligne zigzag en satin, effet de chemin satin, contour, saut en trait.
+  - Remplissage : remplissage en trait, assise de points couchants, briser, remplissage en satin, blocs de dégradés, tartan, assistant point de croix.
+  - Tous : dépistage de problèmes, suppression des réglages, transformation, points répétés.
+- **Carte de densité** dans l'aperçu (case « Densité ») : rouge = trop dense, jaune = limite, vert = correct.
+- **Fiche PDF pour la machine** (Export PDF d'Ink/Stitch) dans l'onglet Export.
+- Bandeau « ancien dessin » : indique directement « Mettre à jour le svg d'Inkstitch ».
+- Déjà intégrés autrement, donc sans doublon : lettrage, aperçu, simulateur, ordre de broderie, dupliquer les paramètres (copier/coller), couleurs.
+
 ## 1.0.0 — 24 octobre 2026
 
 Première version publiée, avec son logo et une notice PDF illustrée (9 pages, astuces de réglages).

@@ -236,11 +236,14 @@ class Session:
         if nom == "present":                           # signe de vie (sans verrou : jamais bloqué)
             self.vu = self.actif = time.time()
             return {"version": self.version, "attente": len(self.attente), "tache": self.tache}
-        if nom in ("apercu", "points"):                # calculs longs : sur une copie, sans bloquer le panneau
+        if nom in ("apercu", "points", "densite"):     # calculs longs : sur une copie, sans bloquer le panneau
             with self.verrou:
                 if self.document is None:
                     raise ValueError("Aucun dessin : appuyez sur ⌘⌥B dans Inkscape.")
                 copie = _lire(etree.tostring(self.document.getroot()))
+            if nom == "densite":
+                svg, err = E.densite(copie, d.get("ids") or None)
+                return {"svg": svg, "erreur": None if svg else _message(err)}
             if nom == "apercu":
                 svg, err = E.apercu(copie, d.get("ids") or None, d.get("mode") or "points", d.get("options") or {})
                 return {"svg": svg, "erreur": None if svg else (err or "")[-2000:]}

@@ -280,3 +280,17 @@ def icone(nom):
     r = _ressources()
     f = os.path.normpath(os.path.join(r or "", "icons", nom))
     return f if r and f.startswith(os.path.join(r, "icons")) and f.endswith(".png") and os.path.exists(f) else None
+
+
+def densite(document, ids=None):
+    """Carte de densité d'Ink/Stitch (points rouges : trop dense, jaunes : limite, verts : correct),
+    calculée sur une copie : on n'en garde que le calque de repères, à superposer à l'aperçu."""
+    code, out, err = executer(document, "density_map", ids, {"layer-visibility": "0"}, delai=120)
+    doc = document_modifie(out)
+    if doc is None:
+        return None, err
+    plan = doc.getroot().xpath("//*[@id='__inkstitch_density_plan__']")
+    if not plan:
+        return None, err
+    plan[0].set("class", "densite-panneau")
+    return etree.tostring(plan[0], encoding="unicode"), err

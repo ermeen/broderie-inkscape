@@ -378,22 +378,36 @@ function plusDeReglages(o, typs, montres) {
   return div;
 }
 
+// Outils Ink/Stitch selon le type d'objet : les principaux en boutons, les autres dans « Plus d'outils ».
+// (Lettrage, aperçu, simulateur, ordre, couleurs, copier/coller ont leur équivalent dans le panneau.)
 const OUTILS = {
-  stroke: ['stroke_to_satin', 'auto_run', 'redwork'],
-  satin_column: ['auto_satin', 'cut_satin', 'flip', 'satin_to_stroke'],
-  fill_stitch: ['fill_to_stroke', 'knockdown_fill'],
+  stroke: [['stroke_to_satin', 'auto_run', 'redwork'], ['zigzag_line_to_satin', 'stroke_to_lpe_satin', 'outline', 'jump_to_stroke']],
+  satin_column: [['auto_satin', 'cut_satin', 'flip', 'satin_to_stroke'], ['satin_multicolor']],
+  fill_stitch: [['fill_to_stroke', 'knockdown_fill', 'break_apart'], ['fill_to_satin', 'gradient_blocks', 'tartan', 'cross_stitch_assistant']],
+  tous: [[], ['troubleshoot', 'remove_embroidery_settings', 'transform_elements', 'remove_duplicated_points']],
 };
 function outils(o) {
-  const exts = [...new Set(o.types.flatMap((t) => OUTILS[t] || []))].filter(cmdPar);
-  if (!exts.length) return null;
-  const d = document.createElement('div'); d.className = 'outils';
-  for (const e of exts) {
+  const types = [...o.types.filter((t) => OUTILS[t]), 'tous'];
+  const principaux = [...new Set(types.flatMap((t) => OUTILS[t][0]))].filter(cmdPar);
+  const autres = [...new Set(types.flatMap((t) => OUTILS[t][1]))].filter((e) => cmdPar(e) && !principaux.includes(e));
+  const bouton = (e) => {
     const c = cmdPar(e);
-    const b = document.createElement('button'); b.textContent = c.nom_fr; b.title = c.menu_fr;
-    b.onclick = () => commande(e, {}, o.ids || [o.id]);
-    d.appendChild(b);
+    const b = document.createElement('button'); b.textContent = c.nom_fr + (c.fenetre ? '…' : ''); b.title = c.menu_fr + (c.fenetre ? ' · ouvre une fenêtre d’Ink/Stitch' : '');
+    b.onclick = () => (c.params.length && !c.fenetre ? (S.cmd = c, rendreCommandes(), formCommande(c), $('#dlgCmd').showModal())
+      : commande(e, {}, o.ids || [o.id]));
+    return b;
+  };
+  const d = document.createElement('div'); d.className = 'outils';
+  principaux.forEach((e) => d.appendChild(bouton(e)));
+  const blocO = bloc('Outils', d);
+  if (autres.length) {
+    const det = document.createElement('details'); det.className = 'theme';
+    det.innerHTML = '<summary>Plus d’outils</summary>';
+    const d2 = document.createElement('div'); d2.className = 'outils';
+    autres.forEach((e) => d2.appendChild(bouton(e)));
+    det.appendChild(d2); blocO.appendChild(det);
   }
-  return bloc('Outils', d);
+  return blocO;
 }
 
 // texte courbé : outil « Lettrage le long d'un chemin » d'Ink/Stitch (texte + tracé dessiné dans Inkscape)
@@ -604,7 +618,7 @@ function rendreAncien() {
   if (!S.etat.ancien) return;
   b.innerHTML = `<b>Dessin d'une ancienne version d'Ink/Stitch.</b> Ink/Stitch doit le mettre à jour avant de calculer les points.<br>
     <button id="baMaj">Mettre à jour avec Ink/Stitch</button><button id="baRecent">Ce dessin est récent : le marquer à jour</button>`;
-  $('#baMaj').onclick = () => message('Dans Inkscape : menu Extensions › Ink/Stitch › Visualiser et exporter › Simulateur. Ink/Stitch propose « Update » : cliquez-le, fermez le simulateur, puis appuyez sur ⌘⌥B.');
+  $('#baMaj').onclick = () => message('Dans Inkscape : Extensions › Ink/Stitch › Résolution de problèmes › Mettre à jour le svg d’Inkstitch. Ink/Stitch propose « Update » : cliquez-le, puis appuyez sur ⌘⌥B.');
   $('#baRecent').onclick = async () => { S.etat = await api('marquer_a_jour'); rendreTout(); apercuBientot(); };
 }
 function rendreAttente() {
@@ -636,7 +650,7 @@ $('#bTexte').onclick = () => { S.texte = true; const o = S.etat.objets.find((x) 
 let vb0 = null, vb = null, apercuDemande = 0, apercuEnCours = false;
 // mode de rendu et couleur du tissu (retenus d'une fois sur l'autre)
 let MODE = 'points', TISSU = '#ffffff';
-const AFF = { sauts: true, penetrations: true, coupes: true, commandes: false };
+const AFF = { sauts: true, penetrations: true, coupes: true, commandes: false, densite: false };
 try { Object.assign(AFF, JSON.parse(localStorage.getItem('broderie.affichage') || '{}')); } catch (e) { /* défaut */ }
 function interrupteursAffichage(liste, apres) {
   const d = document.createElement('span'); d.className = 'affichage';
@@ -659,6 +673,7 @@ function barreRendu() {
   if (MODE === 'points') d.appendChild(interrupteursAffichage([
     ['sauts', 'Sauts', 'Déplacements du fil sans broder (pointillés et grenouille)'],
     ['coupes', 'Coupes et arrêts', 'Coupes ✂, arrêts machine et changements de couleur'],
+    ['densite', 'Densité', 'Carte de densité d’Ink/Stitch : rouge = trop dense, jaune = limite, vert = correct'],
     ['penetrations', 'Pénétrations', 'Points d\'entrée de l\'aiguille']], () => apercu()));
   const c = document.createElement('label'); c.title = 'Couleur du tissu';
   c.innerHTML = `Tissu <input type="color" value="${TISSU}">`;
@@ -686,7 +701,7 @@ async function apercu() {
     svg.removeAttribute('width'); svg.removeAttribute('height');
     const v = (svg.getAttribute('viewBox') || '0 0 100 100').split(/[ ,]+/).map(Number);
     vb0 = v; if (!garder) vb = v.slice();
-    if (MODE !== 'points') habiller(svg, v); else { pointsAiguille(svg); superposerCommandes(svg); }
+    if (MODE !== 'points') habiller(svg, v); else { pointsAiguille(svg); superposerCommandes(svg); if (AFF.densite) carteDensite(svg); }
     zonesCliquables(svg);
     appliquerVue();
     afficherSelection(true);
@@ -821,6 +836,19 @@ $('#apercu').addEventListener('pointerdown', (e) => {
   };
   document.addEventListener('pointermove', mv); document.addEventListener('pointerup', up);
 });
+// carte de densité d'Ink/Stitch par-dessus l'aperçu (calculée sur une copie du dessin)
+async function carteDensite(svg) {
+  let r;
+  try { r = await api('densite', { ids: S.etat.selection }); } catch (e) { message(e.message, true); return; }
+  if (!r.svg || !svg.isConnected) { if (r.erreur) message(r.erreur, true); return; }
+  const doc = new DOMParser().parseFromString(`<svg xmlns="http://www.w3.org/2000/svg">${r.svg}</svg>`, 'image/svg+xml');
+  $$('.densite-panneau', svg).forEach((x) => x.remove());
+  svg.appendChild(document.importNode(doc.documentElement.firstElementChild, true));
+  const rouges = $$('.densite-panneau [id*="red"] circle, .densite-panneau [id*="red"] *', svg).length;
+  message(rouges ? 'Densité : les points rouges sont trop serrés (risque de casse) — espacez les rangs ou réduisez les sous-couches.'
+    : 'Densité : aucune zone trop serrée.');
+}
+
 // zones cliquables : le contour de chaque objet, invisible, par-dessus l'aperçu (dernier dessiné = devant)
 async function zonesCliquables(svg) {
   let r;
@@ -1474,6 +1502,7 @@ $('#bEnvoyer').onclick = async () => {
     setTimeout(() => { b.disabled = false; b.textContent = '⇄ Synchroniser avec Inkscape'; }, 1500);
   }
 };
+$('#bFichePdf').onclick = () => commande('print');
 $('#bPlus').onclick = () => { rendreCommandes(); $('#dlgCmd').showModal(); $('#cmdRecherche').focus(); };
 $('#cmdRecherche').oninput = rendreCommandes;
 $('#bAbandonner').onclick = async () => { S.etat = await api('abandonner'); rendreTout(); apercuBientot(); message('Modifications annulées.'); };
