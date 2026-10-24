@@ -451,7 +451,7 @@ function rendreTout() {
 function rendreAttente() {
   const n = S.etat.attente || 0, i = $('#attenteInfo');
   i.className = 'small' + (n ? ' on' : '');
-  i.textContent = n ? `${n} modification(s) à envoyer : ⌘⌥B dans Inkscape` : '✓ À jour avec Inkscape';
+  i.textContent = n ? `${n} modification(s) à envoyer` : '✓ À jour avec Inkscape';
   $('#bAbandonner').hidden = !n;
   if (S.etat.sans_dessin) i.textContent = 'Aucun dessin reçu : appuyez sur ⌘⌥B dans Inkscape.';
 }
@@ -473,6 +473,25 @@ $('#bTexte').onclick = () => { S.texte = true; const o = S.etat.objets.find((x) 
 
 // ---------------------------------------------------------------- aperçu des points (zoom net par viewBox)
 let vb0 = null, vb = null, apercuDemande = 0, apercuEnCours = false;
+// mode de rendu et couleur du tissu (retenus d'une fois sur l'autre)
+let MODE = 'points', TISSU = '#ffffff';
+try { MODE = localStorage.getItem('broderie.mode') || 'points'; TISSU = localStorage.getItem('broderie.tissu') || '#ffffff'; } catch (e) { /* sans stockage */ }
+function barreRendu() {
+  const d = document.createElement('div'); d.className = 'barre-rendu';
+  for (const [k, l, t] of [['points', 'Points', 'Les points et leur trajet'], ['realiste', 'Réaliste', 'Rendu photo du fil (image haute définition)'],
+    ['realiste-vectoriel', 'Réaliste net', 'Rendu réaliste vectoriel : reste net en zoomant (plus lent)']]) {
+    const b = document.createElement('button'); b.textContent = l; b.title = t; if (k === MODE) b.className = 'on';
+    b.onclick = (e) => { e.stopPropagation(); MODE = k; try { localStorage.setItem('broderie.mode', k); } catch (x) { /* rien */ } apercu(); };
+    d.appendChild(b);
+  }
+  const c = document.createElement('label'); c.title = 'Couleur du tissu';
+  c.innerHTML = `Tissu <input type="color" value="${TISSU}">`;
+  $('input', c).oninput = (e) => { TISSU = e.target.value; $('#apercu').style.background = TISSU; majTissu(); try { localStorage.setItem('broderie.tissu', TISSU); } catch (x) { /* rien */ } };
+  d.appendChild(c);
+  d.addEventListener('pointerdown', (e) => e.stopPropagation());
+  d.addEventListener('dblclick', (e) => e.stopPropagation());
+  return d;
+}
 async function apercu() {
   const n = ++apercuDemande;
   if (apercuEnCours) return;
@@ -481,14 +500,17 @@ async function apercu() {
   const badge = document.createElement('div'); badge.className = 'calcul'; badge.textContent = 'Calcul des points…';
   a.appendChild(badge);
   try {
-    const r = await api('apercu', { ids: S.etat.selection });
-    if (!r.svg) { a.className = 'vide'; a.textContent = r.erreur || 'Aucun point.'; vb = vb0 = null; return; }
+    badge.textContent = MODE === 'points' ? 'Calcul des points…' : 'Rendu réaliste…';
+    const r = await api('apercu', { ids: S.etat.selection, mode: MODE });
+    if (!r.svg) { a.className = 'vide'; a.textContent = r.erreur || 'Aucun point.'; a.appendChild(barreRendu()); vb = vb0 = null; return; }
     const garder = vb && vb0;
-    a.className = ''; a.innerHTML = r.svg;
+    a.className = ''; a.innerHTML = r.svg; a.style.background = TISSU;
+    a.appendChild(barreRendu());
     const svg = $('svg', a);
     svg.removeAttribute('width'); svg.removeAttribute('height');
     const v = (svg.getAttribute('viewBox') || '0 0 100 100').split(/[ ,]+/).map(Number);
     vb0 = v; if (!garder) vb = v.slice();
+    if (MODE !== 'points') habiller(svg, v);
     appliquerVue();
     afficherSelection(true);
     message('Molette : zoom · glisser : déplacer · double-clic : tout voir');
@@ -497,6 +519,31 @@ async function apercu() {
     if (n !== apercuDemande) apercu();
   }
 }
+// rendu réaliste : tissu tissé (à l'échelle du dessin, en mm) et ombre portée sous les fils
+function habiller(svg, v) {
+  const NS = 'http://www.w3.org/2000/svg';
+  const defs = svg.querySelector('defs') || svg.insertBefore(document.createElementNS(NS, 'defs'), svg.firstChild);
+  defs.insertAdjacentHTML('beforeend', `
+    <pattern id="tissu-panneau" width="0.8" height="0.8" patternUnits="userSpaceOnUse">
+      <rect width="0.8" height="0.8" class="tissu-fond"/>
+      <rect width="0.8" height="0.34" y="0.03" fill="rgba(255,255,255,.10)"/>
+      <rect width="0.34" height="0.8" x="0.43" fill="rgba(0,0,0,.07)"/>
+      <rect width="0.8" height="0.06" y="0.4" fill="rgba(0,0,0,.10)"/>
+    </pattern>
+    <filter id="ombre-panneau" x="-5%" y="-5%" width="110%" height="110%">
+      <feDropShadow dx="0.12" dy="0.18" stdDeviation="0.12" flood-color="#000" flood-opacity=".45"/>
+    </filter>`);
+  const fond = document.createElementNS(NS, 'rect');
+  const m = Math.max(v[2], v[3]) * 3;                       // déborde largement pour le zoom arrière
+  fond.setAttribute('x', v[0] - m); fond.setAttribute('y', v[1] - m);
+  fond.setAttribute('width', v[2] + 2 * m); fond.setAttribute('height', v[3] + 2 * m);
+  fond.setAttribute('fill', 'url(#tissu-panneau)'); fond.setAttribute('class', 'fond-tissu');
+  svg.insertBefore(fond, defs.nextSibling);
+  for (const g of svg.children) if (g.tagName === 'g' && !g.classList.contains('selection-panneau')) g.setAttribute('filter', 'url(#ombre-panneau)');
+  majTissu();
+}
+function majTissu() { $$('#apercu .tissu-fond').forEach((r) => r.setAttribute('fill', TISSU)); }
+
 function appliquerVue() { const s = $('#apercu svg'); if (s && vb) s.setAttribute('viewBox', vb.join(' ')); }
 function versDessin(e) {
   const r = $('#apercu').getBoundingClientRect();
@@ -880,6 +927,15 @@ $('#bLarge').onclick = async () => {
 };
 window.addEventListener('resize', rendreBoutonLarge);
 rendreBoutonLarge();
+$('#bEnvoyer').onclick = async () => {
+  const b = $('#bEnvoyer'); b.disabled = true; b.textContent = 'Envoi…';
+  try {
+    const r = await api('envoyer');
+    if (!r.ok) message(r.message, true); else message('Synchronisé avec Inkscape.');
+  } catch (e) { message(e.message, true); } finally {
+    setTimeout(() => { b.disabled = false; b.textContent = '⇄ Synchroniser avec Inkscape'; }, 1500);
+  }
+};
 $('#bPlus').onclick = () => { rendreCommandes(); $('#dlgCmd').showModal(); $('#cmdRecherche').focus(); };
 $('#cmdRecherche').oninput = rendreCommandes;
 $('#bAbandonner').onclick = async () => { S.etat = await api('abandonner'); rendreTout(); apercuBientot(); message('Modifications annulées.'); };

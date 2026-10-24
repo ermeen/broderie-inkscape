@@ -56,3 +56,35 @@ def placer(url, largeur=LARGEUR, forcer=False):
         return p.stdout.strip() == "ok", (p.stdout.strip() + " " + p.stderr.strip()[:200]).strip()
     except (OSError, subprocess.SubprocessError) as e:
         return False, str(e)
+
+
+# Bouton « Envoyer à Inkscape » du panneau : clique le menu Extensions › Broderie › Panneau de broderie
+# d'Inkscape (même effet que ⌘⌥B). macOS demande une fois l'autorisation « Accessibilité ».
+MENU = '''
+tell application "System Events"
+    if not (exists process "Inkscape") then return "absent"
+    tell process "Inkscape"
+        click menu item "Panneau de broderie" of menu 1 of menu item "Broderie" of menu 1 of menu bar item "Extensions" of menu bar 1
+    end tell
+end tell
+return "ok"
+'''
+
+
+def envoyer_a_inkscape():
+    """Renvoie (réussi, message lisible)."""
+    try:
+        p = subprocess.run(["/usr/bin/osascript", "-e", MENU], capture_output=True, text=True, timeout=30,
+                           stdin=subprocess.DEVNULL)
+    except (OSError, subprocess.SubprocessError) as e:
+        return False, str(e)
+    out, err = p.stdout.strip(), p.stderr.strip()
+    if out == "ok":
+        return True, ""
+    if out == "absent":
+        return False, "Inkscape n'est pas ouvert."
+    if "-1719" in err or "-25211" in err or "assistive" in err.lower() or "accessibilit" in err.lower():
+        return False, ("macOS doit autoriser le panneau à utiliser les menus d'Inkscape : Réglages Système › "
+                       "Confidentialité et sécurité › Accessibilité, activez « Inkscape » (ou « Python »), "
+                       "puis recliquez. En attendant, ⌘⌥B dans Inkscape fait la même chose.")
+    return False, "Envoi impossible (%s). ⌘⌥B dans Inkscape fait la même chose." % (err[-200:] or out)

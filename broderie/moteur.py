@@ -56,7 +56,10 @@ def version():
 
 def _env():
     # l'environnement Python d'Inkscape ne doit pas déteindre sur le moteur (application autonome)
-    return {k: v for k, v in os.environ.items() if not k.startswith(("PYTHON", "DYLD_", "GI_", "GTK_", "GDK_"))}
+    env = {k: v for k, v in os.environ.items() if not k.startswith(("PYTHON", "DYLD_", "GI_", "GTK_", "GDK_"))}
+    # le rendu réaliste en image appelle « inkscape » : on lui indique où il se trouve
+    env["PATH"] = "/Applications/Inkscape.app/Contents/MacOS:" + env.get("PATH", "/usr/bin:/bin")
+    return env
 
 
 def _args(extension, ids, params):
@@ -125,11 +128,14 @@ def document_modifie(sortie):
         return None
 
 
-def apercu(document, ids=None):
+MODES = {"points": "simple", "realiste": "realistic-600", "realiste-vectoriel": "realistic-vector"}
+
+
+def apercu(document, ids=None, mode="points"):
     """SVG autonome des points calculés par Ink/Stitch (« Aperçu du plan de broderie »)."""
     code, out, err = executer(document, "stitch_plan_preview", ids, {
-        "render-mode": "simple", "move-to-side": False, "layer-visibility": "unchanged",
-        "needle-points": True, "render-jumps": True, "ignore-layer": False, "overwrite": True,
+        "render-mode": MODES.get(mode, "simple"), "move-to-side": False, "layer-visibility": "unchanged",
+        "needle-points": mode == "points", "render-jumps": mode == "points", "ignore-layer": False, "overwrite": True,
         "visual-commands": False, "insensitive": False})
     doc = document_modifie(out)
     if doc is None:
@@ -145,7 +151,9 @@ def apercu(document, ids=None):
     for d in r.findall("{http://www.w3.org/2000/svg}defs"):
         svg.append(d)
     svg.append(plan[0])
-    return etree.tostring(svg, encoding="unicode"), err
+    import re
+    # « ns1:href » (préfixe quelconque) n'est pas compris par le navigateur : « href » simple (SVG 2)
+    return re.sub(r'\s[\w.-]+:href=', ' href=', etree.tostring(svg, encoding="unicode")), err
 
 
 def exporter(document, fmt, ids=None):

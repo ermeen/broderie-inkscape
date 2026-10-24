@@ -165,6 +165,10 @@ class Session:
         return r
 
     def _action(self, nom, d):
+        if nom == "envoyer":                           # bouton « Envoyer à Inkscape » (sans verrou : Inkscape va appeler /sync)
+            from . import fenetre
+            ok, msg = fenetre.envoyer_a_inkscape()
+            return {"ok": ok, "message": msg}
         if nom == "present":                           # signe de vie (sans verrou : jamais bloqué)
             self.vu = self.actif = time.time()
             return {"version": self.version, "attente": len(self.attente), "tache": self.tache}
@@ -196,7 +200,7 @@ class Session:
                 self.version += 1
                 return self.etat()
             if nom == "apercu":
-                svg, err = E.apercu(self.document, d.get("ids") or None)
+                svg, err = E.apercu(self.document, d.get("ids") or None, d.get("mode") or "points")
                 return {"svg": svg, "erreur": None if svg else (err or "")[-2000:]}
             if nom == "simulateur":
                 E.executer(self.document, "simulator", d.get("ids") or None, attendre=False)
