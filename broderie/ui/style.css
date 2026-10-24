@@ -195,3 +195,10 @@ dialog { border: 1px solid var(--bord); border-radius: 12px; background: var(--p
 .ico-btn.bascule { opacity: .45; } .ico-btn.bascule.on, .ico-btn.on { opacity: 1; background: var(--sel); border-color: var(--accent); }
 .ico-btn input[type=color] { width: 22px; height: 22px; border: none; padding: 0; background: none; cursor: pointer; }
 .simu-barre.vues .ico-btn:nth-child(6) { margin-left: 10px; }
+#liste li.calque { font-size: 11px; color: var(--muted); text-transform: uppercase; letter-spacing: .03em; padding: 6px 6px 3px; margin-top: 4px; }
+#liste li.calque.on { color: var(--texte); }
+#liste li.objet { padding-left: 14px; }
+#aideSelection { margin-top: 6px; }
+.mixte { color: #f2b45a; font-weight: 700; margin-left: 4px; }
+.pastille-mini { width: 14px; height: 14px; border-radius: 3px; display: inline-block; margin: 1px; }
+.vignette { flex-wrap: wrap; align-content: center; }

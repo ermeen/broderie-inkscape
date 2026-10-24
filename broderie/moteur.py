@@ -113,7 +113,10 @@ def executer(document, extension, ids=None, params=None, attendre=True, delai=60
     if not attendre:                   # fenêtre d'Ink/Stitch (simulateur…) : on ne bloque pas
         subprocess.Popen(cmd, env=_env(), cwd=os.path.dirname(f), stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
         return 0, b"", ""
-    p = subprocess.run(cmd, env=_env(), cwd=os.path.dirname(f), capture_output=True, timeout=delai)
+    try:
+        p = subprocess.run(cmd, env=_env(), cwd=os.path.dirname(f), capture_output=True, timeout=delai)
+    except subprocess.TimeoutExpired:      # le moteur est arrêté par subprocess
+        return 1, b"", "Ink/Stitch n'a pas répondu à temps (une fenêtre d'Ink/Stitch attend peut-être une réponse)."
     return p.returncode, p.stdout, p.stderr.decode("utf-8", "replace")
 
 
@@ -137,7 +140,8 @@ def apercu(document, ids=None, mode="points", options=None):
         "render-mode": MODES.get(mode, "simple"), "move-to-side": False, "layer-visibility": "unchanged",
         "needle-points": mode == "points" and (options or {}).get("penetrations", True),
         "render-jumps": mode == "points" and (options or {}).get("sauts", True), "ignore-layer": False, "overwrite": True,
-        "visual-commands": bool((options or {}).get("commandes", False)), "insensitive": False})
+        # pas de symboles de commande : avec eux, Ink/Stitch ouvre une fenêtre de message et attend
+        "visual-commands": False, "insensitive": False}, delai=90)
     doc = document_modifie(out)
     if doc is None:
         return None, err or "Aucun point généré."
@@ -166,7 +170,8 @@ def points(document, ids=None):
     """Liste des points calculés par Ink/Stitch (export JSON) : pour le simulateur intégré au panneau.
     Coordonnées en 0,1 mm centrées sur le dessin ; commandes STITCH, JUMP, TRIM, COLOR_CHANGE, STOP, END."""
     import json
-    data, err = exporter(document, "json", ids)
+    code, data, err = executer(document, "output", ids, {"format": "json"}, delai=120)
+    data = data if code == 0 and data else None
     if not data:
         return None, err
     d = json.loads(data)

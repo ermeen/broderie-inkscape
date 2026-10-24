@@ -157,8 +157,17 @@ def couleur(el):
     return "#000000"
 
 
+def calque(el):
+    """Calque Inkscape (groupe de type « layer ») le plus proche : (identifiant, nom)."""
+    for a in el.iterancestors():
+        if isinstance(a.tag, str) and a.get("{%s}groupmode" % INKSCAPE_NS) == "layer":
+            return a.get("id"), (a.get("{%s}label" % INKSCAPE_NS) or a.get("id") or "Calque")
+    return None, "Sans calque"
+
+
 def decrire(el):
     t = types(el)
+    cid, cnom = calque(el)
     return {
         "id": el.get("id"),
         "nom": (el.get("{%s}label" % INKSCAPE_NS) or "").strip() not in ("", "None") and el.get("{%s}label" % INKSCAPE_NS).strip() or el.get("id"),
@@ -168,6 +177,7 @@ def decrire(el):
         "remplissage": _style_herite(el, "fill"),
         "contour": _style_herite(el, "stroke"),
         "sous_chemins": nombre_sous_chemins(el) if local(el) == "path" else 1,
+        "calque": cid, "calque_nom": cnom,
         "valeurs": {etree.QName(k).localname: v for k, v in el.attrib.items() if k.startswith("{%s}" % INKSTITCH_NS)},
     }
 

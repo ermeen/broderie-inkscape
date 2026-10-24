@@ -91,23 +91,62 @@ const typePrincipal = (o) => o.types.includes('lettrage') ? 'lettrage' : o.types
 const NOM_TYPE = { fill_stitch: 'Remplissage', satin_column: 'Satin', stroke: 'Trait', clone: 'Clone', lettrage: 'Texte' };
 const ICO_TYPE = { fill_stitch: 'tatami_fill', satin_column: 'satin_column', stroke: 'running_stitch', clone: 'manual_stitch', lettrage: 'texte' };
 
+// Sélection : S.sel = objet principal ; S.choix = ensemble des objets choisis (plusieurs → réglages communs)
+S.choix = new Set();
+const choisis = () => S.etat.objets.filter((o) => S.choix.has(o.id));
+function choisir(ids, ajouter = false) {
+  if (!ajouter) S.choix = new Set();
+  ids.forEach((i) => S.choix.add(i));
+  S.sel = ids[ids.length - 1] || null;
+  S.texte = false;
+  rendreTout();
+}
 function rendreListe() {
   const ul = $('#liste'); ul.innerHTML = '';
+  if (!S.choix.size && S.sel) S.choix.add(S.sel);
+  const calques = new Map();
   for (const o of S.etat.objets) {
-    const t = typePrincipal(o);
-    const li = document.createElement('li');
-    li.className = o.id === S.sel ? 'on' : '';
-    li.innerHTML = `<span class="pastille" style="background:${esc(o.couleur)}"></span><span class="nom">${esc(o.nom)}</span>
-      <span class="type">${esc(NOM_TYPE[t] || t)}</span>
-      <button class="fl" data-sens="-1" title="Coudre plus tôt">▲</button><button class="fl" data-sens="1" title="Coudre plus tard">▼</button>`;
-    li.onclick = async (e) => {
-      const b = e.target.closest('[data-sens]');
-      if (b) { e.stopPropagation(); S.etat = await api('ordre', { id: o.id, sens: +b.dataset.sens }); rendreTout(); apercuBientot(); return; }
-      S.sel = o.id; S.texte = t === 'lettrage' && S.texte; rendreTout();
-    };
-    ul.appendChild(li);
+    const k = o.calque || '';
+    if (!calques.has(k)) calques.set(k, { nom: o.calque_nom || 'Sans calque', objets: [] });
+    calques.get(k).objets.push(o);
+  }
+  const plusieursCalques = calques.size > 1;
+  let dernier = null;
+  for (const [, c] of calques) {
+    if (plusieursCalques || calques.size === 1 && c.objets.length > 1) {
+      const h = document.createElement('li'); h.className = 'calque';
+      const tous = c.objets.every((o) => S.choix.has(o.id));
+      h.innerHTML = `<span class="nom">▾ ${esc(c.nom)}</span><span class="type">${c.objets.length} objet(s)</span>`;
+      h.title = 'Choisir tout le calque (⌘-clic : ajouter à la sélection)';
+      if (tous && S.choix.size > 1) h.classList.add('on');
+      h.onclick = (e) => choisir(c.objets.map((o) => o.id), e.metaKey || e.ctrlKey);
+      ul.appendChild(h);
+    }
+    for (const o of c.objets) {
+      const t = typePrincipal(o);
+      const li = document.createElement('li');
+      li.className = 'objet' + (S.choix.has(o.id) ? ' on' : '');
+      li.innerHTML = `<span class="pastille" style="background:${esc(o.couleur)}"></span><span class="nom">${esc(o.nom)}</span>
+        <span class="type">${esc(NOM_TYPE[t] || t)}</span>
+        <button class="fl" data-sens="-1" title="Coudre plus tôt">▲</button><button class="fl" data-sens="1" title="Coudre plus tard">▼</button>`;
+      li.onclick = async (e) => {
+        const b = e.target.closest('[data-sens]');
+        if (b) { e.stopPropagation(); S.etat = await api('ordre', { id: o.id, sens: +b.dataset.sens }); rendreTout(); apercuBientot(); return; }
+        if (e.metaKey || e.ctrlKey) {                       // ajouter / retirer de la sélection
+          if (S.choix.has(o.id) && S.choix.size > 1) { S.choix.delete(o.id); S.sel = [...S.choix].pop(); rendreTout(); }
+          else choisir([o.id], true);
+        } else if (e.shiftKey && S.sel) {                    // plage depuis l'objet principal
+          const ids = S.etat.objets.map((x) => x.id), a = ids.indexOf(S.sel), z = ids.indexOf(o.id);
+          choisir(ids.slice(Math.min(a, z), Math.max(a, z) + 1), true);
+        } else choisir([o.id]);
+      };
+      ul.appendChild(li);
+      dernier = o;
+    }
   }
   if (!S.etat.objets.length) ul.innerHTML = '<li class="muted small" style="cursor:default">Aucun objet. Dessinez une forme dans Inkscape, puis appuyez sur ⌘⌥B.</li>';
+  const aide = $('#aideSelection');
+  if (aide) aide.textContent = S.choix.size > 1 ? `${S.choix.size} objets choisis` : '⌘-clic : plusieurs · ⇧-clic : une suite · clic sur un calque : tout le calque';
 }
 
 function changerCouleur(o, valeur) {
@@ -139,7 +178,7 @@ function visible(o, p, typ) {
 
 async function envoyer(o, valeurs) {
   try {
-    S.etat = await api('params', { id: o.id, valeurs });
+    for (const id of o.ids || [o.id]) S.etat = await api('params', { id, valeurs });
     rendreTout(); apercuBientot();
   } catch (e) { message(e.message, true); }
 }
@@ -148,7 +187,8 @@ function reglage(o, p, nomSimple) {
   const d = document.createElement('div');
   const modifie = o.valeurs[p.name] !== undefined;
   const v = valeur(o, p);
-  const lib = esc(nomSimple || p.libelle);
+  const mixte = o.mixte && o.mixte.has(p.name);
+  const lib = esc(nomSimple || p.libelle) + (mixte ? ' <span class="mixte" title="Valeurs différentes selon les objets choisis">≠</span>' : '');
   const aide = esc((p.aide ? p.aide + '\n' : '') + 'inkstitch:' + p.name);
   if (p.type === 'boolean' || p.type === 'toggle') {
     d.className = 'interrupteur' + (modifie ? ' modifie' : '');
@@ -223,6 +263,7 @@ function sectionType(o, typ) {
     const m = valeur(o, parNom('stroke', 'stroke_method')) ?? 'running_stitch';
     actif = m === 'running_stitch' && String(o.valeurs.bean_stitch_repeats || '0').trim() === '1' ? 'triple' : m;
   } else actif = valeur(o, parNom(typ, T.param)) ?? T.choix[0][0];
+  if (o.mixte && (o.mixte.has(T.param) || o.mixte.has('bean_stitch_repeats'))) actif = null;
   const choix = typ === 'stroke' && o.balise === 'path' ? [...T.choix, ['satin', 'Satin']] : T.choix;
   out.push(bloc('Type de point', tuiles(choix, actif, (k) => {
     if (k === 'satin') {
@@ -407,8 +448,59 @@ async function coller(cibles) {
   } catch (e) { message(e.message, true); }
 }
 
+// objet « virtuel » représentant la sélection : valeurs communes, ≠ quand elles diffèrent
+function objetCommun(objs) {
+  const types = objs[0].types.filter((t) => objs.every((o) => o.types.includes(t)));
+  const noms = new Set(objs.flatMap((o) => Object.keys(o.valeurs)));
+  const valeurs = {}, mixte = new Set();
+  for (const n of noms) {
+    const vs = objs.map((o) => o.valeurs[n]);
+    if (vs.every((x) => x === vs[0])) { if (vs[0] !== undefined) valeurs[n] = vs[0]; } else mixte.add(n);
+  }
+  const balise = objs.every((o) => o.balise === objs[0].balise) ? objs[0].balise : 'path';
+  return { ids: objs.map((o) => o.id), id: objs[0].id, nom: `${objs.length} objets`, types, valeurs, mixte, balise,
+    sous_chemins: Math.min(...objs.map((o) => o.sous_chemins || 1)), couleur: objs[0].couleur, contour: objs[0].contour,
+    remplissage: objs[0].remplissage, multi: true };
+}
+function rendreMulti(objs) {
+  const div = $('#props');
+  const o = objetCommun(objs);
+  const ent = document.createElement('div'); ent.className = 'entete-objet';
+  const typesNoms = [...new Set(objs.map((x) => NOM_TYPE[typePrincipal(x)] || typePrincipal(x)))];
+  ent.innerHTML = `<div class="vignette">${objs.slice(0, 4).map((x) => `<span class="pastille-mini" style="background:${esc(x.couleur)}"></span>`).join('')}</div>
+    <div><h3>${objs.length} objets choisis</h3><span class="muted small">${esc(typesNoms.join(', '))}</span></div>`;
+  div.appendChild(ent);
+  const aide = document.createElement('div'); aide.className = 'aide';
+  aide.innerHTML = 'Les réglages ci-dessous s’appliquent à <b>tous</b> les objets choisis. <b>≠</b> : valeurs différentes aujourd’hui ; en changer une la rend identique partout.';
+  div.appendChild(aide);
+  const typs = o.types.filter((x) => TYPES[x]);
+  let montres = new Set();
+  if (!typs.length) {
+    const p = document.createElement('p'); p.className = 'muted small';
+    p.textContent = 'Types différents (' + typesNoms.join(', ') + ') : seuls les réglages communs à tous sont proposés.';
+    div.appendChild(p);
+  }
+  for (const typ of typs) {
+    const r = sectionType(o, typ);
+    r.sections.forEach((x) => div.appendChild(x));
+    montres = new Set([...montres, ...r.montres]);
+  }
+  const coul = document.createElement('div'); coul.className = 'ligne';
+  coul.innerHTML = `<label>Couleur (tous)</label><span class="couleur"><input type="color" value="${(o.couleur || '#000000').slice(0, 7)}"></span>`;
+  $('input', coul).onchange = async (e) => { for (const x of objs) await changerCouleur(x, e.target.value); };
+  div.appendChild(coul);
+  const el = S.schema.element;
+  if (el) {
+    const fin = ['trim_after', 'stop_after'].map((n) => el.params.find((p) => p.name === n)).filter(Boolean);
+    div.appendChild(bloc('Après chaque objet', ...fin.map((p) => reglage(o, p, p.name === 'trim_after' ? 'Couper le fil' : 'Arrêter la machine'))));
+  }
+  div.appendChild(plusDeReglages(o, [...typs, 'element'], montres));
+}
+
 function rendreProps() {
   const div = $('#props'); div.innerHTML = '';
+  const multi = choisis();
+  if (multi.length > 1) { rendreMulti(multi); return; }
   const o = S.etat.objets.find((x) => x.id === S.sel);
   if (!o) { div.innerHTML = '<p class="muted">Choisissez un objet dans la liste.</p>'; return; }
   const t = typePrincipal(o);
@@ -451,7 +543,9 @@ function rendreProps() {
 }
 
 function rendreTout() {
-  if (S.sel && !S.etat.objets.some((o) => o.id === S.sel)) S.sel = null;
+  const existants = new Set(S.etat.objets.map((o) => o.id));
+  S.choix = new Set([...S.choix].filter((i) => existants.has(i)));
+  if (S.sel && !existants.has(S.sel)) S.sel = null;
   if (!S.sel && S.etat.objets.length) S.sel = (S.etat.objets.find((o) => S.etat.selection.includes(o.id)) || S.etat.objets[0]).id;
   rendreListe(); rendreProps(); rendreAttente(); afficherSelection();
   $('#props').hidden = S.texte; $('#texte').hidden = !S.texte;
@@ -507,8 +601,7 @@ function barreRendu() {
   }
   if (MODE === 'points') d.appendChild(interrupteursAffichage([
     ['sauts', 'Sauts', 'Déplacements du fil sans broder (sauts)'],
-    ['penetrations', 'Pénétrations', 'Points d\'entrée de l\'aiguille'],
-    ['commandes', 'Symboles', 'Symboles de commandes Ink/Stitch (coupe, arrêt, début, fin…)']], () => apercu()));
+    ['penetrations', 'Pénétrations', 'Points d\'entrée de l\'aiguille']], () => apercu()));
   const c = document.createElement('label'); c.title = 'Couleur du tissu';
   c.innerHTML = `Tissu <input type="color" value="${TISSU}">`;
   $('input', c).oninput = (e) => { TISSU = e.target.value; $('#apercu').style.background = TISSU; majTissu(); try { localStorage.setItem('broderie.tissu', TISSU); } catch (x) { /* rien */ } };
@@ -526,7 +619,7 @@ async function apercu() {
   a.appendChild(badge);
   try {
     badge.textContent = MODE === 'points' ? 'Calcul des points…' : 'Rendu réaliste…';
-    const r = await api('apercu', { ids: S.etat.selection, mode: MODE, options: { sauts: AFF.sauts, penetrations: AFF.penetrations, commandes: AFF.commandes } });
+    const r = await api('apercu', { ids: S.etat.selection, mode: MODE, options: { sauts: AFF.sauts, penetrations: AFF.penetrations } });
     if (!r.svg) { a.className = 'vide'; a.textContent = r.erreur || 'Aucun point.'; a.appendChild(barreRendu()); vb = vb0 = null; return; }
     const garder = vb && vb0;
     a.className = ''; a.innerHTML = r.svg; a.style.background = TISSU;
@@ -631,17 +724,19 @@ let selAffichee = null;
 async function afficherSelection(force = false) {
   const svg = $('#apercu svg');
   if (!svg) return;
-  const cle = S.sel + '|' + S.etat.version + '|' + S.etat.attente;
+  const ids = S.choix.size ? [...S.choix] : (S.sel ? [S.sel] : []);
+  const cle = ids.join(',') + '|' + S.etat.version + '|' + S.etat.attente;
   if (!force && selAffichee === cle && $('.selection-panneau', svg)) return;
   selAffichee = cle;
   $$('.selection-panneau', svg).forEach((g) => g.remove());
-  if (!S.sel) return;
-  try {
-    const r = await api('contour', { id: S.sel });
-    if (!r.svg || !$('#apercu svg')) return;
-    const doc = new DOMParser().parseFromString(r.svg, 'image/svg+xml');
-    $('#apercu svg').appendChild(document.importNode(doc.documentElement, true));
-  } catch (e) { /* contour indisponible : l'aperçu reste utilisable */ }
+  for (const id of ids.slice(0, 60)) {
+    try {
+      const r = await api('contour', { id });
+      if (!r.svg || !$('#apercu svg') || selAffichee !== cle) return;
+      const doc = new DOMParser().parseFromString(r.svg, 'image/svg+xml');
+      $('#apercu svg').appendChild(document.importNode(doc.documentElement, true));
+    } catch (e) { /* contour indisponible : l'aperçu reste utilisable */ }
+  }
 }
 
 let minuterie = null;
