@@ -34,12 +34,12 @@ function rendreListe() {
       <button class="fl" data-sens="-1" title="Coudre plus tôt">▲</button><button class="fl" data-sens="1" title="Coudre plus tard">▼</button>`;
     li.onclick = async (e) => {
       const b = e.target.closest('[data-sens]');
-      if (b) { e.stopPropagation(); S.etat = await api('ordre', { id: o.id, sens: +b.dataset.sens }); rendreTout(); return; }
+      if (b) { e.stopPropagation(); S.etat = await api('ordre', { id: o.id, sens: +b.dataset.sens }); rendreTout(); apercuBientot(); return; }
       S.sel = o.id; rendreTout();
     };
     ul.appendChild(li);
   }
-  if (!S.etat.objets.length) ul.innerHTML = '<li class="muted">Aucun objet brodable.<br>Dessinez d\'abord une forme dans Inkscape (rectangle, tracé…), sélectionnez-la, puis rouvrez le panneau. Cliquez « Annuler » en bas à droite pour revenir à Inkscape.</li>';
+  if (!S.etat.objets.length) ul.innerHTML = '<li class="muted">Aucun objet brodable.<br>Dessinez d\'abord une forme dans Inkscape (rectangle, tracé…), sélectionnez-la, puis, dans Inkscape, Extensions › Broderie › Panneau de broderie. Ce panneau se met à jour tout seul.</li>';
   const cs = new Map();
   for (const o of S.etat.objets) for (const [k, q] of [['fill', o.remplissage], ['stroke', o.contour]]) {
     if (q && q !== 'none' && /^#[0-9a-f]{3,8}$/i.test(q) && (k === 'fill' ? o.types.includes('fill_stitch') : true)) {
@@ -52,7 +52,7 @@ function rendreListe() {
     l.innerHTML = `<input type="color" value="${c.length === 4 ? '#' + [...c.slice(1)].map((x) => x + x).join('') : c.slice(0, 7)}"> <span>${esc(c)}</span> <span class="muted small">${cibles.length} objet(s)</span>`;
     $('input', l).onchange = async (e) => {
       for (const [id, quoi] of cibles) S.etat = await api('couleur', { id, quoi, valeur: e.target.value });
-      rendreTout();
+      rendreTout(); apercuBientot();
     };
     div.appendChild(l);
   }
@@ -113,8 +113,7 @@ function champ(o, p) {
 async function envoyer(o, nom, val) {
   try {
     S.etat = await api('params', { id: o.id, valeurs: { [nom]: val } });
-    rendreTout();
-    $('#etat').textContent = 'Modifié : ' + nom + ' (non encore appliqué dans Inkscape)';
+    rendreTout(); apercuBientot();
   } catch (e) { message(e.message, true); }
 }
 
@@ -177,41 +176,72 @@ function rendreProps() {
 function rendreTout() {
   if (S.sel && !S.etat.objets.some((o) => o.id === S.sel)) S.sel = null;
   if (!S.sel && S.etat.objets.length) S.sel = S.etat.objets[0].id;
-  rendreListe(); rendreProps();
+  rendreListe(); rendreProps(); rendreAttente();
+}
+function rendreAttente() {
+  const n = S.etat.attente || 0, i = $('#attenteInfo');
+  i.className = 'small' + (n ? ' on' : '');
+  i.textContent = n ? `${n} modification(s) à envoyer : dans Inkscape, menu Extensions › Broderie › Panneau de broderie.`
+    : (S.etat.sans_dessin ? '' : 'Dessin à jour dans Inkscape.');
+  $('#bAbandonner').hidden = !n;
+  $('#etat').textContent = S.etat.sans_dessin ? 'Aucun dessin reçu : dans Inkscape, Extensions › Broderie › Panneau de broderie.'
+    : (S.etat.selection.length ? `${S.etat.selection.length} objet(s) sélectionné(s) dans Inkscape` : 'Aucune sélection : tout le dessin');
 }
 
 // ---------------------------------------------------------------- aperçu
-let vue = { s: 1, x: 0, y: 0 };
+// Zoom par viewBox : le dessin vectoriel est recalculé à chaque zoom et reste net.
+let vb0 = null, vb = null, apercuDemande = 0, apercuEnCours = false;
 async function apercu() {
+  const n = ++apercuDemande;
+  if (apercuEnCours) return;                       // relancé à la fin du calcul en cours
+  apercuEnCours = true;
+  const a = $('#apercu');
+  const badge = document.createElement('div'); badge.className = 'calcul'; badge.textContent = 'Calcul des points…';
+  a.appendChild(badge);
   try {
-    const r = await api('apercu', { ids: S.etat.selection }, 'Calcul des points');
-    const a = $('#apercu');
-    if (!r.svg) { a.className = 'vide'; a.textContent = r.erreur || 'Aucun point.'; message(r.erreur || '', true); return; }
-    a.className = ''; a.innerHTML = r.svg; vue = { s: 1, x: 0, y: 0 }; appliquerVue();
-    const n = (r.svg.match(/ d="/g) || []).length;
-    message(`Points calculés par Ink/Stitch (${n} tracé(s)). Molette : zoom · glisser : déplacer.`);
-  } catch (e) { message(e.message, true); }
+    const r = await api('apercu', { ids: S.etat.selection });
+    if (!r.svg) { a.className = 'vide'; a.textContent = r.erreur || 'Aucun point.'; vb = vb0 = null; return; }
+    const garder = vb && vb0;
+    a.className = ''; a.innerHTML = r.svg;
+    const svg = $('svg', a);
+    svg.removeAttribute('width'); svg.removeAttribute('height');
+    const v = (svg.getAttribute('viewBox') || '0 0 100 100').split(/[ ,]+/).map(Number);
+    vb0 = v; if (!garder) vb = v.slice();
+    appliquerVue();
+    message('Points calculés par Ink/Stitch. Molette : zoom · glisser : déplacer · double-clic : tout voir.');
+  } catch (e) { message(e.message, true); } finally {
+    apercuEnCours = false; badge.remove();
+    if (n !== apercuDemande) apercu();
+  }
 }
-function appliquerVue() { const s = $('#apercu svg'); if (s) s.style.transform = `translate(${vue.x}px,${vue.y}px) scale(${vue.s})`; }
+function appliquerVue() { const s = $('#apercu svg'); if (s && vb) s.setAttribute('viewBox', vb.join(' ')); }
+function versDessin(e) {
+  const r = $('#apercu').getBoundingClientRect();
+  const k = Math.max(vb[2] / r.width, vb[3] / r.height);            // échelle (preserveAspectRatio meet)
+  const ox = vb[0] - (r.width * k - vb[2]) / 2, oy = vb[1] - (r.height * k - vb[3]) / 2;
+  return { x: ox + (e.clientX - r.left) * k, y: oy + (e.clientY - r.top) * k, k };
+}
 $('#apercu').addEventListener('wheel', (e) => {
-  if (!$('#apercu svg')) return; e.preventDefault();
-  const r = e.currentTarget.getBoundingClientRect(); const k = e.deltaY < 0 ? 1.15 : 1 / 1.15;
-  const px = e.clientX - r.left, py = e.clientY - r.top;
-  vue.x = px - (px - vue.x) * k; vue.y = py - (py - vue.y) * k; vue.s *= k; appliquerVue();
+  if (!vb) return; e.preventDefault();
+  const p = versDessin(e), f = e.deltaY < 0 ? 1 / 1.2 : 1.2;
+  vb = [p.x - (p.x - vb[0]) * f, p.y - (p.y - vb[1]) * f, vb[2] * f, vb[3] * f]; appliquerVue();
 }, { passive: false });
+$('#apercu').addEventListener('dblclick', () => { if (vb0) { vb = vb0.slice(); appliquerVue(); } });
 $('#apercu').addEventListener('pointerdown', (e) => {
-  if (!$('#apercu svg')) return;
-  const x0 = e.clientX - vue.x, y0 = e.clientY - vue.y;
-  const mv = (ev) => { vue.x = ev.clientX - x0; vue.y = ev.clientY - y0; appliquerVue(); };
+  if (!vb) return;
+  const p0 = versDessin(e), v0 = vb.slice();
+  const mv = (ev) => { vb = [v0[0] - (ev.clientX - e.clientX) * p0.k, v0[1] - (ev.clientY - e.clientY) * p0.k, v0[2], v0[3]]; appliquerVue(); };
   const up = () => { document.removeEventListener('pointermove', mv); document.removeEventListener('pointerup', up); };
   document.addEventListener('pointermove', mv); document.addEventListener('pointerup', up);
 });
+let minuterie = null;
+function apercuBientot() { clearTimeout(minuterie); minuterie = setTimeout(apercu, 400); }
 
 // ---------------------------------------------------------------- commandes Ink/Stitch
 async function commande(ext, params = {}, ids = null) {
   try {
     const r = await api('commande', { extension: ext, params, ids: ids || S.etat.selection }, 'Une fenêtre d\'Ink/Stitch peut s\'ouvrir : fermez-la pour revenir ici.');
-    S.etat = await api('etat'); rendreTout();
+    S.etat = await api('etat'); rendreTout(); if (r.modifie) apercuBientot();
     message(r.modifie ? `Commande « ${ext} » appliquée au dessin.` : (r.erreur || `Commande « ${ext} » terminée sans modification.`), !!r.erreur && !r.modifie);
   } catch (e) { message(e.message, true); }
 }
@@ -273,12 +303,16 @@ $('#bCommandes').onclick = () => { rendreCommandes(); $('#dlgCmd').showModal(); 
 $('#cmdRecherche').oninput = rendreCommandes;
 $('#avance').checked = S.avance;
 $('#avance').onchange = (e) => { S.avance = e.target.checked; try { localStorage.setItem('broderie.avance', S.avance ? '1' : '0'); } catch (x) { /* rien */ } rendreProps(); };
-$('#bAnnuler').onclick = async () => { await api('terminer', { appliquer: false }); document.body.innerHTML = '<p style="padding:30px">Fermé sans modifier le dessin. Vous pouvez fermer cet onglet et revenir à Inkscape.</p>'; };
-$('#bAppliquer').onclick = async () => { await api('terminer', { appliquer: true }); document.body.innerHTML = '<p style="padding:30px">Réglages appliqués. Vous pouvez fermer cet onglet et revenir à Inkscape (Cmd+Z pour annuler).</p>'; };
+$('#bAbandonner').onclick = async () => { S.etat = await api('abandonner'); rendreTout(); apercuBientot(); message('Modifications abandonnées.'); };
 
-// signe de vie : si cet onglet est fermé, l'extension rend la main à Inkscape (sans modification)
-setInterval(() => { fetch('/api/present', { method: 'POST', body: '{}' }).catch(() => {}); }, 3000);
-fetch('/api/present', { method: 'POST', body: '{}' }).catch(() => {});
+// signe de vie toutes les 2 s ; si Inkscape a envoyé un nouveau dessin, on recharge tout
+async function surveiller() {
+  try {
+    const r = await api('present');
+    if (S.etat && r.version !== S.etat.version) { S.etat = await api('etat'); rendreTout(); apercuBientot(); }
+  } catch (e) { $('#etat').textContent = 'Panneau arrêté : relancez-le depuis Inkscape.'; }
+}
+setInterval(surveiller, 2000);
 
 (async () => {
   try {
@@ -287,6 +321,7 @@ fetch('/api/present', { method: 'POST', body: '{}' }).catch(() => {});
   const m = S.etat.moteur;
   $('#moteur').textContent = m.chemin ? `· Ink/Stitch ${m.version || ''}` : '· Ink/Stitch introuvable';
   $('#fFormat').innerHTML = S.etat.formats.map((f) => `<option value="${f}" ${f === 'dst' ? 'selected' : ''}>${f.toUpperCase()}</option>`).join('');
-  $('#etat').textContent = S.etat.selection.length ? `${S.etat.selection.length} objet(s) sélectionné(s) dans Inkscape` : 'Aucune sélection : tout le dessin';
+  await api('present');
   rendreTout();
+  if (S.etat.objets.length) apercu();
 })();

@@ -272,4 +272,6 @@ Les 50 formats d'import (100 file input, 10O file input, BRO file input, COL fil
 | Ordre de couture (▲▼ parmi les objets voisins) | testé |
 | Couleurs (remplacement de couleur) | testé |
 | Mode avancé (tous les réglages) | accessible |
-| Appliquer dans Inkscape / Annuler | testé hors Inkscape (sortie du script) ; à tester dans Inkscape |
+| Aller-retour avec Inkscape sans blocage (envoi du dessin, retour des réglages, modifications faites dans Inkscape conservées) | testé hors Inkscape (script lancé comme Inkscape le lance) ; à tester dans Inkscape |
+| Aperçu recalculé à chaque changement, zoom net | testé |
+| Abandonner les modifications en attente | accessible |
