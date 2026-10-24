@@ -1,0 +1,61 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Panneau de broderie</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<header>
+  <div class="titre">Broderie <span id="moteur" class="muted"></span></div>
+  <nav class="outils">
+    <button id="bApercu" title="Calculer les points avec Ink/Stitch et les afficher">Aperçu des points</button>
+    <button id="bSimu" title="Ouvrir le simulateur d'Ink/Stitch (animation de la broderie)">Simulateur</button>
+    <button id="bLettrage" title="Ouvrir l'outil Lettrage d'Ink/Stitch">Lettrage</button>
+    <span class="sep"></span>
+    <select id="fFormat" title="Format de broderie"></select>
+    <button id="bExport" title="Enregistrer le fichier de broderie dans Téléchargements">Exporter</button>
+    <span class="sep"></span>
+    <button id="bCommandes" title="Toutes les commandes d'Ink/Stitch">Toutes les commandes…</button>
+  </nav>
+</header>
+<main>
+  <aside id="gauche">
+    <h2>Objets <span class="muted small">(ordre de couture)</span></h2>
+    <ul id="liste"></ul>
+    <h2>Couleurs</h2>
+    <div id="couleurs"></div>
+  </aside>
+  <section id="centre">
+    <div id="apercu" class="vide">Cliquez sur « Aperçu des points » pour calculer la broderie avec Ink/Stitch.</div>
+    <div id="journal" class="muted small"></div>
+  </section>
+  <aside id="droite">
+    <div class="entete-props">
+      <h2>Propriétés</h2>
+      <label class="bascule"><input type="checkbox" id="avance"> Mode avancé</label>
+    </div>
+    <div id="props"><p class="muted">Sélectionnez un objet.</p></div>
+  </aside>
+</main>
+<footer>
+  <span id="etat" class="muted small"></span>
+  <button id="bAnnuler">Annuler</button>
+  <button id="bAppliquer" class="principal">Appliquer dans Inkscape</button>
+</footer>
+<dialog id="dlgCmd">
+  <form method="dialog" class="dlg">
+    <h2>Toutes les commandes Ink/Stitch</h2>
+    <input id="cmdRecherche" type="search" placeholder="Rechercher une commande…">
+    <div class="dlg-corps">
+      <ul id="cmdListe"></ul>
+      <div id="cmdForm"><p class="muted">Choisissez une commande.</p></div>
+    </div>
+    <div class="dlg-pied"><button value="fermer">Fermer</button></div>
+  </form>
+</dialog>
+<div id="attente" hidden><div>Ink/Stitch travaille…<br><span class="muted small" id="attenteMsg"></span></div></div>
+<script src="app.js"></script>
+</body>
+</html>

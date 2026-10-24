@@ -1,0 +1,5915 @@
+{
+ "source": "Ink/Stitch v3.3.0 installé (lecture des fichiers .inx et des définitions @param)",
+ "commandes": [
+  {
+   "fichier": "inkstitch_about.inx",
+   "nom": "About",
+   "extension": "about",
+   "format": null,
+   "type": "effect",
+   "menu": "Ink/Stitch",
+   "params": []
+  },
+  {
+   "fichier": "inkstitch_apply_attribute.inx",
+   "nom": "Apply attribute",
+   "extension": "apply_attribute",
+   "format": null,
+   "type": "effect",
+   "menu": "Ink/Stitch/Edit",
+   "params": [
+    {
+     "name": "namespace",
+     "type": "string",
+     "label": "Namespace",
+     "default": "inkstitch",
+     "options": null
+    },
+    {
+     "name": "key",
+     "type": "string",
+     "label": "Attribute",
+     "default": "",
+     "options": null
+    },
+    {
+     "name": "value",
+     "type": "string",
+     "label": "Value",
+     "default": "",
+     "options": null
+    },
+    {
+     "name": "remove",
+     "type": "boolean",
+     "label": "Remove attribute",
+     "default": "false",
+     "options": null
+    }
+   ]
+  },
+  {
+   "fichier": "inkstitch_apply_palette.inx",
+   "nom": "Apply Palette",
+   "extension": "apply_palette",
+   "format": null,
+   "type": "effect",
+   "menu": "Ink/Stitch/Thread Color Management",
+   "params": []
+  },
+  {
+   "fichier": "inkstitch_apply_threadlist.inx",
+   "nom": "Apply Threadlist",
+   "extension": "apply_threadlist",
+   "format": null,
+   "type": "effect",
+   "menu": "Ink/Stitch/Thread Color Management",
+   "params": [
+    {
+     "name": "filepath",
+     "type": "path",
+     "label": "Choose file",
+     "default": "",
+     "options": null
+    },
+    {
+     "name": "method",
+     "type": "optiongroup",
+     "label": "Choose method",
+     "default": "",
+     "options": [
+      "1",
+      "2"
+     ]
+    },
+    {
+     "name": "palette",
+     "type": "enum",
+     "label": "*Choose color palette",
+     "default": "",
+     "options": null
+    }
+   ]
+  },
+  {
+   "fichier": "inkstitch_auto_run.inx",
+   "nom": "Auto-Route Running Stitch",
+   "extension": "auto_run",
+   "format": null,
+   "type": "effect",
+   "menu": "Ink/Stitch/Tools: Stroke",
+   "params": [
+    {
+     "name": "break_up",
+     "type": "boolean",
+     "label": "Add nodes at intersections",
+     "default": "true",
+     "options": null
+    },
+    {
+     "name": "preserve_order",
+     "type": "boolean",
+     "label": "Preserve order of running stitches",
+     "default": "false",
+     "options": null
+    },
+    {
+     "name": "trim",
+     "type": "boolean",
+     "label": "Trim jump stitches",
+     "default": "false",
+     "options": null
+    }
+   ]
+  },
+  {
+   "fichier": "inkstitch_auto_satin.inx",
+   "nom": "Auto-Route Satin Columns",
+   "extension": "auto_satin",
+   "format": null,
+   "type": "effect",
+   "menu": "Ink/Stitch/Tools: Satin",
+   "params": [
+    {
+     "name": "trim",
+     "type": "boolean",
+     "label": "Trim jump stitches",
+     "default": "true",
+     "options": null
+    },
+    {
+     "name": "preserve_order",
+     "type": "boolean",
+     "label": "Preserve order of satin columns",
+     "default": "false",
+     "options": null
+    },
+    {
+     "name": "keep_originals",
+     "type": "boolean",
+     "label": "Keep original paths",
+     "default": "false",
+     "options": null
+    }
+   ]
+  },
+  {
+   "fichier": "inkstitch_batch_lettering.inx",
+   "nom": "Batch Lettering",
+   "extension": "batch_lettering",
+   "format": null,
+   "type": "output",
+   "menu": "",
+   "params": [
+    {
+     "name": "text",
+     "type": "string",
+     "label": "Text",
+     "default": "",
+     "options": null
+    },
+    {
+     "name": "separator",
+     "type": "string",
+     "label": "Custom separator",
+     "default": "",
+     "options": null
+    },
+    {
+     "name": "font",
+     "type": "string",
+     "label": "Font name",
+     "default": "",
+     "options": null
+    },
+    {
+     "name": "scale",
+     "type": "int",
+     "label": "Scale (%)",
+     "default": "100",
+     "options": null
+    },
+    {
+     "name": "color-sort",
+     "type": "optiongroup",
+     "label": "Color sort",
+     "default": "",
+     "options": [
+      "off",
+      "all",
+      "line",
+      "word"
+     ]
+    },
+    {
+     "name": "trim",
+     "type": "optiongroup",
+     "label": "Add trims",
+     "default": "",
+     "options": [
+      "off",
+      "line",
+      "word",
+      "glyph"
+     ]
+    },
+    {
+     "name": "use-command-symbols",
+     "type": "boolean",
+     "label": "Use command symbols",
+     "default": "false",
+     "options": null
+    },
+    {
+     "name": "text-align",
+     "type": "optiongroup",
+     "label": "Align Multiline Text",
+     "default": "",
+     "options": [
+      "left",
+      "center",
+      "right",
+      "block",
+      "letterspacing"
+     ]
+    },
+    {
+     "name": "letter_spacing",
+     "type": "float",
+     "label": "Letter spacing",
+     "default": "0",
+     "options": null
+    },
+    {
+     "name": "word_spacing",
+     "type": "float",
+     "label": "Word spacing",
+     "default": "0",
+     "options": null
+    },
+    {
+     "name": "line_height",
+     "type": "float",
+     "label": "Line height",
+     "default": "0",
+     "options": null
+    },
+    {
+     "name": "text-position",
+     "type": "optiongroup",
+     "label": "Horizontal text position",
+     "default": "",
+     "options": [
+      "left",
+      "center",
+      "right",
+      "stretch"
+     ]
+    },
+    {
+     "name": "vertical-text-position",
+     "type": "optiongroup",
+     "label": "Vertical text position",
+     "default": "",
+     "options": [
+      "top",
+      "baseline",
+      "bottom"
+     ]
+    },
+    {
+     "name": "file-formats",
+     "type": "string",
+     "label": "File formats",
+     "default": "",
+     "options": null
+    }
+   ]
+  },
+  {
+   "fichier": "inkstitch_break_apart.inx",
+   "nom": "Break Apart Fill Objects",
+   "extension": "break_apart",
+   "format": null,
+   "type": "effect",
+   "menu": "Ink/Stitch/Tools: Fill",
+   "params": [
+    {
+     "name": "method",
+     "type": "optiongroup",
+     "label": "Method",
+     "default": "",
+     "options": [
+      "0",
+      "1"
+     ]
+    },
+    {
+     "name": "threshold",
+     "type": "float",
+     "label": "Threshold (px²)",
+     "default": "20",
+     "options": null
+    }
+   ]
+  },
+  {
+   "fichier": "inkstitch_cleanup.inx",
+   "nom": "Cleanup Document",
+   "extension": "cleanup",
+   "format": null,
+   "type": "effect",
+   "menu": "Ink/Stitch/Troubleshoot",
+   "params": [
+    {
+     "name": "rm_fill",
+     "type": "boolean",
+     "label": "Remove Small Fill Areas",
+     "default": "true",
+     "options": null
+    },
+    {
+     "name": "fill_threshold",
+     "type": "float",
+     "label": "Fill area threshold (mm²)",
+     "default": "5",
+     "options": null
+    },
+    {
+     "name": "rm_stroke",
+     "type": "boolean",
+     "label": "Remove Small strokes",
+     "default": "true",
+     "options": null
+    },
+    {
+     "name": "stroke_threshold",
+     "type": "float",
+     "label": "Stroke threshold (mm)",
+     "default": "1.35",
+     "options": null
+    },
+    {
+     "name": "rm_satin",
+     "type": "boolean",
+     "label": "Remove Small satins",
+     "default": "true",
+     "options": null
+    },
+    {
+     "name": "satin_threshold",
+     "type": "float",
+     "label": "Satin threshold (mm)",
+     "default": "1.35",
+     "options": null
+    },
+    {
+     "name": "rm_groups",
+     "type": "boolean",
+     "label": "Remove empty layers and groups",
+     "default": "true",
+     "options": null
+    },
+    {
+     "name": "dry_run",
+     "type": "boolean",
+     "label": "Test run",
+     "default": "true",
+     "options": null
+    }
+   ]
+  },
+  {
+   "fichier": "inkstitch_commands_scale_symbols.inx",
+   "nom": "Scale Command Symbols",
+   "extension": "commands_scale_symbols",
+   "format": null,
+   "type": "effect",
+   "menu": "Ink/Stitch/Commands/View",
+   "params": [
+    {
+     "name": "size",
+     "type": "int",
+     "label": "Size (%)",
+     "default": "100",
+     "options": null
+    }
+   ]
+  },
+  {
+   "fichier": "inkstitch_cross_stitch_assistant.inx",
+   "nom": "Cross Stitch Assistant",
+   "extension": "cross_stitch_assistant",
+   "format": null,
+   "type": "effect",
+   "menu": "Ink/Stitch/Tools: Fill",
+   "params": []
+  },
+  {
+   "fichier": "inkstitch_cut_satin.inx",
+   "nom": "Cut Satin Column",
+   "extension": "cut_satin",
+   "format": null,
+   "type": "effect",
+   "menu": "Ink/Stitch/Tools: Satin",
+   "params": []
+  },
+  {
+   "fichier": "inkstitch_cutwork_segmentation.inx",
+   "nom": "Cutwork segmentation",
+   "extension": "cutwork_segmentation",
+   "format": null,
+   "type": "effect",
+   "menu": "Ink/Stitch",
+   "params": [
+    {
+     "name": "a_start",
+     "type": "int",
+     "label": "start",
+     "default": "112",
+     "options": null
+    },
+    {
+     "name": "a_end",
+     "type": "int",
+     "label": "end",
+     "default": "157",
+     "options": null
+    },
+    {
+     "name": "a_color",
+     "type": "color",
+     "label": "color",
+     "default": "0x990000ff",
+     "options": null
+    },
+    {
+     "name": "b_start",
+     "type": "int",
+     "label": "start",
+     "default": "158",
+     "options": null
+    },
+    {
+     "name": "b_end",
+     "type": "int",
+     "label": "end",
+     "default": "23",
+     "options": null
+    },
+    {
+     "name": "b_color",
+     "type": "color",
+     "label": "color",
+     "default": "0xe5a50aff",
+     "options": null
+    },
+    {
+     "name": "c_start",
+     "type": "int",
+     "label": "start",
+     "default": "22",
+     "options": null
+    },
+    {
+     "name": "c_end",
+     "type": "int",
+     "label": "end",
+     "default": "68",
+     "options": null
+    },
+    {
+     "name": "c_color",
+     "type": "color",
+     "label": "color",
+     "default": "0x009900ff",
+     "options": null
+    },
+    {
+     "name": "d_start",
+     "type": "int",
+     "label": "start",
+     "default": "67",
+     "options": null
+    },
+    {
+     "name": "d_end",
+     "type": "int",
+     "label": "end",
+     "default": "113",
+     "options": null
+    },
+    {
+     "name": "d_color",
+     "type": "color",
+     "label": "color",
+     "default": "0x000099ff",
+     "options": null
+    },
+    {
+     "name": "sort_by_color",
+     "type": "boolean",
+     "label": "Sort elements by color",
+     "default": "true",
+     "options": null
+    },
+    {
+     "name": "keep_original",
+     "type": "boolean",
+     "label": "Keep original",
+     "default": "false",
+     "options": null
+    }
+   ]
+  },
+  {
+   "fichier": "inkstitch_density_map.inx",
+   "nom": "Density Map",
+   "extension": "density_map",
+   "format": null,
+   "type": "effect",
+   "menu": "Ink/Stitch/Visualize and Export",
+   "params": [
+    {
+     "name": "num-neighbors-red",
+     "type": "int",
+     "label": "Number of stitches",
+     "default": "6",
+     "options": null
+    },
+    {
+     "name": "density-radius-red",
+     "type": "float",
+     "label": "within a radius (mm) of",
+     "default": "0.5",
+     "options": null
+    },
+    {
+     "name": "num-neighbors-yellow",
+     "type": "int",
+     "label": "Number of stitches",
+     "default": "3",
+     "options": null
+    },
+    {
+     "name": "density-radius-yellow",
+     "type": "float",
+     "label": "within a radius (mm) of",
+     "default": "0.5",
+     "options": null
+    },
+    {
+     "name": "layer-visibility",
+     "type": "optiongroup",
+     "label": "Design layer visibility",
+     "default": "",
+     "options": [
+      "0",
+      "1",
+      "2"
+     ]
+    },
+    {
+     "name": "indicator-size",
+     "type": "float",
+     "label": "Indicator size",
+     "default": "0.5",
+     "options": null
+    }
+   ]
+  },
+  {
+   "fichier": "inkstitch_display_stacking_order.inx",
+   "nom": "Display stacking order",
+   "extension": "display_stacking_order",
+   "format": null,
+   "type": "effect",
+   "menu": "Ink/Stitch/Visualize and Export",
+   "params": [
+    {
+     "name": "font_size",
+     "type": "int",
+     "label": "Font size",
+     "default": "4",
+     "options": null
+    }
+   ]
+  },
+  {
+   "fichier": "inkstitch_duplicate_params.inx",
+   "nom": "Duplicate Params",
+   "extension": "duplicate_params",
+   "format": null,
+   "type": "effect",
+   "menu": "Ink/Stitch/Edit",
+   "params": []
+  },
+  {
+   "fichier": "inkstitch_element_info.inx",
+   "nom": "Element Info",
+   "extension": "element_info",
+   "format": null,
+   "type": "effect",
+   "menu": "Ink/Stitch/Troubleshoot",
+   "params": []
+  },
+  {
+   "fichier": "inkstitch_fill_to_satin.inx",
+   "nom": "Fill to satin",
+   "extension": "fill_to_satin",
+   "format": null,
+   "type": "effect",
+   "menu": "Ink/Stitch/Tools: Satin",
+   "params": [
+    {
+     "name": "skip_end_section",
+     "type": "boolean",
+     "label": "Start / end at rung",
+     "default": "false",
+     "options": null
+    },
+    {
+     "name": "pull_compensation_mm",
+     "type": "float",
+     "label": "Pull compensation (mm)",
+     "default": "0.0",
+     "options": null
+    },
+    {
+     "name": "center",
+     "type": "boolean",
+     "label": "Center-walk underlay",
+     "default": "false",
+     "options": null
+    },
+    {
+     "name": "contour",
+     "type": "boolean",
+     "label": "Contour underlay",
+     "default": "false",
+     "options": null
+    },
+    {
+     "name": "zigzag",
+     "type": "boolean",
+     "label": "Zig-zag underlay",
+     "default": "false",
+     "options": null
+    },
+    {
+     "name": "keep",
+     "type": "optiongroup",
+     "label": "Keep (do not remove)",
+     "default": "",
+     "options": [
+      "none",
+      "original_fills",
+      "original_fills_and_rungs",
+      "unused_subpaths"
+     ]
+    }
+   ]
+  },
+  {
+   "fichier": "inkstitch_fill_to_stroke.inx",
+   "nom": "Fill to Stroke",
+   "extension": "fill_to_stroke",
+   "format": null,
+   "type": "effect",
+   "menu": "Ink/Stitch/Tools: Stroke",
+   "params": [
+    {
+     "name": "keep_original",
+     "type": "boolean",
+     "label": "Keep original",
+     "default": "false",
+     "options": null
+    },
+    {
+     "name": "threshold_mm",
+     "type": "float",
+     "label": "Threshold for dead ends (mm)",
+     "default": "10",
+     "options": null
+    },
+    {
+     "name": "line_width_mm",
+     "type": "float",
+     "label": "Line width (mm)",
+     "default": "0.26",
+     "options": null
+    },
+    {
+     "name": "close_gaps",
+     "type": "boolean",
+     "label": "Cut lines: close gaps",
+     "default": "false",
+     "options": null
+    }
+   ]
+  },
+  {
+   "fichier": "inkstitch_flip.inx",
+   "nom": "Flip Satin Column Rails",
+   "extension": "flip",
+   "format": null,
+   "type": "effect",
+   "menu": "Ink/Stitch/Tools: Satin",
+   "params": []
+  },
+  {
+   "fichier": "inkstitch_generate_palette.inx",
+   "nom": "Generate Color Palette",
+   "extension": "generate_palette",
+   "format": null,
+   "type": "effect",
+   "menu": "Ink/Stitch/Thread Color Management/Generate Palette",
+   "params": [
+    {
+     "name": "palette_name",
+     "type": "string",
+     "label": "Palette name",
+     "default": "",
+     "options": null
+    },
+    {
+     "name": "palette_folder",
+     "type": "path",
+     "label": "Folder (optional):",
+     "default": "",
+     "options": null
+    }
+   ]
+  },
+  {
+   "fichier": "inkstitch_global_commands.inx",
+   "nom": "Add Commands",
+   "extension": "global_commands",
+   "format": null,
+   "type": "effect",
+   "menu": "Ink/Stitch/Commands",
+   "params": [
+    {
+     "name": "origin",
+     "type": "boolean",
+     "label": "Origin for exported embroidery files",
+     "default": "false",
+     "options": null
+    },
+    {
+     "name": "stop_position",
+     "type": "boolean",
+     "label": "Jump destination for Stop commands (a.k.a. \"Frame Out position\").",
+     "default": "false",
+     "options": null
+    }
+   ]
+  },
+  {
+   "fichier": "inkstitch_gradient_blocks.inx",
+   "nom": "Convert to gradient blocks",
+   "extension": "gradient_blocks",
+   "format": null,
+   "type": "effect",
+   "menu": "Ink/Stitch/Tools: Fill",
+   "params": [
+    {
+     "name": "end-row-spacing",
+     "type": "float",
+     "label": "End row spacing",
+     "default": "0",
+     "options": null
+    }
+   ]
+  },
+  {
+   "fichier": "inkstitch_input_100.inx",
+   "nom": "100 file input",
+   "extension": "input",
+   "format": null,
+   "type": "input",
+   "menu": "",
+   "params": []
+  },
+  {
+   "fichier": "inkstitch_input_10O.inx",
+   "nom": "10O file input",
+   "extension": "input",
+   "format": null,
+   "type": "input",
+   "menu": "",
+   "params": []
+  },
+  {
+   "fichier": "inkstitch_input_BRO.inx",
+   "nom": "BRO file input",
+   "extension": "input",
+   "format": null,
+   "type": "input",
+   "menu": "",
+   "params": []
+  },
+  {
+   "fichier": "inkstitch_input_COL.inx",
+   "nom": "COL file input",
+   "extension": "input",
+   "format": null,
+   "type": "input",
+   "menu": "",
+   "params": []
+  },
+  {
+   "fichier": "inkstitch_input_CSV.inx",
+   "nom": "CSV file input",
+   "extension": "input",
+   "format": null,
+   "type": "input",
+   "menu": "",
+   "params": []
+  },
+  {
+   "fichier": "inkstitch_input_DAT.inx",
+   "nom": "DAT file input",
+   "extension": "input",
+   "format": null,
+   "type": "input",
+   "menu": "",
+   "params": []
+  },
+  {
+   "fichier": "inkstitch_input_DSB.inx",
+   "nom": "DSB file input",
+   "extension": "input",
+   "format": null,
+   "type": "input",
+   "menu": "",
+   "params": []
+  },
+  {
+   "fichier": "inkstitch_input_DST.inx",
+   "nom": "DST file input",
+   "extension": "input",
+   "format": null,
+   "type": "input",
+   "menu": "",
+   "params": []
+  },
+  {
+   "fichier": "inkstitch_input_DSZ.inx",
+   "nom": "DSZ file input",
+   "extension": "input",
+   "format": null,
+   "type": "input",
+   "menu": "",
+   "params": []
+  },
+  {
+   "fichier": "inkstitch_input_EDR.inx",
+   "nom": "EDR file input",
+   "extension": "input",
+   "format": null,
+   "type": "input",
+   "menu": "",
+   "params": []
+  },
+  {
+   "fichier": "inkstitch_input_EMD.inx",
+   "nom": "EMD file input",
+   "extension": "input",
+   "format": null,
+   "type": "input",
+   "menu": "",
+   "params": []
+  },
+  {
+   "fichier": "inkstitch_input_EXP.inx",
+   "nom": "EXP file input",
+   "extension": "input",
+   "format": null,
+   "type": "input",
+   "menu": "",
+   "params": []
+  },
+  {
+   "fichier": "inkstitch_input_EXY.inx",
+   "nom": "EXY file input",
+   "extension": "input",
+   "format": null,
+   "type": "input",
+   "menu": "",
+   "params": []
+  },
+  {
+   "fichier": "inkstitch_input_FXY.inx",
+   "nom": "FXY file input",
+   "extension": "input",
+   "format": null,
+   "type": "input",
+   "menu": "",
+   "params": []
+  },
+  {
+   "fichier": "inkstitch_input_GCODE.inx",
+   "nom": "GCODE file input",
+   "extension": "input",
+   "format": null,
+   "type": "input",
+   "menu": "",
+   "params": []
+  },
+  {
+   "fichier": "inkstitch_input_GT.inx",
+   "nom": "GT file input",
+   "extension": "input",
+   "format": null,
+   "type": "input",
+   "menu": "",
+   "params": []
+  },
+  {
+   "fichier": "inkstitch_input_HUS.inx",
+   "nom": "HUS file input",
+   "extension": "input",
+   "format": null,
+   "type": "input",
+   "menu": "",
+   "params": []
+  },
+  {
+   "fichier": "inkstitch_input_INB.inx",
+   "nom": "INB file input",
+   "extension": "input",
+   "format": null,
+   "type": "input",
+   "menu": "",
+   "params": []
+  },
+  {
+   "fichier": "inkstitch_input_INF.inx",
+   "nom": "INF file input",
+   "extension": "input",
+   "format": null,
+   "type": "input",
+   "menu": "",
+   "params": []
+  },
+  {
+   "fichier": "inkstitch_input_IQP.inx",
+   "nom": "IQP file input",
+   "extension": "input",
+   "format": null,
+   "type": "input",
+   "menu": "",
+   "params": []
+  },
+  {
+   "fichier": "inkstitch_input_JEF.inx",
+   "nom": "JEF file input",
+   "extension": "input",
+   "format": null,
+   "type": "input",
+   "menu": "",
+   "params": []
+  },
+  {
+   "fichier": "inkstitch_input_JPX.inx",
+   "nom": "JPX file input",
+   "extension": "input",
+   "format": null,
+   "type": "input",
+   "menu": "",
+   "params": []
+  },
+  {
+   "fichier": "inkstitch_input_JSON.inx",
+   "nom": "JSON file input",
+   "extension": "input",
+   "format": null,
+   "type": "input",
+   "menu": "",
+   "params": []
+  },
+  {
+   "fichier": "inkstitch_input_KSM.inx",
+   "nom": "KSM file input",
+   "extension": "input",
+   "format": null,
+   "type": "input",
+   "menu": "",
+   "params": []
+  },
+  {
+   "fichier": "inkstitch_input_MAX.inx",
+   "nom": "MAX file input",
+   "extension": "input",
+   "format": null,
+   "type": "input",
+   "menu": "",
+   "params": []
+  },
+  {
+   "fichier": "inkstitch_input_MIT.inx",
+   "nom": "MIT file input",
+   "extension": "input",
+   "format": null,
+   "type": "input",
+   "menu": "",
+   "params": []
+  },
+  {
+   "fichier": "inkstitch_input_NEW.inx",
+   "nom": "NEW file input",
+   "extension": "input",
+   "format": null,
+   "type": "input",
+   "menu": "",
+   "params": []
+  },
+  {
+   "fichier": "inkstitch_input_PCD.inx",
+   "nom": "PCD file input",
+   "extension": "input",
+   "format": null,
+   "type": "input",
+   "menu": "",
+   "params": []
+  },
+  {
+   "fichier": "inkstitch_input_PCM.inx",
+   "nom": "PCM file input",
+   "extension": "input",
+   "format": null,
+   "type": "input",
+   "menu": "",
+   "params": []
+  },
+  {
+   "fichier": "inkstitch_input_PCQ.inx",
+   "nom": "PCQ file input",
+   "extension": "input",
+   "format": null,
+   "type": "input",
+   "menu": "",
+   "params": []
+  },
+  {
+   "fichier": "inkstitch_input_PCS.inx",
+   "nom": "PCS file input",
+   "extension": "input",
+   "format": null,
+   "type": "input",
+   "menu": "",
+   "params": []
+  },
+  {
+   "fichier": "inkstitch_input_PEC.inx",
+   "nom": "PEC file input",
+   "extension": "input",
+   "format": null,
+   "type": "input",
+   "menu": "",
+   "params": []
+  },
+  {
+   "fichier": "inkstitch_input_PES.inx",
+   "nom": "PES file input",
+   "extension": "input",
+   "format": null,
+   "type": "input",
+   "menu": "",
+   "params": []
+  },
+  {
+   "fichier": "inkstitch_input_PHB.inx",
+   "nom": "PHB file input",
+   "extension": "input",
+   "format": null,
+   "type": "input",
+   "menu": "",
+   "params": []
+  },
+  {
+   "fichier": "inkstitch_input_PHC.inx",
+   "nom": "PHC file input",
+   "extension": "input",
+   "format": null,
+   "type": "input",
+   "menu": "",
+   "params": []
+  },
+  {
+   "fichier": "inkstitch_input_PLT.inx",
+   "nom": "PLT file input",
+   "extension": "input",
+   "format": null,
+   "type": "input",
+   "menu": "",
+   "params": []
+  },
+  {
+   "fichier": "inkstitch_input_PMV.inx",
+   "nom": "PMV file input",
+   "extension": "input",
+   "format": null,
+   "type": "input",
+   "menu": "",
+   "params": []
+  },
+  {
+   "fichier": "inkstitch_input_QCC.inx",
+   "nom": "QCC file input",
+   "extension": "input",
+   "format": null,
+   "type": "input",
+   "menu": "",
+   "params": []
+  },
+  {
+   "fichier": "inkstitch_input_SEW.inx",
+   "nom": "SEW file input",
+   "extension": "input",
+   "format": null,
+   "type": "input",
+   "menu": "",
+   "params": []
+  },
+  {
+   "fichier": "inkstitch_input_SHV.inx",
+   "nom": "SHV file input",
+   "extension": "input",
+   "format": null,
+   "type": "input",
+   "menu": "",
+   "params": []
+  },
+  {
+   "fichier": "inkstitch_input_SPX.inx",
+   "nom": "SPX file input",
+   "extension": "input",
+   "format": null,
+   "type": "input",
+   "menu": "",
+   "params": []
+  },
+  {
+   "fichier": "inkstitch_input_STC.inx",
+   "nom": "STC file input",
+   "extension": "input",
+   "format": null,
+   "type": "input",
+   "menu": "",
+   "params": []
+  },
+  {
+   "fichier": "inkstitch_input_STX.inx",
+   "nom": "STX file input",
+   "extension": "input",
+   "format": null,
+   "type": "input",
+   "menu": "",
+   "params": []
+  },
+  {
+   "fichier": "inkstitch_input_TAP.inx",
+   "nom": "TAP file input",
+   "extension": "input",
+   "format": null,
+   "type": "input",
+   "menu": "",
+   "params": []
+  },
+  {
+   "fichier": "inkstitch_input_TBF.inx",
+   "nom": "TBF file input",
+   "extension": "input",
+   "format": null,
+   "type": "input",
+   "menu": "",
+   "params": []
+  },
+  {
+   "fichier": "inkstitch_input_U01.inx",
+   "nom": "U01 file input",
+   "extension": "input",
+   "format": null,
+   "type": "input",
+   "menu": "",
+   "params": []
+  },
+  {
+   "fichier": "inkstitch_input_VP3.inx",
+   "nom": "VP3 file input",
+   "extension": "input",
+   "format": null,
+   "type": "input",
+   "menu": "",
+   "params": []
+  },
+  {
+   "fichier": "inkstitch_input_XXX.inx",
+   "nom": "XXX file input",
+   "extension": "input",
+   "format": null,
+   "type": "input",
+   "menu": "",
+   "params": []
+  },
+  {
+   "fichier": "inkstitch_input_ZHS.inx",
+   "nom": "ZHS file input",
+   "extension": "input",
+   "format": null,
+   "type": "input",
+   "menu": "",
+   "params": []
+  },
+  {
+   "fichier": "inkstitch_input_ZXY.inx",
+   "nom": "ZXY file input",
+   "extension": "input",
+   "format": null,
+   "type": "input",
+   "menu": "",
+   "params": []
+  },
+  {
+   "fichier": "inkstitch_install.inx",
+   "nom": "Install Addons for Inkscape",
+   "extension": "install",
+   "format": null,
+   "type": "effect",
+   "menu": "Ink/Stitch",
+   "params": [
+    {
+     "name": "install-palettes",
+     "type": "boolean",
+     "label": "Install thread color palettes",
+     "default": "true",
+     "options": null
+    },
+    {
+     "name": "install-symbol-libraries",
+     "type": "boolean",
+     "label": "Install symbol libraries",
+     "default": "true",
+     "options": null
+    }
+   ]
+  },
+  {
+   "fichier": "inkstitch_install_custom_palette.inx",
+   "nom": "Install custom palette",
+   "extension": "install_custom_palette",
+   "format": null,
+   "type": "effect",
+   "menu": "Ink/Stitch/Thread Color Management",
+   "params": [
+    {
+     "name": "filepath",
+     "type": "path",
+     "label": "Choose file",
+     "default": "",
+     "options": null
+    }
+   ]
+  },
+  {
+   "fichier": "inkstitch_jump_to_stroke.inx",
+   "nom": "Jump Stitch to Stroke",
+   "extension": "jump_to_stroke",
+   "format": null,
+   "type": "effect",
+   "menu": "Ink/Stitch/Tools: Stroke",
+   "params": [
+    {
+     "name": "minimum-jump-length",
+     "type": "float",
+     "label": "Convert jumps longer than (mm)",
+     "default": "0",
+     "options": null
+    },
+    {
+     "name": "maximum-jump-length",
+     "type": "float",
+     "label": "Convert jumps shorter than (mm)",
+     "default": "0",
+     "options": null
+    },
+    {
+     "name": "connect",
+     "type": "optiongroup",
+     "label": "Connect",
+     "default": "",
+     "options": [
+      "all",
+      "layer",
+      "group"
+     ]
+    },
+    {
+     "name": "exclude-trim",
+     "type": "bool",
+     "label": "Trim",
+     "default": "true",
+     "options": null
+    },
+    {
+     "name": "exclude-stop",
+     "type": "bool",
+     "label": "Stop",
+     "default": "true",
+     "options": null
+    },
+    {
+     "name": "exclude-force-lock-stitch",
+     "type": "bool",
+     "label": "Force lock stitch",
+     "default": "true",
+     "options": null
+    },
+    {
+     "name": "merge",
+     "type": "bool",
+     "label": "Merge consecutive strokes of same type",
+     "default": "false",
+     "options": null
+    },
+    {
+     "name": "merge_subpaths",
+     "type": "bool",
+     "label": "Merge subpaths of stroke elements",
+     "default": "false",
+     "options": null
+    },
+    {
+     "name": "stitch-length",
+     "type": "float",
+     "label": "Running stitch length (mm)",
+     "default": "2.5",
+     "options": null
+    },
+    {
+     "name": "tolerance",
+     "type": "float",
+     "label": "Running stitch tolerance (mm)",
+     "default": "2.0",
+     "options": null
+    }
+   ]
+  },
+  {
+   "fichier": "inkstitch_jump_to_trim.inx",
+   "nom": "Jump Stitch to Trim/Stop Command",
+   "extension": "jump_to_trim",
+   "format": null,
+   "type": "effect",
+   "menu": "Ink/Stitch/Commands",
+   "params": [
+    {
+     "name": "command",
+     "type": "optiongroup",
+     "label": "Command",
+     "default": "",
+     "options": [
+      "trim",
+      "stop"
+     ]
+    },
+    {
+     "name": "minimum-jump-length",
+     "type": "float",
+     "label": "Convert jumps not shorter than (mm)",
+     "default": "3.0",
+     "options": null
+    },
+    {
+     "name": "maximum-jump-length",
+     "type": "float",
+     "label": "Convert jumps not longer than (mm)",
+     "default": "0",
+     "options": null
+    },
+    {
+     "name": "use-command-symbol",
+     "type": "boolean",
+     "label": "Use command symbol",
+     "default": "false",
+     "options": null
+    }
+   ]
+  },
+  {
+   "fichier": "inkstitch_knockdown_fill.inx",
+   "nom": "Selection to Knockdown Fill",
+   "extension": "knockdown_fill",
+   "format": null,
+   "type": "effect",
+   "menu": "Ink/Stitch/Tools: Fill",
+   "params": [
+    {
+     "name": "stitch-length",
+     "type": "float",
+     "label": "Stitch length",
+     "default": "3",
+     "options": null
+    },
+    {
+     "name": "keep-holes",
+     "type": "bool",
+     "label": "Keep holes",
+     "default": "true",
+     "options": null
+    },
+    {
+     "name": "offset",
+     "type": "float",
+     "label": "Offset",
+     "default": "1",
+     "options": null
+    },
+    {
+     "name": "join-style",
+     "type": "optiongroup",
+     "label": "Join style",
+     "default": "",
+     "options": [
+      "1",
+      "2",
+      "3"
+     ]
+    },
+    {
+     "name": "mitre-limit",
+     "type": "float",
+     "label": "Mitre limit",
+     "default": "5.0",
+     "options": null
+    },
+    {
+     "name": "shape",
+     "type": "optiongroup",
+     "label": "Shape",
+     "default": "",
+     "options": [
+      "",
+      "rect",
+      "circle"
+     ]
+    },
+    {
+     "name": "simple-shape",
+     "type": "bool",
+     "label": "Use only shape",
+     "default": "false",
+     "options": null
+    },
+    {
+     "name": "shape-offset",
+     "type": "float",
+     "label": "Shape offset",
+     "default": "1",
+     "options": null
+    },
+    {
+     "name": "shape-join-style",
+     "type": "optiongroup",
+     "label": "Join style",
+     "default": "",
+     "options": [
+      "1",
+      "2",
+      "3"
+     ]
+    }
+   ]
+  },
+  {
+   "fichier": "inkstitch_layer_commands.inx",
+   "nom": "Add Layer Commands",
+   "extension": "layer_commands",
+   "format": null,
+   "type": "effect",
+   "menu": "Ink/Stitch/Commands",
+   "params": [
+    {
+     "name": "ignore_layer",
+     "type": "boolean",
+     "label": "Ignore layer (do not stitch any objects in this layer)",
+     "default": "false",
+     "options": null
+    }
+   ]
+  },
+  {
+   "fichier": "inkstitch_lettering.inx",
+   "nom": "Lettering Tool",
+   "extension": "lettering",
+   "format": null,
+   "type": "effect",
+   "menu": "Ink/Stitch/Lettering",
+   "params": []
+  },
+  {
+   "fichier": "inkstitch_lettering_along_path.inx",
+   "nom": "Lettering along path",
+   "extension": "lettering_along_path",
+   "format": null,
+   "type": "effect",
+   "menu": "Ink/Stitch/Lettering",
+   "params": [
+    {
+     "name": "text-position",
+     "type": "optiongroup",
+     "label": "Text position",
+     "default": "",
+     "options": [
+      "left",
+      "center",
+      "right",
+      "stretch"
+     ]
+    },
+    {
+     "name": "vertical-alignment",
+     "type": "optiongroup",
+     "label": "Vertical alignment",
+     "default": "",
+     "options": [
+      "top",
+      "baseline",
+      "bottom"
+     ]
+    }
+   ]
+  },
+  {
+   "fichier": "inkstitch_lettering_custom_font_dir.inx",
+   "nom": "Custom font directory",
+   "extension": "lettering_custom_font_dir",
+   "format": null,
+   "type": "effect",
+   "menu": "Ink/Stitch/Font Management",
+   "params": [
+    {
+     "name": "path",
+     "type": "path",
+     "label": "Custom font directory",
+     "default": "",
+     "options": null
+    }
+   ]
+  },
+  {
+   "fichier": "inkstitch_lettering_edit_json.inx",
+   "nom": "Edit JSON",
+   "extension": "lettering_edit_json",
+   "format": null,
+   "type": "effect",
+   "menu": "Ink/Stitch/Font Management",
+   "params": []
+  },
+  {
+   "fichier": "inkstitch_lettering_font_sample.inx",
+   "nom": "Font Sampling",
+   "extension": "lettering_font_sample",
+   "format": null,
+   "type": "effect",
+   "menu": "Ink/Stitch/Font Management",
+   "params": []
+  },
+  {
+   "fichier": "inkstitch_lettering_force_lock_stitches.inx",
+   "nom": "Force lock stitches",
+   "extension": "lettering_force_lock_stitches",
+   "format": null,
+   "type": "effect",
+   "menu": "Ink/Stitch/Font Management",
+   "params": [
+    {
+     "name": "satin_only",
+     "type": "boolean",
+     "label": "Restrict to Satin",
+     "default": "false",
+     "options": null
+    },
+    {
+     "name": "distance",
+     "type": "boolean",
+     "label": "Add forced lock stitches by distance",
+     "default": "false",
+     "options": null
+    },
+    {
+     "name": "min_distance",
+     "type": "float",
+     "label": "Minimum distance (mm)",
+     "default": "1",
+     "options": null
+    },
+    {
+     "name": "max_distance",
+     "type": "float",
+     "label": "Maximum distance (mm)",
+     "default": "3",
+     "options": null
+    },
+    {
+     "name": "last_element",
+     "type": "boolean",
+     "label": "Add forced lock stitches to the last element of each glyph",
+     "default": "false",
+     "options": null
+    },
+    {
+     "name": "last_group_element",
+     "type": "boolean",
+     "label": "Add forced lock stitches to the last element of each group",
+     "default": "false",
+     "options": null
+    }
+   ]
+  },
+  {
+   "fichier": "inkstitch_lettering_generate_json.inx",
+   "nom": "Generate JSON",
+   "extension": "lettering_generate_json",
+   "format": null,
+   "type": "effect",
+   "menu": "Ink/Stitch/Font Management",
+   "params": [
+    {
+     "name": "font-name",
+     "type": "string",
+     "label": "Name",
+     "default": "",
+     "options": null
+    },
+    {
+     "name": "font-description",
+     "type": "string",
+     "label": "Description",
+     "default": "",
+     "options": null
+    },
+    {
+     "name": "font_license",
+     "type": "string",
+     "label": "Font license",
+     "default": "SIL Open Font License v1.1",
+     "options": null
+    },
+    {
+     "name": "text_direction",
+     "type": "optiongroup",
+     "label": "Text direction",
+     "default": "",
+     "options": [
+      "ltr",
+      "rtl"
+     ]
+    },
+    {
+     "name": "default_variant",
+     "type": "optiongroup",
+     "label": "Default variant",
+     "default": "",
+     "options": [
+      "ltr",
+      "rtl",
+      "ttb",
+      "btt"
+     ]
+    },
+    {
+     "name": "original_font",
+     "type": "string",
+     "label": "Original Font Name",
+     "default": "",
+     "options": null
+    },
+    {
+     "name": "original_font_url",
+     "type": "string",
+     "label": "Original Font URL",
+     "default": "",
+     "options": null
+    },
+    {
+     "name": "font-file",
+     "type": "path",
+     "label": "SVG Font File",
+     "default": "",
+     "options": null
+    },
+    {
+     "name": "applique",
+     "type": "bool",
+     "label": "Applique",
+     "default": "false",
+     "options": null
+    },
+    {
+     "name": "crossstitch",
+     "type": "bool",
+     "label": "Cross Stitch",
+     "default": "false",
+     "options": null
+    },
+    {
+     "name": "display",
+     "type": "bool",
+     "label": "Display",
+     "default": "false",
+     "options": null
+    },
+    {
+     "name": "handwriting",
+     "type": "bool",
+     "label": "Handwriting",
+     "default": "false",
+     "options": null
+    },
+    {
+     "name": "italic",
+     "type": "bool",
+     "label": "Italic",
+     "default": "false",
+     "options": null
+    },
+    {
+     "name": "monogram",
+     "type": "bool",
+     "label": "Monogram",
+     "default": "false",
+     "options": null
+    },
+    {
+     "name": "multicolor",
+     "type": "bool",
+     "label": "Multicolor",
+     "default": "false",
+     "options": null
+    },
+    {
+     "name": "ripple",
+     "type": "bool",
+     "label": "Ripple Stitch",
+     "default": "false",
+     "options": null
+    },
+    {
+     "name": "running_stitch",
+     "type": "bool",
+     "label": "Running Stitch",
+     "default": "false",
+     "options": null
+    },
+    {
+     "name": "sans_serif",
+     "type": "bool",
+     "label": "Sans Serif",
+     "default": "false",
+     "options": null
+    },
+    {
+     "name": "satin",
+     "type": "bool",
+     "label": "Satin",
+     "default": "false",
+     "options": null
+    },
+    {
+     "name": "serif",
+     "type": "bool",
+     "label": "Serif",
+     "default": "false",
+     "options": null
+    },
+    {
+     "name": "tartan",
+     "type": "bool",
+     "label": "Tartan",
+     "default": "false",
+     "options": null
+    },
+    {
+     "name": "tiny",
+     "type": "bool",
+     "label": "Tiny",
+     "default": "false",
+     "options": null
+    },
+    {
+     "name": "arabic",
+     "type": "bool",
+     "label": "Script: arabic",
+     "default": "false",
+     "options": null
+    },
+    {
+     "name": "cyrillic",
+     "type": "bool",
+     "label": "Script: cyrillic",
+     "default": "false",
+     "options": null
+    },
+    {
+     "name": "greek",
+     "type": "bool",
+     "label": "Script: greek",
+     "default": "false",
+     "options": null
+    },
+    {
+     "name": "hebrew",
+     "type": "bool",
+     "label": "Script: hebrew",
+     "default": "false",
+     "options": null
+    },
+    {
+     "name": "japanese",
+     "type": "bool",
+     "label": "Script: japanese",
+     "default": "false",
+     "options": null
+    },
+    {
+     "name": "latin",
+     "type": "bool",
+     "label": "Script: latin",
+     "default": "false",
+     "options": null
+    },
+    {
+     "name": "default-glyph",
+     "type": "string",
+     "label": "Default Glyph",
+     "default": "�",
+     "options": null
+    },
+    {
+     "name": "auto-satin",
+     "type": "bool",
+     "label": "Autoroute Satin",
+     "default": "true",
+     "options": null
+    },
+    {
+     "name": "scale-cross_stitch",
+     "type": "bool",
+     "label": "Scale cross stitch pattern",
+     "default": "false",
+     "options": null
+    },
+    {
+     "name": "reversible",
+     "type": "bool",
+     "label": "Reversible",
+     "default": "true",
+     "options": null
+    },
+    {
+     "name": "sortable",
+     "type": "bool",
+     "label": "Sortable",
+     "default": "false",
+     "options": null
+    },
+    {
+     "name": "combine-at-sort-indices",
+     "type": "string",
+     "label": "Combine indices",
+     "default": "",
+     "options": null
+    },
+    {
+     "name": "letter-case",
+     "type": "optiongroup",
+     "label": "Force letter case",
+     "default": "",
+     "options": [
+      "",
+      "upper",
+      "lower"
+     ]
+    },
+    {
+     "name": "size",
+     "type": "float",
+     "label": "Size",
+     "default": "15",
+     "options": null
+    },
+    {
+     "name": "min-scale",
+     "type": "float",
+     "label": "Min Scale",
+     "default": "1",
+     "options": null
+    },
+    {
+     "name": "max-scale",
+     "type": "float",
+     "label": "Max Scale",
+     "default": "1",
+     "options": null
+    },
+    {
+     "name": "use-custom-leading",
+     "type": "bool",
+     "label": "Force",
+     "default": "false",
+     "options": null
+    },
+    {
+     "name": "leading",
+     "type": "int",
+     "label": "Leading (px)",
+     "default": "100",
+     "options": null
+    },
+    {
+     "name": "use-custom-spacing",
+     "type": "bool",
+     "label": "Force",
+     "default": "false",
+     "options": null
+    },
+    {
+     "name": "word-spacing",
+     "type": "int",
+     "label": "Word spacing (px)",
+     "default": "20",
+     "options": null
+    },
+    {
+     "name": "use-custom-letter-spacing",
+     "type": "bool",
+     "label": "Force",
+     "default": "false",
+     "options": null
+    },
+    {
+     "name": "letter-spacing",
+     "type": "int",
+     "label": "Letter spacing (px)",
+     "default": "100",
+     "options": null
+    },
+    {
+     "name": "use-glyph-width",
+     "type": "bool",
+     "label": "Use glyph width",
+     "default": "false",
+     "options": null
+    }
+   ]
+  },
+  {
+   "fichier": "inkstitch_lettering_organize_glyphs.inx",
+   "nom": "Organize Glyphs",
+   "extension": "lettering_organize_glyphs",
+   "format": null,
+   "type": "effect",
+   "menu": "Ink/Stitch/Font Management",
+   "params": [
+    {
+     "name": "action",
+     "type": "optiongroup",
+     "label": "Choose action",
+     "default": "",
+     "options": [
+      "step1",
+      "step2",
+      "step3",
+      "step4",
+      "step5",
+      "step6",
+      "step7",
+      "step8",
+      "duplicate",
+      "sort"
+     ]
+    }
+   ]
+  },
+  {
+   "fichier": "inkstitch_lettering_remove_kerning.inx",
+   "nom": "Remove Kerning",
+   "extension": "lettering_remove_kerning",
+   "format": null,
+   "type": "effect",
+   "menu": "Ink/Stitch/Font Management",
+   "params": [
+    {
+     "name": "font-files",
+     "type": "path",
+     "label": "Select Font Files",
+     "default": "",
+     "options": null
+    }
+   ]
+  },
+  {
+   "fichier": "inkstitch_lettering_set_color_sort_index.inx",
+   "nom": "Set color sort index",
+   "extension": "lettering_set_color_sort_index",
+   "format": null,
+   "type": "effect",
+   "menu": "Ink/Stitch/Font Management",
+   "params": [
+    {
+     "name": "color-sort-index",
+     "type": "int",
+     "label": "Color sort index",
+     "default": "",
+     "options": null
+    }
+   ]
+  },
+  {
+   "fichier": "inkstitch_lettering_svg_font_to_layers.inx",
+   "nom": "Convert SVG Font to Glyph Layers",
+   "extension": "lettering_svg_font_to_layers",
+   "format": null,
+   "type": "effect",
+   "menu": "Ink/Stitch/Font Management",
+   "params": [
+    {
+     "name": "reference",
+     "type": "string",
+     "label": "Use this character to define size",
+     "default": "M",
+     "options": null
+    },
+    {
+     "name": "height",
+     "type": "float",
+     "label": "Height of reference character (mm)",
+     "default": "20",
+     "options": null
+    }
+   ]
+  },
+  {
+   "fichier": "inkstitch_letters_to_font.inx",
+   "nom": "Letters to font",
+   "extension": "letters_to_font",
+   "format": null,
+   "type": "effect",
+   "menu": "Ink/Stitch/Font Management",
+   "params": [
+    {
+     "name": "file-format",
+     "type": "optiongroup",
+     "label": "File format",
+     "default": "",
+     "options": [
+      "*.PEC",
+      "*.PES",
+      "*.EXP",
+      "*.DST",
+      "*.JEF",
+      "*.VP3",
+      "*.SVG",
+      "*.CSV",
+      "*.XXX",
+      "*.SEW",
+      "*.U01",
+      "*.TBF",
+      "*.PMV",
+      "*.TXT",
+      "*.GCODE",
+      "*.PLT",
+      "*.QCC",
+      "*.EDR",
+      "*.COL",
+      "*.INF",
+      "*.JSON"
+     ]
+    },
+    {
+     "name": "font-dir",
+     "type": "path",
+     "label": "Font directory",
+     "default": "",
+     "options": null
+    },
+    {
+     "name": "margin-left",
+     "type": "float",
+     "label": "Margin left (mm)",
+     "default": "0",
+     "options": null
+    },
+    {
+     "name": "import-commands",
+     "type": "optiongroup",
+     "label": "Import commands",
+     "default": "",
+     "options": [
+      "params",
+      "symbols",
+      "none"
+     ]
+    }
+   ]
+  },
+  {
+   "fichier": "inkstitch_object_commands.inx",
+   "nom": "Attach Commands to Selected Objects",
+   "extension": "object_commands",
+   "format": null,
+   "type": "effect",
+   "menu": "Ink/Stitch/Commands",
+   "params": [
+    {
+     "name": "starting_point",
+     "type": "boolean",
+     "label": "Starting position",
+     "default": "false",
+     "options": null
+    },
+    {
+     "name": "ending_point",
+     "type": "boolean",
+     "label": "Ending position",
+     "default": "false",
+     "options": null
+    },
+    {
+     "name": "target_point",
+     "type": "boolean",
+     "label": "Target position",
+     "default": "false",
+     "options": null
+    },
+    {
+     "name": "autoroute_start",
+     "type": "boolean",
+     "label": "Auto-route starting position",
+     "default": "false",
+     "options": null
+    },
+    {
+     "name": "autoroute_end",
+     "type": "boolean",
+     "label": "Auto-route ending position",
+     "default": "false",
+     "options": null
+    },
+    {
+     "name": "stop",
+     "type": "boolean",
+     "label": "Stop (pause machine) after sewing this object",
+     "default": "false",
+     "options": null
+    },
+    {
+     "name": "trim",
+     "type": "boolean",
+     "label": "Trim thread after sewing this object",
+     "default": "false",
+     "options": null
+    },
+    {
+     "name": "ignore_object",
+     "type": "boolean",
+     "label": "Ignore this object (do not stitch)",
+     "default": "false",
+     "options": null
+    },
+    {
+     "name": "satin_cut_point",
+     "type": "boolean",
+     "label": "Satin cut point (use with Cut Satin Column)",
+     "default": "false",
+     "options": null
+    },
+    {
+     "name": "command_position",
+     "type": "optiongroup",
+     "label": "Command position",
+     "default": "",
+     "options": [
+      "random",
+      "top_left",
+      "top_right",
+      "bottom_left",
+      "bottom_right"
+     ]
+    }
+   ]
+  },
+  {
+   "fichier": "inkstitch_object_commands_toggle_visibility.inx",
+   "nom": "Show|Hide Object Commands",
+   "extension": "object_commands_toggle_visibility",
+   "format": null,
+   "type": "effect",
+   "menu": "Ink/Stitch/Commands/View",
+   "params": []
+  },
+  {
+   "fichier": "inkstitch_outline.inx",
+   "nom": "Outline",
+   "extension": "outline",
+   "format": null,
+   "type": "effect",
+   "menu": "Ink/Stitch/Tools: Stroke",
+   "params": [
+    {
+     "name": "keep-original",
+     "type": "boolean",
+     "label": "Keep original element(s)",
+     "default": "false",
+     "options": null
+    },
+    {
+     "name": "threshold",
+     "type": "float",
+     "label": "Threshold (mm²)",
+     "default": "10",
+     "options": null
+    },
+    {
+     "name": "buffer",
+     "type": "float",
+     "label": "Buffer (mm)",
+     "default": "0.001",
+     "options": null
+    },
+    {
+     "name": "smoothness",
+     "type": "float",
+     "label": "Smoothness (mm)",
+     "default": "0.3",
+     "options": null
+    },
+    {
+     "name": "inset",
+     "type": "float",
+     "label": "Inset (mm)",
+     "default": "0",
+     "options": null
+    }
+   ]
+  },
+  {
+   "fichier": "inkstitch_output_COL.inx",
+   "nom": "COL file output",
+   "extension": "output",
+   "format": "col",
+   "type": "output",
+   "menu": "",
+   "params": [
+    {
+     "name": "format",
+     "type": "string",
+     "label": "",
+     "default": "col",
+     "options": null
+    }
+   ]
+  },
+  {
+   "fichier": "inkstitch_output_CSV.inx",
+   "nom": "CSV file output",
+   "extension": "output",
+   "format": "csv",
+   "type": "output",
+   "menu": "",
+   "params": [
+    {
+     "name": "format",
+     "type": "string",
+     "label": "",
+     "default": "csv",
+     "options": null
+    }
+   ]
+  },
+  {
+   "fichier": "inkstitch_output_DST.inx",
+   "nom": "DST file output",
+   "extension": "output",
+   "format": "dst",
+   "type": "output",
+   "menu": "",
+   "params": [
+    {
+     "name": "format",
+     "type": "string",
+     "label": "",
+     "default": "dst",
+     "options": null
+    }
+   ]
+  },
+  {
+   "fichier": "inkstitch_output_EDR.inx",
+   "nom": "EDR file output",
+   "extension": "output",
+   "format": "edr",
+   "type": "output",
+   "menu": "",
+   "params": [
+    {
+     "name": "format",
+     "type": "string",
+     "label": "",
+     "default": "edr",
+     "options": null
+    }
+   ]
+  },
+  {
+   "fichier": "inkstitch_output_EXP.inx",
+   "nom": "EXP file output",
+   "extension": "output",
+   "format": "exp",
+   "type": "output",
+   "menu": "",
+   "params": [
+    {
+     "name": "format",
+     "type": "string",
+     "label": "",
+     "default": "exp",
+     "options": null
+    }
+   ]
+  },
+  {
+   "fichier": "inkstitch_output_GCODE.inx",
+   "nom": "GCODE file output",
+   "extension": "output",
+   "format": "gcode",
+   "type": "output",
+   "menu": "",
+   "params": [
+    {
+     "name": "format",
+     "type": "string",
+     "label": "",
+     "default": "gcode",
+     "options": null
+    },
+    {
+     "name": "flip_x",
+     "type": "boolean",
+     "label": "negate X coordinate values",
+     "default": "false",
+     "options": null
+    },
+    {
+     "name": "flip_y",
+     "type": "boolean",
+     "label": "negate Y coordinate values",
+     "default": "false",
+     "options": null
+    },
+    {
+     "name": "alternate_z",
+     "type": "optiongroup",
+     "label": "Z coordinate value",
+     "default": "",
+     "options": [
+      "true",
+      "false"
+     ]
+    },
+    {
+     "name": "stitch_z_travel",
+     "type": "float",
+     "label": "Z travel per stitch",
+     "default": "5.0",
+     "options": null
+    },
+    {
+     "name": "custom_stitch",
+     "type": "string",
+     "label": "STITCH",
+     "default": "",
+     "options": null
+    },
+    {
+     "name": "custom_color_change",
+     "type": "string",
+     "label": "COLOR CHANGE",
+     "default": "",
+     "options": null
+    },
+    {
+     "name": "custom_jump",
+     "type": "string",
+     "label": "JUMP",
+     "default": "",
+     "options": null
+    },
+    {
+     "name": "custom_stop",
+     "type": "string",
+     "label": "STOP",
+     "default": "",
+     "options": null
+    },
+    {
+     "name": "custom_start",
+     "type": "string",
+     "label": "START",
+     "default": "",
+     "options": null
+    },
+    {
+     "name": "custom_end",
+     "type": "string",
+     "label": "END",
+     "default": "",
+     "options": null
+    },
+    {
+     "name": "laser_mode",
+     "type": "boolean",
+     "label": "laser mode",
+     "default": "false",
+     "options": null
+    },
+    {
+     "name": "dynamic_laser_power",
+     "type": "boolean",
+     "label": "dynamic laser power",
+     "default": "true",
+     "options": null
+    },
+    {
+     "name": "laser_warm_up_time",
+     "type": "float",
+     "label": "laser warm-up time",
+     "default": "0.0",
+     "options": null
+    },
+    {
+     "name": "spindle_speed",
+     "type": "int",
+     "label": "spindle speed",
+     "default": "-1",
+     "options": null
+    },
+    {
+     "name": "min_spindle_speed",
+     "type": "int",
+     "label": "min spindle speed",
+     "default": "-1",
+     "options": null
+    },
+    {
+     "name": "max_spindle_speed",
+     "type": "int",
+     "label": "max spindle speed",
+     "default": "-1",
+     "options": null
+    },
+    {
+     "name": "feed_rate",
+     "type": "int",
+     "label": "feed rate (in mm/min, set to -1 to omit)",
+     "default": "-1",
+     "options": null
+    }
+   ]
+  },
+  {
+   "fichier": "inkstitch_output_INF.inx",
+   "nom": "INF file output",
+   "extension": "output",
+   "format": "inf",
+   "type": "output",
+   "menu": "",
+   "params": [
+    {
+     "name": "format",
+     "type": "string",
+     "label": "",
+     "default": "inf",
+     "options": null
+    }
+   ]
+  },
+  {
+   "fichier": "inkstitch_output_JEF.inx",
+   "nom": "JEF file output",
+   "extension": "output",
+   "format": "jef",
+   "type": "output",
+   "menu": "",
+   "params": [
+    {
+     "name": "format",
+     "type": "string",
+     "label": "",
+     "default": "jef",
+     "options": null
+    }
+   ]
+  },
+  {
+   "fichier": "inkstitch_output_JSON.inx",
+   "nom": "JSON file output",
+   "extension": "output",
+   "format": "json",
+   "type": "output",
+   "menu": "",
+   "params": [
+    {
+     "name": "format",
+     "type": "string",
+     "label": "",
+     "default": "json",
+     "options": null
+    }
+   ]
+  },
+  {
+   "fichier": "inkstitch_output_PEC.inx",
+   "nom": "PEC file output",
+   "extension": "output",
+   "format": "pec",
+   "type": "output",
+   "menu": "",
+   "params": [
+    {
+     "name": "format",
+     "type": "string",
+     "label": "",
+     "default": "pec",
+     "options": null
+    }
+   ]
+  },
+  {
+   "fichier": "inkstitch_output_PES.inx",
+   "nom": "PES file output",
+   "extension": "output",
+   "format": "pes",
+   "type": "output",
+   "menu": "",
+   "params": [
+    {
+     "name": "format",
+     "type": "string",
+     "label": "",
+     "default": "pes",
+     "options": null
+    }
+   ]
+  },
+  {
+   "fichier": "inkstitch_output_PLT.inx",
+   "nom": "PLT file output",
+   "extension": "output",
+   "format": "plt",
+   "type": "output",
+   "menu": "",
+   "params": [
+    {
+     "name": "format",
+     "type": "string",
+     "label": "",
+     "default": "plt",
+     "options": null
+    }
+   ]
+  },
+  {
+   "fichier": "inkstitch_output_PMV.inx",
+   "nom": "PMV file output",
+   "extension": "output",
+   "format": "pmv",
+   "type": "output",
+   "menu": "",
+   "params": [
+    {
+     "name": "format",
+     "type": "string",
+     "label": "",
+     "default": "pmv",
+     "options": null
+    }
+   ]
+  },
+  {
+   "fichier": "inkstitch_output_QCC.inx",
+   "nom": "QCC file output",
+   "extension": "output",
+   "format": "qcc",
+   "type": "output",
+   "menu": "",
+   "params": [
+    {
+     "name": "format",
+     "type": "string",
+     "label": "",
+     "default": "qcc",
+     "options": null
+    }
+   ]
+  },
+  {
+   "fichier": "inkstitch_output_SEW.inx",
+   "nom": "SEW file output",
+   "extension": "output",
+   "format": "sew",
+   "type": "output",
+   "menu": "",
+   "params": [
+    {
+     "name": "format",
+     "type": "string",
+     "label": "",
+     "default": "sew",
+     "options": null
+    }
+   ]
+  },
+  {
+   "fichier": "inkstitch_output_SVG.inx",
+   "nom": "SVG file output",
+   "extension": "output",
+   "format": "svg",
+   "type": "output",
+   "menu": "",
+   "params": [
+    {
+     "name": "format",
+     "type": "string",
+     "label": "",
+     "default": "svg",
+     "options": null
+    }
+   ]
+  },
+  {
+   "fichier": "inkstitch_output_TBF.inx",
+   "nom": "TBF file output",
+   "extension": "output",
+   "format": "tbf",
+   "type": "output",
+   "menu": "",
+   "params": [
+    {
+     "name": "format",
+     "type": "string",
+     "label": "",
+     "default": "tbf",
+     "options": null
+    }
+   ]
+  },
+  {
+   "fichier": "inkstitch_output_TXT.inx",
+   "nom": "TXT file output",
+   "extension": "output",
+   "format": "txt",
+   "type": "output",
+   "menu": "",
+   "params": [
+    {
+     "name": "format",
+     "type": "string",
+     "label": "",
+     "default": "txt",
+     "options": null
+    }
+   ]
+  },
+  {
+   "fichier": "inkstitch_output_U01.inx",
+   "nom": "U01 file output",
+   "extension": "output",
+   "format": "u01",
+   "type": "output",
+   "menu": "",
+   "params": [
+    {
+     "name": "format",
+     "type": "string",
+     "label": "",
+     "default": "u01",
+     "options": null
+    }
+   ]
+  },
+  {
+   "fichier": "inkstitch_output_VP3.inx",
+   "nom": "VP3 file output",
+   "extension": "output",
+   "format": "vp3",
+   "type": "output",
+   "menu": "",
+   "params": [
+    {
+     "name": "format",
+     "type": "string",
+     "label": "",
+     "default": "vp3",
+     "options": null
+    }
+   ]
+  },
+  {
+   "fichier": "inkstitch_output_XXX.inx",
+   "nom": "XXX file output",
+   "extension": "output",
+   "format": "xxx",
+   "type": "output",
+   "menu": "",
+   "params": [
+    {
+     "name": "format",
+     "type": "string",
+     "label": "",
+     "default": "xxx",
+     "options": null
+    }
+   ]
+  },
+  {
+   "fichier": "inkstitch_palette_split_text.inx",
+   "nom": "Split text",
+   "extension": "palette_split_text",
+   "format": null,
+   "type": "effect",
+   "menu": "Ink/Stitch/Thread Color Management/Generate Palette",
+   "params": []
+  },
+  {
+   "fichier": "inkstitch_palette_to_text.inx",
+   "nom": "Palette to text",
+   "extension": "palette_to_text",
+   "format": null,
+   "type": "effect",
+   "menu": "Ink/Stitch/Thread Color Management",
+   "params": [
+    {
+     "name": "file",
+     "type": "path",
+     "label": "Choose file",
+     "default": "",
+     "options": null
+    }
+   ]
+  },
+  {
+   "fichier": "inkstitch_params.inx",
+   "nom": "Params",
+   "extension": "params",
+   "format": null,
+   "type": "effect",
+   "menu": "Ink/Stitch",
+   "params": []
+  },
+  {
+   "fichier": "inkstitch_png_realistic.inx",
+   "nom": "PNG file output (realistic)",
+   "extension": "png_realistic",
+   "format": null,
+   "type": "output",
+   "menu": "",
+   "params": [
+    {
+     "name": "dpi",
+     "type": "int",
+     "label": "DPI",
+     "default": "300",
+     "options": null
+    }
+   ]
+  },
+  {
+   "fichier": "inkstitch_png_simple.inx",
+   "nom": "embroidery PNG file output",
+   "extension": "png_simple",
+   "format": null,
+   "type": "output",
+   "menu": "",
+   "params": [
+    {
+     "name": "line_width",
+     "type": "float",
+     "label": "Line width (mm)",
+     "default": "0.3",
+     "options": null
+    },
+    {
+     "name": "dpi",
+     "type": "int",
+     "label": "DPI",
+     "default": "300",
+     "options": null
+    }
+   ]
+  },
+  {
+   "fichier": "inkstitch_preferences.inx",
+   "nom": "Preferences",
+   "extension": "preferences",
+   "format": null,
+   "type": "effect",
+   "menu": "Ink/Stitch",
+   "params": []
+  },
+  {
+   "fichier": "inkstitch_print.inx",
+   "nom": "PDF Export",
+   "extension": "print",
+   "format": null,
+   "type": "effect",
+   "menu": "Ink/Stitch/Visualize and Export",
+   "params": []
+  },
+  {
+   "fichier": "inkstitch_redwork.inx",
+   "nom": "Redwork",
+   "extension": "redwork",
+   "format": null,
+   "type": "effect",
+   "menu": "Ink/Stitch/Tools: Stroke",
+   "params": [
+    {
+     "name": "merge_distance",
+     "type": "float",
+     "label": "Connect lines below this distance (mm)",
+     "default": "0.5",
+     "options": null
+    },
+    {
+     "name": "minimum_path_length",
+     "type": "float",
+     "label": "Minimum path length (mm)",
+     "default": "0.5",
+     "options": null
+    },
+    {
+     "name": "redwork_running_stitch_length_mm",
+     "type": "float",
+     "label": "Redwork stitch length (mm)",
+     "default": "2.5",
+     "options": null
+    },
+    {
+     "name": "redwork_bean_stitch_repeats",
+     "type": "string",
+     "label": "Redwork bean stitch number of repeats",
+     "default": "0",
+     "options": null
+    },
+    {
+     "name": "redwork_split_colors",
+     "type": "boolean",
+     "label": "Split by color",
+     "default": "false",
+     "options": null
+    },
+    {
+     "name": "combine",
+     "type": "boolean",
+     "label": "Combine elements",
+     "default": "false",
+     "options": null
+    },
+    {
+     "name": "keep_originals",
+     "type": "boolean",
+     "label": "Keep original paths",
+     "default": "false",
+     "options": null
+    }
+   ]
+  },
+  {
+   "fichier": "inkstitch_remove_duplicated_points.inx",
+   "nom": "Remove duplicated points",
+   "extension": "remove_duplicated_points",
+   "format": null,
+   "type": "effect",
+   "menu": "Ink/Stitch/Edit",
+   "params": [
+    {
+     "name": "num_points",
+     "type": "int",
+     "label": "Remove point if repeated within this number of consecutive points",
+     "default": "10",
+     "options": null
+    },
+    {
+     "name": "distance",
+     "type": "float",
+     "label": "Distance tolerance",
+     "default": "0.01",
+     "options": null
+    }
+   ]
+  },
+  {
+   "fichier": "inkstitch_remove_embroidery_settings.inx",
+   "nom": "Remove embroidery settings",
+   "extension": "remove_embroidery_settings",
+   "format": null,
+   "type": "effect",
+   "menu": "Ink/Stitch/Troubleshoot",
+   "params": [
+    {
+     "name": "del_params",
+     "type": "optiongroup",
+     "label": "Remove Params",
+     "default": "",
+     "options": [
+      "none",
+      "all",
+      "angle",
+      "avoid_self_crossing",
+      "bean_stitch_repeats",
+      "center_walk_underlay",
+      "center_walk_underlay_position",
+      "center_walk_underlay_repeats",
+      "center_walk_underlay_stitch_length_mm",
+      "clip",
+      "clockwise",
+      "clone",
+      "contour_strategy",
+      "contour_underlay",
+      "contour_underlay_inset_mm",
+      "contour_underlay_inset_percent",
+      "contour_underlay_stitch_length_mm",
+      "cutwork_needle",
+      "end_row_spacing_mm",
+      "e_stitch",
+      "expand_mm",
+      "exponent",
+      "fill",
+      "fill_method",
+      "fill_underlay_angle",
+      "fill_underlay",
+      "fill_underlay_inset_mm",
+      "fill_underlay_max_stitch_length_mm",
+      "fill_underlay_row_spacing_mm",
+      "fill_underlay_skip_last",
+      "flip_angle",
+      "flip_exponent",
+      "flip",
+      "force_lock_stitches",
+      "grid_size_mm",
+      "guided_fill_strategy",
+      "invisible_layers",
+      "join_style",
+      "layer_visibility",
+      "line_count",
+      "lock_custom_end",
+      "lock_custom_start",
+      "lock_end",
+      "lock_end_scale_mm",
+      "lock_end_scale_percent",
+      "lock_start",
+      "lock_start_scale_mm",
+      "lock_start_scale_percent",
+      "manual_stitch",
+      "max_stitch_length_mm",
+      "meander_angle",
+      "meander_pattern",
+      "meander_scale_percent",
+      "min_line_dist_mm",
+      "min_random_split_length_mm",
+      "polyline",
+      "pull_compensation_mm",
+      "pull_compensation_percent",
+      "random_seed",
+      "random_split_jitter_percent",
+      "random_split_phase",
+      "random_width_decrease_percent",
+      "random_width_increase_percent",
+      "random_zigzag_spacing_percent",
+      "repeats",
+      "reverse_rails",
+      "reverse",
+      "rotate_ripples",
+      "row_spacing_mm",
+      "running_stitch_length_mm",
+      "running_stitch_tolerance_mm",
+      "satin_column",
+      "satin_method",
+      "scale_axis",
+      "scale_end",
+      "scale_start",
+      "short_stitch_distance_mm",
+      "short_stitch_inset",
+      "skip_end",
+      "skip_last",
+      "skip_start",
+      "smoothness_mm",
+      "split_method",
+      "split_staggers",
+      "staggers",
+      "stop_after",
+      "stop_at_ending_point",
+      "stroke_first",
+      "stroke_method",
+      "swap_satin_rails",
+      "ties",
+      "trim_after",
+      "underlay_underpath",
+      "underpath",
+      "zigzag_spacing_mm",
+      "zigzag_underlay_inset_mm",
+      "zigzag_underlay_inset_percent",
+      "zigzag_underlay_max_stitch_length_mm",
+      "zigzag_underlay_spacing_mm",
+      "zigzag_underlay",
+      "zigzag_width_mm"
+     ]
+    },
+    {
+     "name": "del_commands",
+     "type": "optiongroup",
+     "label": "Remove Commands",
+     "default": "",
+     "options": [
+      "none",
+      "all",
+      "starting_point",
+      "ending_point",
+      "target_point",
+      "autoroute_start",
+      "autoroute_end",
+      "stop",
+      "trim",
+      "ignore_object",
+      "satin_cut_point",
+      "ignore_layer",
+      "origin",
+      "stop_position"
+     ]
+    },
+    {
+     "name": "del_print",
+     "type": "boolean",
+     "label": "Remove Print Settings from SVG metadata",
+     "default": "false",
+     "options": null
+    }
+   ]
+  },
+  {
+   "fichier": "inkstitch_reorder.inx",
+   "nom": "Re-stack objects in order of selection",
+   "extension": "reorder",
+   "format": null,
+   "type": "effect",
+   "menu": "Ink/Stitch/Edit",
+   "params": []
+  },
+  {
+   "fichier": "inkstitch_satin_multicolor.inx",
+   "nom": "Multicolor Satin",
+   "extension": "satin_multicolor",
+   "format": null,
+   "type": "effect",
+   "menu": "Ink/Stitch/Tools: Satin",
+   "params": []
+  },
+  {
+   "fichier": "inkstitch_satin_to_stroke.inx",
+   "nom": "Satin to Stroke",
+   "extension": "satin_to_stroke",
+   "format": null,
+   "type": "effect",
+   "menu": "Ink/Stitch/Tools: Stroke",
+   "params": [
+    {
+     "name": "keep_satin",
+     "type": "boolean",
+     "label": "Keep satin column",
+     "default": "false",
+     "options": null
+    }
+   ]
+  },
+  {
+   "fichier": "inkstitch_select_elements.inx",
+   "nom": "Select embroidery elements",
+   "extension": "select_elements",
+   "format": null,
+   "type": "effect",
+   "menu": "Ink/Stitch/Edit",
+   "params": [
+    {
+     "name": "select-running-stitch",
+     "type": "boolean",
+     "label": "Running Stitch",
+     "default": "false",
+     "options": null
+    },
+    {
+     "name": "running-stitch-condition",
+     "type": "optiongroup",
+     "label": "Type",
+     "default": "",
+     "options": [
+      "all",
+      "autorun-top",
+      "autorun-underpath",
+      "autosatin-underpath"
+     ]
+    },
+    {
+     "name": "bean-stitch-repeats",
+     "type": "string",
+     "label": "Bean stitch repeats",
+     "default": "0",
+     "options": null
+    },
+    {
+     "name": "select-ripples",
+     "type": "boolean",
+     "label": "Ripples",
+     "default": "false",
+     "options": null
+    },
+    {
+     "name": "select-zigzag",
+     "type": "boolean",
+     "label": "ZigZag Stitch",
+     "default": "false",
+     "options": null
+    },
+    {
+     "name": "select-manual",
+     "type": "boolean",
+     "label": "Manual Stitch",
+     "default": "false",
+     "options": null
+    },
+    {
+     "name": "select-satin",
+     "type": "boolean",
+     "label": "Satin Column",
+     "default": "false",
+     "options": null
+    },
+    {
+     "name": "select-e",
+     "type": "boolean",
+     "label": "E-Stitch",
+     "default": "false",
+     "options": null
+    },
+    {
+     "name": "select-s",
+     "type": "boolean",
+     "label": "S-Stitch",
+     "default": "false",
+     "options": null
+    },
+    {
+     "name": "select-satin-zigzag",
+     "type": "boolean",
+     "label": "Zig-Zag",
+     "default": "false",
+     "options": null
+    },
+    {
+     "name": "satin-underlay",
+     "type": "optiongroup",
+     "label": "Underlay",
+     "default": "",
+     "options": [
+      "all",
+      "no",
+      "center",
+      "contour",
+      "zigzag"
+     ]
+    },
+    {
+     "name": "rung-count",
+     "type": "optiongroup",
+     "label": "Rung count",
+     "default": "",
+     "options": [
+      "all",
+      "zero",
+      "two"
+     ]
+    },
+    {
+     "name": "select-tatami-fill",
+     "type": "boolean",
+     "label": "Tatami Fill",
+     "default": "false",
+     "options": null
+    },
+    {
+     "name": "select-circular-fill",
+     "type": "boolean",
+     "label": "Circular Fill",
+     "default": "false",
+     "options": null
+    },
+    {
+     "name": "select-contour-fill",
+     "type": "boolean",
+     "label": "Contour Fill",
+     "default": "false",
+     "options": null
+    },
+    {
+     "name": "select-guided-fill",
+     "type": "boolean",
+     "label": "Guided Fill",
+     "default": "false",
+     "options": null
+    },
+    {
+     "name": "select-linear-gradient-fill",
+     "type": "boolean",
+     "label": "Linear Gradient Fill",
+     "default": "false",
+     "options": null
+    },
+    {
+     "name": "select-meander-fill",
+     "type": "boolean",
+     "label": "Meander Fill",
+     "default": "false",
+     "options": null
+    },
+    {
+     "name": "select-tartan-fill",
+     "type": "boolean",
+     "label": "Tartan Fill",
+     "default": "false",
+     "options": null
+    },
+    {
+     "name": "select-legacy-fill",
+     "type": "boolean",
+     "label": "Legacy Fill",
+     "default": "false",
+     "options": null
+    },
+    {
+     "name": "fill-underlay",
+     "type": "optiongroup",
+     "label": "Underlay",
+     "default": "",
+     "options": [
+      "all",
+      "yes",
+      "no"
+     ]
+    },
+    {
+     "name": "select-clone",
+     "type": "boolean",
+     "label": "Clone",
+     "default": "false",
+     "options": null
+    },
+    {
+     "name": "python-path",
+     "type": "string",
+     "label": "Python Path",
+     "default": "",
+     "options": null
+    }
+   ]
+  },
+  {
+   "fichier": "inkstitch_selection_to_anchor_line.inx",
+   "nom": "Selection to anchor line",
+   "extension": "selection_to_anchor_line",
+   "format": null,
+   "type": "effect",
+   "menu": "Ink/Stitch/Edit",
+   "params": []
+  },
+  {
+   "fichier": "inkstitch_selection_to_guide_line.inx",
+   "nom": "Selection to guide line",
+   "extension": "selection_to_guide_line",
+   "format": null,
+   "type": "effect",
+   "menu": "Ink/Stitch/Edit",
+   "params": []
+  },
+  {
+   "fichier": "inkstitch_selection_to_pattern.inx",
+   "nom": "Selection to pattern",
+   "extension": "selection_to_pattern",
+   "format": null,
+   "type": "effect",
+   "menu": "Ink/Stitch/Edit",
+   "params": []
+  },
+  {
+   "fichier": "inkstitch_simulator.inx",
+   "nom": "Simulator",
+   "extension": "simulator",
+   "format": null,
+   "type": "effect",
+   "menu": "Ink/Stitch/Visualize and Export",
+   "params": []
+  },
+  {
+   "fichier": "inkstitch_stitch_plan_preview.inx",
+   "nom": "Stitch Plan Preview",
+   "extension": "stitch_plan_preview",
+   "format": null,
+   "type": "effect",
+   "menu": "Ink/Stitch/Visualize and Export",
+   "params": [
+    {
+     "name": "layer-visibility",
+     "type": "optiongroup",
+     "label": "Design layer visibility",
+     "default": "",
+     "options": [
+      "unchanged",
+      "hidden",
+      "lower_opacity"
+     ]
+    },
+    {
+     "name": "render-mode",
+     "type": "optiongroup",
+     "label": "Render Mode",
+     "default": "",
+     "options": [
+      "simple",
+      "realistic-300",
+      "realistic-600",
+      "realistic-vector"
+     ]
+    },
+    {
+     "name": "move-to-side",
+     "type": "boolean",
+     "label": "Move stitch plan beside the canvas",
+     "default": "true",
+     "options": null
+    },
+    {
+     "name": "needle-points",
+     "type": "boolean",
+     "label": "Needle points",
+     "default": "false",
+     "options": null
+    },
+    {
+     "name": "visual-commands",
+     "type": "boolean",
+     "label": "Display command symbols",
+     "default": "false",
+     "options": null
+    },
+    {
+     "name": "render-jumps",
+     "type": "boolean",
+     "label": "Render jump stitches",
+     "default": "true",
+     "options": null
+    },
+    {
+     "name": "insensitive",
+     "type": "boolean",
+     "label": "Lock",
+     "default": "false",
+     "options": null
+    },
+    {
+     "name": "ignore-layer",
+     "type": "boolean",
+     "label": "Add ignore layer command",
+     "default": "true",
+     "options": null
+    },
+    {
+     "name": "overwrite",
+     "type": "boolean",
+     "label": "Override last stitch plan",
+     "default": "true",
+     "options": null
+    }
+   ]
+  },
+  {
+   "fichier": "inkstitch_stitch_plan_preview_undo.inx",
+   "nom": "Undo Stitch Plan Preview",
+   "extension": "stitch_plan_preview_undo",
+   "format": null,
+   "type": "effect",
+   "menu": "Ink/Stitch/Visualize and Export",
+   "params": []
+  },
+  {
+   "fichier": "inkstitch_stroke_to_lpe_satin.inx",
+   "nom": "Stroke to Live Path Effect Satin",
+   "extension": "stroke_to_lpe_satin",
+   "format": null,
+   "type": "effect",
+   "menu": "Ink/Stitch/Tools: Satin",
+   "params": [
+    {
+     "name": "pattern",
+     "type": "optiongroup",
+     "label": "Pattern",
+     "default": "",
+     "options": [
+      "normal",
+      "pearl",
+      "diamond",
+      "square",
+      "triangle",
+      "wave",
+      "arch"
+     ]
+    },
+    {
+     "name": "min-width",
+     "type": "float",
+     "label": "Min Width (mm)",
+     "default": "4",
+     "options": null
+    },
+    {
+     "name": "max-width",
+     "type": "float",
+     "label": "Max Width (mm)",
+     "default": "7",
+     "options": null
+    },
+    {
+     "name": "length",
+     "type": "float",
+     "label": "Pattern Length (mm)",
+     "default": "15",
+     "options": null
+    },
+    {
+     "name": "stretched",
+     "type": "boolean",
+     "label": "Stretched",
+     "default": "false",
+     "options": null
+    },
+    {
+     "name": "rungs",
+     "type": "boolean",
+     "label": "Add rungs",
+     "default": "true",
+     "options": null
+    },
+    {
+     "name": "path-specific",
+     "type": "boolean",
+     "label": "Path specific",
+     "default": "true",
+     "options": null
+    }
+   ]
+  },
+  {
+   "fichier": "inkstitch_stroke_to_satin.inx",
+   "nom": "Stroke to Satin",
+   "extension": "stroke_to_satin",
+   "format": null,
+   "type": "effect",
+   "menu": "Ink/Stitch/Tools: Satin",
+   "params": []
+  },
+  {
+   "fichier": "inkstitch_tartan.inx",
+   "nom": "Tartan",
+   "extension": "tartan",
+   "format": null,
+   "type": "effect",
+   "menu": "Ink/Stitch/Tools: Fill",
+   "params": []
+  },
+  {
+   "fichier": "inkstitch_test_swatches.inx",
+   "nom": "Generate Test Swatches from Selection",
+   "extension": "test_swatches",
+   "format": null,
+   "type": "effect",
+   "menu": "Ink/Stitch/Edit",
+   "params": []
+  },
+  {
+   "fichier": "inkstitch_thread_list.inx",
+   "nom": "embroidery TXT file output",
+   "extension": "thread_list",
+   "format": null,
+   "type": "output",
+   "menu": "",
+   "params": []
+  },
+  {
+   "fichier": "inkstitch_transform_elements.inx",
+   "nom": "Transform",
+   "extension": "transform_elements",
+   "format": null,
+   "type": "effect",
+   "menu": "Ink/Stitch/Edit",
+   "params": [
+    {
+     "name": "rotate",
+     "type": "float",
+     "label": "Rotate",
+     "default": "0",
+     "options": null
+    },
+    {
+     "name": "flip-horizontally",
+     "type": "bool",
+     "label": "Flip horizontally",
+     "default": "false",
+     "options": null
+    },
+    {
+     "name": "flip-vertically",
+     "type": "bool",
+     "label": "Flip vertically",
+     "default": "false",
+     "options": null
+    }
+   ]
+  },
+  {
+   "fichier": "inkstitch_troubleshoot.inx",
+   "nom": "Troubleshoot Objects",
+   "extension": "troubleshoot",
+   "format": null,
+   "type": "effect",
+   "menu": "Ink/Stitch/Troubleshoot",
+   "params": [
+    {
+     "name": "show-errors",
+     "type": "boolean",
+     "label": "Errors",
+     "default": "true",
+     "options": null
+    },
+    {
+     "name": "show-warnings",
+     "type": "boolean",
+     "label": "Warnings",
+     "default": "true",
+     "options": null
+    },
+    {
+     "name": "show-type-warning",
+     "type": "boolean",
+     "label": "Object type warning",
+     "default": "true",
+     "options": null
+    },
+    {
+     "name": "pointer-size",
+     "type": "float",
+     "label": "Pointer size (mm)",
+     "default": "5",
+     "options": null
+    },
+    {
+     "name": "font-size",
+     "type": "float",
+     "label": "Font size (mm)",
+     "default": "2",
+     "options": null
+    }
+   ]
+  },
+  {
+   "fichier": "inkstitch_unlink_clone.inx",
+   "nom": "Unlink Clone",
+   "extension": "unlink_clone",
+   "format": null,
+   "type": "effect",
+   "menu": "Ink/Stitch/Edit",
+   "params": [
+    {
+     "name": "recursive",
+     "type": "boolean",
+     "label": "Recursive",
+     "default": "true",
+     "options": null
+    },
+    {
+     "name": "add-group",
+     "type": "boolean",
+     "label": "Group unlinked symbols",
+     "default": "true",
+     "options": null
+    }
+   ]
+  },
+  {
+   "fichier": "inkstitch_update_svg.inx",
+   "nom": "Update inkstitch svg",
+   "extension": "update_svg",
+   "format": null,
+   "type": "effect",
+   "menu": "Ink/Stitch/Troubleshoot",
+   "params": [
+    {
+     "name": "update-from",
+     "type": "int",
+     "label": "Update from version",
+     "default": "0",
+     "options": null
+    }
+   ]
+  },
+  {
+   "fichier": "inkstitch_zigzag_line_to_satin.inx",
+   "nom": "Zig-Zag Line to Satin",
+   "extension": "zigzag_line_to_satin",
+   "format": null,
+   "type": "effect",
+   "menu": "Ink/Stitch/Tools: Satin",
+   "params": [
+    {
+     "name": "pattern",
+     "type": "optiongroup",
+     "label": "Line Pattern",
+     "default": "",
+     "options": [
+      "square",
+      "sawtooth",
+      "zigzag"
+     ]
+    },
+    {
+     "name": "smoothing",
+     "type": "boolean",
+     "label": "Smoothing",
+     "default": "true",
+     "options": null
+    },
+    {
+     "name": "rungs",
+     "type": "boolean",
+     "label": "Add rungs",
+     "default": "true",
+     "options": null
+    },
+    {
+     "name": "reduce-rungs",
+     "type": "boolean",
+     "label": "Reduce number of rungs",
+     "default": "false",
+     "options": null
+    }
+   ]
+  },
+  {
+   "fichier": "inkstitch_zip.inx",
+   "nom": "embroidery ZIP file output",
+   "extension": "zip",
+   "format": null,
+   "type": "output",
+   "menu": "",
+   "params": [
+    {
+     "name": "custom-file-name",
+     "type": "string",
+     "label": "Custom file name",
+     "default": "",
+     "options": null
+    },
+    {
+     "name": "format-pec",
+     "type": "boolean",
+     "label": ".PEC: Brother Embroidery Format",
+     "default": "false",
+     "options": null
+    },
+    {
+     "name": "format-pes",
+     "type": "boolean",
+     "label": ".PES: Brother Embroidery Format",
+     "default": "false",
+     "options": null
+    },
+    {
+     "name": "format-exp",
+     "type": "boolean",
+     "label": ".EXP: Melco Expanded Embroidery Format",
+     "default": "false",
+     "options": null
+    },
+    {
+     "name": "format-dst",
+     "type": "boolean",
+     "label": ".DST: Tajima Embroidery Format",
+     "default": "false",
+     "options": null
+    },
+    {
+     "name": "format-jef",
+     "type": "boolean",
+     "label": ".JEF: Janome Embroidery Format",
+     "default": "false",
+     "options": null
+    },
+    {
+     "name": "format-vp3",
+     "type": "boolean",
+     "label": ".VP3: Pfaff Embroidery Format",
+     "default": "false",
+     "options": null
+    },
+    {
+     "name": "format-xxx",
+     "type": "boolean",
+     "label": ".XXX: Singer Embroidery Format",
+     "default": "false",
+     "options": null
+    },
+    {
+     "name": "format-sew",
+     "type": "boolean",
+     "label": ".SEW: Janome Embroidery Format",
+     "default": "false",
+     "options": null
+    },
+    {
+     "name": "format-u01",
+     "type": "boolean",
+     "label": ".U01: Barudan Embroidery Format",
+     "default": "false",
+     "options": null
+    },
+    {
+     "name": "format-tbf",
+     "type": "boolean",
+     "label": ".TBF: Tajima Embroidery Format",
+     "default": "false",
+     "options": null
+    },
+    {
+     "name": "format-pmv",
+     "type": "boolean",
+     "label": ".PMV: Brother Stitch Format [STITCH]",
+     "default": "false",
+     "options": null
+    },
+    {
+     "name": "format-gcode",
+     "type": "boolean",
+     "label": ".GCODE: gcode Format, Text File",
+     "default": "false",
+     "options": null
+    },
+    {
+     "name": "format-plt",
+     "type": "boolean",
+     "label": ".PLT: Plt - HPGL [QUILTING]",
+     "default": "false",
+     "options": null
+    },
+    {
+     "name": "format-qcc",
+     "type": "boolean",
+     "label": ".QCC: Qcc - QuiltEZ [QUILTING]",
+     "default": "false",
+     "options": null
+    },
+    {
+     "name": "format-edr",
+     "type": "boolean",
+     "label": ".EDR: Edr Color Format [COLOR]",
+     "default": "false",
+     "options": null
+    },
+    {
+     "name": "format-col",
+     "type": "boolean",
+     "label": ".COL: Col Color Format [COLOR]",
+     "default": "false",
+     "options": null
+    },
+    {
+     "name": "format-inf",
+     "type": "boolean",
+     "label": ".INF: Inf Color Format [COLOR]",
+     "default": "false",
+     "options": null
+    },
+    {
+     "name": "format-threadlist",
+     "type": "boolean",
+     "label": ".TXT: Threadlist [COLOR]",
+     "default": "false",
+     "options": null
+    },
+    {
+     "name": "format-svg",
+     "type": "boolean",
+     "label": ".SVG: Scalable Vector Graphic",
+     "default": "false",
+     "options": null
+    },
+    {
+     "name": "format-png-realistic",
+     "type": "boolean",
+     "label": ".PNG: Portable Network Graphics (Realistic) [IMAGE]",
+     "default": "false",
+     "options": null
+    },
+    {
+     "name": "dpi-realistic",
+     "type": "int",
+     "label": "DPI",
+     "default": "300",
+     "options": null
+    },
+    {
+     "name": "format-png-simple",
+     "type": "boolean",
+     "label": ".PNG: Portable Network Graphics (Simple) [IMAGE]",
+     "default": "false",
+     "options": null
+    },
+    {
+     "name": "png-simple-line-width",
+     "type": "float",
+     "label": "Line width (mm)",
+     "default": "0.3",
+     "options": null
+    },
+    {
+     "name": "dpi-simple",
+     "type": "int",
+     "label": "DPI",
+     "default": "300",
+     "options": null
+    },
+    {
+     "name": "x-repeats",
+     "type": "int",
+     "label": "Horizontal repeats",
+     "default": "1",
+     "options": null
+    },
+    {
+     "name": "x-spacing",
+     "type": "float",
+     "label": "Horizontal spacing (mm)",
+     "default": "100",
+     "options": null
+    },
+    {
+     "name": "y-repeats",
+     "type": "int",
+     "label": "Vertical repeats",
+     "default": "1",
+     "options": null
+    },
+    {
+     "name": "y-spacing",
+     "type": "float",
+     "label": "Vertical spacing (mm)",
+     "default": "100",
+     "options": null
+    }
+   ]
+  }
+ ],
+ "parametres": {
+  "clone": [
+   {
+    "name": "clone",
+    "label": "Clone",
+    "type": "toggle",
+    "inverse": false,
+    "default": true
+   },
+   {
+    "name": "angle",
+    "label": "Custom fill angle",
+    "tooltip": "This setting will apply a custom fill angle for the clone.",
+    "unit": "deg",
+    "type": "float"
+   },
+   {
+    "name": "flip_angle",
+    "label": "Flip angle",
+    "tooltip": "Flip automatically calculated angle if it appears to be wrong.",
+    "type": "boolean",
+    "default": false
+   }
+  ],
+  "element": [
+   {
+    "name": "min_stitch_length_mm",
+    "label": "Minimum stitch length",
+    "tooltip": "Overwrite global minimum stitch length setting. Shorter stitches than that will be removed.",
+    "type": "float",
+    "unit": "mm",
+    "default": null,
+    "sort_index": 200
+   },
+   {
+    "name": "min_jump_stitch_length_mm",
+    "label": "Minimum jump stitch length",
+    "tooltip": "Overwrite global minimum jump stitch length setting. Shorter distances to the next object will have no lock stitches.",
+    "type": "float",
+    "unit": "mm",
+    "default": null,
+    "sort_index": 201
+   },
+   {
+    "name": "ties",
+    "label": "Allow lock stitches",
+    "tooltip": "Tie thread at the beginning and/or end of this object. Manual stitch will only add lock stitches if force lock stitched is checked.",
+    "type": "dropdown",
+    "options": [
+     "Both",
+     "Before",
+     "After",
+     "Neither"
+    ],
+    "default": 0,
+    "sort_index": 202
+   },
+   {
+    "name": "force_lock_stitches",
+    "label": "Force lock stitches",
+    "tooltip": "Sew lock stitches after sewing this element, even if the distance to the next object is shorter than defined by the minimum jump stitch length value in the Ink/Stitch preferences.",
+    "type": "boolean",
+    "default": false,
+    "sort_index": 203
+   },
+   {
+    "name": "lock_custom_start",
+    "label": "Custom path",
+    "tooltip": "Enter a custom path. For svg paths The last node will not be embroidered, but represents the first stitch of the element.",
+    "type": "string",
+    "default": "",
+    "select_items": [
+     [
+      "lock_start",
+      "custom"
+     ]
+    ],
+    "sort_index": 205
+   },
+   {
+    "name": "lock_custom_end",
+    "label": "Custom path",
+    "tooltip": "Enter a custom path. For svg paths the first node will not be embroidered, but represents the last stitch of the element.",
+    "type": "string",
+    "default": "",
+    "select_items": [
+     [
+      "lock_end",
+      "custom"
+     ]
+    ],
+    "sort_index": 209
+   },
+   {
+    "name": "trim_after",
+    "label": "Trim After",
+    "tooltip": "Add a TRIM command after stitching this object.",
+    "type": "boolean",
+    "default": false,
+    "sort_index": 212
+   },
+   {
+    "name": "stop_after",
+    "label": "Stop After",
+    "tooltip": "Add a STOP command after stitching this object.",
+    "type": "boolean",
+    "default": false,
+    "sort_index": 213
+   }
+  ],
+  "fill_stitch": [
+   {
+    "name": "fill",
+    "label": "Fill stitching",
+    "type": "toggle",
+    "default": true,
+    "sort_index": 1
+   },
+   {
+    "name": "fill_method",
+    "label": "Fill method",
+    "type": "combo",
+    "default": 0,
+    "options": [
+     "tatami_fill",
+     "circular_fill",
+     "contour_fill",
+     "cross_stitch",
+     "guided_fill",
+     "linear_gradient_fill",
+     "meander_fill",
+     "tartan_fill",
+     "legacy_fill"
+    ],
+    "sort_index": 2
+   },
+   {
+    "name": "guided_fill_strategy",
+    "label": "Guided Fill Strategy",
+    "type": "dropdown",
+    "default": 0,
+    "options": [
+     "Copy",
+     "Parallel Offset",
+     "Buffer"
+    ],
+    "select_items": [
+     [
+      "fill_method",
+      "guided_fill"
+     ]
+    ],
+    "sort_index": 10,
+    "tooltip": "Copy (the default) will fill the shape with shifted copies of the line. Parallel offset will ensure that each line is always a consistent distance from its neighbor. Sharp corners may be introduced."
+   },
+   {
+    "name": "contour_strategy",
+    "label": "Contour Fill Strategy",
+    "type": "dropdown",
+    "default": 0,
+    "options": [
+     "Inner to Outer",
+     "Single spiral",
+     "Double spiral"
+    ],
+    "select_items": [
+     [
+      "fill_method",
+      "contour_fill"
+     ]
+    ],
+    "sort_index": 10
+   },
+   {
+    "name": "join_style",
+    "label": "Join Style",
+    "type": "dropdown",
+    "default": 0,
+    "options": [
+     "Round",
+     "Mitered",
+     "Beveled"
+    ],
+    "select_items": [
+     [
+      "fill_method",
+      "contour_fill"
+     ]
+    ],
+    "sort_index": 11
+   },
+   {
+    "name": "avoid_self_crossing",
+    "label": "Avoid self-crossing",
+    "type": "boolean",
+    "default": false,
+    "select_items": [
+     [
+      "fill_method",
+      "contour_fill"
+     ]
+    ],
+    "sort_index": 12
+   },
+   {
+    "name": "clockwise",
+    "label": "Clockwise",
+    "type": "boolean",
+    "default": true,
+    "select_items": [
+     [
+      "fill_method",
+      "contour_fill"
+     ]
+    ],
+    "sort_index": 13
+   },
+   {
+    "name": "meander_pattern",
+    "label": "Meander Pattern",
+    "type": "combo",
+    "default": 0,
+    "options": "sorted()",
+    "select_items": [
+     [
+      "fill_method",
+      "meander_fill"
+     ]
+    ],
+    "sort_index": 10
+   },
+   {
+    "name": "meander_angle",
+    "label": "Meander pattern angle",
+    "type": "float",
+    "unit": "degrees",
+    "default": 0,
+    "select_items": [
+     [
+      "fill_method",
+      "meander_fill"
+     ]
+    ],
+    "sort_index": 11
+   },
+   {
+    "name": "meander_scale_percent",
+    "label": "Meander pattern scale",
+    "tooltip": "Percentage to stretch or compress the meander pattern.  You can scale horizontally and vertically individually by giving two percentages separated by a space. ",
+    "type": "float",
+    "unit": "%",
+    "default": 100,
+    "select_items": [
+     [
+      "fill_method",
+      "meander_fill"
+     ]
+    ],
+    "sort_index": 12
+   },
+   {
+    "name": "clip",
+    "label": "Clip path",
+    "tooltip": "Constrain stitching to the shape.  Useful when smoothing and expand are used.",
+    "type": "boolean",
+    "default": false,
+    "select_items": [
+     [
+      "fill_method",
+      "meander_fill"
+     ]
+    ],
+    "sort_index": 13
+   },
+   {
+    "name": "smoothness_mm",
+    "label": "Smoothness",
+    "tooltip": "Smooth the stitch path.  Smoothness limits how far the smoothed stitch path is allowed to deviate from the original path.  Try low numbers like 0.2.  Hint: a lower running stitch tolerance may be needed too.",
+    "type": "float",
+    "unit": "mm",
+    "default": 0,
+    "select_items": [
+     [
+      "fill_method",
+      "contour_fill"
+     ],
+     [
+      "fill_method",
+      "guided_fill"
+     ],
+     [
+      "fill_method",
+      "meander_fill"
+     ]
+    ],
+    "sort_index": 14
+   },
+   {
+    "name": "expand_mm",
+    "label": "Expand",
+    "tooltip": "Expand the shape before fill stitching, to compensate for gaps between shapes.  Negative values contract instead.",
+    "unit": "mm",
+    "type": "float",
+    "default": 0,
+    "sort_index": 20
+   },
+   {
+    "name": "gap_fill_rows",
+    "label": "Gap Filling",
+    "tooltip": "Add extra rows to compensate for gaps between sections caused by distortion.Rows are always added in pairs, so this number will be rounded up to the nearest multiple of 2.",
+    "unit": "rows",
+    "type": "int",
+    "default": 0,
+    "sort_index": 21,
+    "select_items": [
+     [
+      "fill_method",
+      "tatami_fill"
+     ]
+    ]
+   },
+   {
+    "name": "angle",
+    "label": "Angle of lines of stitches",
+    "tooltip": "The angle increases in a counter-clockwise direction.  0 is horizontal.  Negative angles are allowed.",
+    "unit": "deg",
+    "type": "float",
+    "sort_index": 21,
+    "select_items": [
+     [
+      "fill_method",
+      "tatami_fill"
+     ],
+     [
+      "fill_method",
+      "legacy_fill"
+     ]
+    ],
+    "default": 0
+   },
+   {
+    "name": "guided_fill_angle",
+    "label": "Guide copy angle",
+    "tooltip": "Angle for guide line shifting. Changing the angle may have a huge impact on the actual spacing between the rows. Ensure the guide line is large enough to fill the area when shifted into the given angle.",
+    "unit": "deg",
+    "type": "float",
+    "sort_index": 21,
+    "select_items": [
+     [
+      "fill_method",
+      "guided_fill"
+     ],
+     [
+      "guided_fill_strategy",
+      0
+     ]
+    ],
+    "default": null
+   },
+   {
+    "name": "tartan_angle",
+    "label": "Angle of lines of stitches",
+    "tooltip": "Relative to the tartan stripe direction.",
+    "unit": "deg",
+    "type": "float",
+    "sort_index": 21,
+    "select_items": [
+     [
+      "fill_method",
+      "tartan_fill"
+     ]
+    ],
+    "default": -45
+   },
+   {
+    "name": "max_stitch_length_mm",
+    "label": "Maximum fill stitch length",
+    "tooltip": "The length of each stitch in a row.  Shorter stitch may be used at the start or end of a row.",
+    "unit": "mm",
+    "sort_index": 22,
+    "type": "float",
+    "select_items": [
+     [
+      "fill_method",
+      "tatami_fill"
+     ],
+     [
+      "fill_method",
+      "contour_fill"
+     ],
+     [
+      "fill_method",
+      "guided_fill"
+     ],
+     [
+      "fill_method",
+      "linear_gradient_fill"
+     ],
+     [
+      "fill_method",
+      "tartan_fill"
+     ],
+     [
+      "fill_method",
+      "legacy_fill"
+     ]
+    ],
+    "default": 4.0
+   },
+   {
+    "name": "row_spacing_mm",
+    "label": "Spacing between rows",
+    "tooltip": "Distance between rows of stitches.",
+    "unit": "mm",
+    "sort_index": 23,
+    "type": "float",
+    "select_items": [
+     [
+      "fill_method",
+      "tatami_fill"
+     ],
+     [
+      "fill_method",
+      "contour_fill"
+     ],
+     [
+      "fill_method",
+      "guided_fill"
+     ],
+     [
+      "fill_method",
+      "circular_fill"
+     ],
+     [
+      "fill_method",
+      "linear_gradient_fill"
+     ],
+     [
+      "fill_method",
+      "tartan_fill"
+     ],
+     [
+      "fill_method",
+      "legacy_fill"
+     ]
+    ],
+    "default": 0.25
+   },
+   {
+    "name": "end_row_spacing_mm",
+    "label": "End row spacing",
+    "tooltip": "Increases or decreases the row spacing towards the end.",
+    "unit": "mm",
+    "sort_index": 24,
+    "type": "float",
+    "select_items": [
+     [
+      "fill_method",
+      "tatami_fill"
+     ],
+     [
+      "fill_method",
+      "circular_fill"
+     ],
+     [
+      "fill_method",
+      "legacy_fill"
+     ]
+    ],
+    "default": null
+   },
+   {
+    "name": "stitch_position_method",
+    "label": "Stitch position method",
+    "tooltip": "Flexible: adapts stitch lenghts accordingly to the tolerance value while keeping stitch length consistent on each curve segment.\nFlexible (stagger): adapts stitch length accordingly to the tolerance value while also optimizing for stagger.",
+    "type": "combo",
+    "default": 0,
+    "options": [
+     "flexible",
+     "flexible_stagger"
+    ],
+    "select_items": [
+     [
+      "fill_method",
+      "guided_fill"
+     ]
+    ],
+    "sort_index": 25
+   },
+   {
+    "name": "staggers",
+    "label": "Stagger rows this many times before repeating",
+    "tooltip": "Length of the cycle by which successive stitch rows are staggered. Fractional values are allowed and can have less visible diagonals than integer values.",
+    "type": "int",
+    "sort_index": 26,
+    "select_items": [
+     [
+      "fill_method",
+      "tatami_fill"
+     ],
+     [
+      "fill_method",
+      "guided_fill"
+     ],
+     [
+      "fill_method",
+      "linear_gradient_fill"
+     ],
+     [
+      "fill_method",
+      "tartan_fill"
+     ],
+     [
+      "fill_method",
+      "legacy_fill"
+     ]
+    ],
+    "default": 4
+   },
+   {
+    "name": "skip_last",
+    "label": "Skip last stitch in each row",
+    "tooltip": "The last stitch in each row is quite close to the first stitch in the next row.  Skipping it decreases stitch count and density.",
+    "type": "boolean",
+    "sort_index": 30,
+    "select_items": [
+     [
+      "fill_method",
+      "tatami_fill"
+     ],
+     [
+      "fill_method",
+      "guided_fill"
+     ],
+     [
+      "fill_method",
+      "linear_gradient_fill"
+     ],
+     [
+      "fill_method",
+      "legacy_fill"
+     ]
+    ],
+    "default": false
+   },
+   {
+    "name": "flip",
+    "label": "Flip fill (start right-to-left)",
+    "tooltip": "The flip option can help you with routing your stitch path.  When you enable flip, stitching goes from right-to-left instead of left-to-right.",
+    "type": "boolean",
+    "sort_index": 31,
+    "select_items": [
+     [
+      "fill_method",
+      "legacy_fill"
+     ]
+    ],
+    "default": false
+   },
+   {
+    "name": "reverse",
+    "label": "Reverse fill",
+    "tooltip": "Reverses fill path.",
+    "type": "boolean",
+    "sort_index": 32,
+    "select_items": [
+     [
+      "fill_method",
+      "legacy_fill"
+     ]
+    ],
+    "default": false
+   },
+   {
+    "name": "stop_at_ending_point",
+    "label": "Stop at ending point",
+    "tooltip": "If this option is disabled, the ending point will only be used to define a general direction for stitch routing. When enabled the last section will end at the defined spot.",
+    "type": "boolean",
+    "sort_index": 33,
+    "select_items": [
+     [
+      "fill_method",
+      "linear_gradient_fill"
+     ],
+     [
+      "fill_method",
+      "tartan_fill"
+     ]
+    ],
+    "default": false
+   },
+   {
+    "name": "underpath",
+    "label": "Underpath",
+    "tooltip": "Travel inside the shape when moving from section to section.  Underpath stitches avoid traveling in the direction of the row angle so that they are not visible.  This gives them a jagged appearance.",
+    "type": "boolean",
+    "default": true,
+    "select_items": [
+     [
+      "fill_method",
+      "tatami_fill"
+     ],
+     [
+      "fill_method",
+      "guided_fill"
+     ],
+     [
+      "fill_method",
+      "circular_fill"
+     ]
+    ],
+    "sort_index": 40
+   },
+   {
+    "name": "running_stitch_length_mm",
+    "label": "Running stitch length",
+    "tooltip": "Length of stitches around the outline of the fill region used when moving from section to section. Also used for meander and circular fill.",
+    "unit": "mm",
+    "type": "float",
+    "default": 2.5,
+    "select_items": [
+     [
+      "fill_method",
+      "tatami_fill"
+     ],
+     [
+      "fill_method",
+      "guided_fill"
+     ],
+     [
+      "fill_method",
+      "meander_fill"
+     ],
+     [
+      "fill_method",
+      "circular_fill"
+     ],
+     [
+      "fill_method",
+      "linear_gradient_fill"
+     ],
+     [
+      "fill_method",
+      "tartan_fill"
+     ]
+    ],
+    "sort_index": 41
+   },
+   {
+    "name": "running_stitch_tolerance_mm",
+    "label": "Running stitch tolerance",
+    "tooltip": "Determines how hard Ink/Stitch tries to avoid stitching outside the shape.Lower numbers are less likely to stitch outside the shape but require more stitches.",
+    "unit": "mm",
+    "type": "float",
+    "default": 0.1,
+    "select_items": [
+     [
+      "fill_method",
+      "tatami_fill"
+     ],
+     [
+      "fill_method",
+      "contour_fill"
+     ],
+     [
+      "fill_method",
+      "guided_fill"
+     ],
+     [
+      "fill_method",
+      "meander_fill"
+     ],
+     [
+      "fill_method",
+      "circular_fill"
+     ],
+     [
+      "fill_method",
+      "linear_gradient_fill"
+     ],
+     [
+      "fill_method",
+      "tartan_fill"
+     ]
+    ],
+    "sort_index": 43
+   },
+   {
+    "name": "enable_random_stitch_length",
+    "label": "Randomize stitch length",
+    "tooltip": "Randomize stitch length and phase instead of dividing evenly or staggering. This is recommended for closely-spaced curved fills to avoid Moiré artefacts.",
+    "type": "boolean",
+    "enables": [
+     "random_stitch_length_jitter_percent"
+    ],
+    "select_items": [
+     [
+      "fill_method",
+      "tatami_fill"
+     ],
+     [
+      "fill_method",
+      "contour_fill"
+     ],
+     [
+      "fill_method",
+      "guided_fill"
+     ],
+     [
+      "fill_method",
+      "circular_fill"
+     ],
+     [
+      "fill_method",
+      "linear_gradient_fill"
+     ]
+    ],
+    "default": false,
+    "sort_index": 44
+   },
+   {
+    "name": "random_stitch_length_jitter_percent",
+    "label": "Random stitch length jitter",
+    "tooltip": "Amount to vary the length of each stitch by when randomizing.",
+    "unit": "± %",
+    "type": "float",
+    "select_items": [
+     [
+      "fill_method",
+      "tatami_fill"
+     ],
+     [
+      "fill_method",
+      "contour_fill"
+     ],
+     [
+      "fill_method",
+      "guided_fill"
+     ],
+     [
+      "fill_method",
+      "circular_fill"
+     ],
+     [
+      "fill_method",
+      "linear_gradient_fill"
+     ]
+    ],
+    "default": 10,
+    "sort_index": 46
+   },
+   {
+    "name": "repeats",
+    "label": "Repeats",
+    "tooltip": "Defines how many times to run down and back along the path.",
+    "type": "int",
+    "default": "1",
+    "select_items": [
+     [
+      "fill_method",
+      "meander_fill"
+     ],
+     [
+      "fill_method",
+      "contour_fill"
+     ],
+     [
+      "fill_method",
+      "circular_fill"
+     ]
+    ],
+    "sort_index": 50
+   },
+   {
+    "name": "bean_stitch_repeats",
+    "label": "Bean stitch number of repeats",
+    "tooltip": "Backtrack each stitch this many times.  A value of 1 would triple each stitch (forward, back, forward).  A value of 2 would quintuple each stitch, etc.\n\nA pattern with various repeats can be created with a list of values separated by a space.",
+    "type": "str",
+    "select_items": [
+     [
+      "fill_method",
+      "meander_fill"
+     ],
+     [
+      "fill_method",
+      "circular_fill"
+     ],
+     [
+      "fill_method",
+      "contour_fill"
+     ],
+     [
+      "fill_method",
+      "guided_fill"
+     ],
+     [
+      "fill_method",
+      "tartan_fill"
+     ]
+    ],
+    "default": 0,
+    "sort_index": 51
+   },
+   {
+    "name": "zigzag_spacing_mm",
+    "label": "Zig-zag spacing (peak-to-peak)",
+    "tooltip": "Length of stitches in zig-zag mode.",
+    "unit": "mm",
+    "type": "float",
+    "select_items": [
+     [
+      "fill_method",
+      "meander_fill"
+     ]
+    ],
+    "default": 0,
+    "sort_index": 60
+   },
+   {
+    "name": "zigzag_width_mm",
+    "label": "Zig-zag width",
+    "tooltip": "Width of the zig-zag line.",
+    "unit": "mm",
+    "type": "float",
+    "select_items": [
+     [
+      "fill_method",
+      "meander_fill"
+     ]
+    ],
+    "default": 3,
+    "sort_index": 61
+   },
+   {
+    "name": "rows_per_thread",
+    "label": "Rows per tartan thread",
+    "tooltip": "Consecutive rows of the same color",
+    "type": "int",
+    "default": "2",
+    "select_items": [
+     [
+      "fill_method",
+      "tartan_fill"
+     ]
+    ],
+    "sort_index": 62
+   },
+   {
+    "name": "herringbone_width_mm",
+    "label": "Herringbone width",
+    "tooltip": "Defines width of a herringbone pattern. Use 0 for regular rows.",
+    "unit": "mm",
+    "type": "int",
+    "default": 0,
+    "select_items": [
+     [
+      "fill_method",
+      "tartan_fill"
+     ]
+    ],
+    "sort_index": 63
+   },
+   {
+    "name": "pull_compensation_mm",
+    "label": "Pull compensation",
+    "tooltip": "Fill stitch can pull the fabric together, resulting in a shape narrower than you draw in Inkscape. This setting expands each row of stitches outward from the center of the row by a fixed length. Two values separated by a space may be used for an asymmetric effect.",
+    "select_items": [
+     [
+      "fill_method",
+      "tatami_fill"
+     ]
+    ],
+    "unit": "mm (each side)",
+    "type": "float",
+    "default": 0,
+    "sort_index": 26
+   },
+   {
+    "name": "pull_compensation_percent",
+    "label": "Pull compensation percentage",
+    "tooltip": "Additional pull compensation which varies as a percentage of row width. Two values separated by a space may be used for an asymmetric effect.",
+    "select_items": [
+     [
+      "fill_method",
+      "tatami_fill"
+     ]
+    ],
+    "unit": "% (each side)",
+    "type": "float",
+    "default": 0,
+    "sort_index": 27
+   },
+   {
+    "name": "fill_underlay",
+    "label": "Underlay",
+    "type": "toggle",
+    "group": "Fill Underlay",
+    "default": true
+   },
+   {
+    "name": "fill_underlay_angle",
+    "label": "Fill angle",
+    "tooltip": "Default: fill angle + 90 deg. Insert a list for multiple layers separated by a space.",
+    "unit": "deg",
+    "group": "Fill Underlay",
+    "type": "float"
+   },
+   {
+    "name": "fill_underlay_row_spacing_mm",
+    "label": "Row spacing",
+    "tooltip": "default: 3x fill row spacing",
+    "unit": "mm",
+    "group": "Fill Underlay",
+    "type": "float"
+   },
+   {
+    "name": "fill_underlay_max_stitch_length_mm",
+    "label": "Max stitch length",
+    "tooltip": "default: equal to fill max stitch length",
+    "unit": "mm",
+    "group": "Fill Underlay",
+    "type": "float"
+   },
+   {
+    "name": "fill_underlay_inset_mm",
+    "label": "Inset",
+    "tooltip": "Shrink the shape before doing underlay, to prevent underlay from showing around the outside of the fill.",
+    "unit": "mm",
+    "group": "Fill Underlay",
+    "type": "float",
+    "default": 0
+   },
+   {
+    "name": "fill_underlay_skip_last",
+    "label": "Skip last stitch in each row",
+    "tooltip": "The last stitch in each row is quite close to the first stitch in the next row.  Skipping it decreases stitch count and density.",
+    "group": "Fill Underlay",
+    "type": "boolean",
+    "default": false
+   },
+   {
+    "name": "underlay_underpath",
+    "label": "Underpath",
+    "tooltip": "Travel inside the shape when moving from section to section.  Underpath stitches avoid traveling in the direction of the row angle so that they are not visible.  This gives them a jagged appearance.",
+    "group": "Fill Underlay",
+    "type": "boolean",
+    "default": true
+   },
+   {
+    "name": "random_seed",
+    "label": "Random seed",
+    "tooltip": "Use a specific seed for randomized attributes. Uses the element ID if empty.",
+    "select_items": [
+     [
+      "fill_method",
+      "tatami_fill"
+     ],
+     [
+      "fill_method",
+      "contour_fill"
+     ],
+     [
+      "fill_method",
+      "guided_fill"
+     ],
+     [
+      "fill_method",
+      "circular_fill"
+     ],
+     [
+      "fill_method",
+      "meander_fill"
+     ],
+     [
+      "fill_method",
+      "linear_gradient_fill"
+     ]
+    ],
+    "type": "random_seed",
+    "default": "",
+    "sort_index": 100
+   },
+   {
+    "name": "cross_stitch_method",
+    "label": "Cross stitch method",
+    "type": "combo",
+    "default": 0,
+    "options": [
+     "simple_cross",
+     "simple_cross_flipped",
+     "half_cross",
+     "half_cross_flipped",
+     "upright_cross",
+     "upright_cross_flipped",
+     "dense_upright_cross",
+     "dense_upright_cross_flipped",
+     "double_cross",
+     "double_cross_flipped",
+     "smyrna_cross",
+     "smyrna_cross_flipped"
+    ],
+    "select_items": [
+     [
+      "fill_method",
+      "cross_stitch"
+     ]
+    ],
+    "sort_index": 9
+   },
+   {
+    "name": "cross_thread_count",
+    "label": "Thread count",
+    "tooltip": "Defines the thread count for each stitch.\nThread count must be an even number.\nHalf crosses are stitched with an odd thread count.",
+    "type": "int",
+    "select_items": [
+     [
+      "fill_method",
+      "cross_stitch"
+     ]
+    ],
+    "default": 4,
+    "sort_index": 11
+   },
+   {
+    "name": "pattern_size_mm",
+    "label": "Pattern size",
+    "tooltip": "Cross stitch pattern size in mm, x and y values are separated by a space. Only one input value returns a square pattern.",
+    "select_items": [
+     [
+      "fill_method",
+      "cross_stitch"
+     ]
+    ],
+    "unit": "mm (x y)",
+    "type": "float",
+    "default": 3,
+    "sort_index": 11
+   },
+   {
+    "name": "canvas_grid_origin",
+    "label": "Align grid with canvas",
+    "tooltip": "This ensures good alignment for adjacent cross stitch areas, but it also means that the outcome may change when the element is moved off the grid.\n\nDisable this option to ensure, that this element stitches the same, independently on its position on the canvas.",
+    "select_items": [
+     [
+      "fill_method",
+      "cross_stitch"
+     ]
+    ],
+    "type": "boolean",
+    "default": true,
+    "sort_index": 12
+   },
+   {
+    "name": "cross_offset_mm",
+    "label": "Grid Offset",
+    "tooltip": "Shifts the cross stitch grid by given values. X and Y values are separated by a space. Only one input value offsets the pattern evenly for x and y.",
+    "select_items": [
+     [
+      "fill_method",
+      "cross_stitch"
+     ]
+    ],
+    "unit": "mm (x y)",
+    "type": "float",
+    "default": 0,
+    "sort_index": 13
+   },
+   {
+    "name": "cross_rotation",
+    "label": "Grid Rotation",
+    "tooltip": "Rotates the cross stitch grid by the given value.",
+    "select_items": [
+     [
+      "fill_method",
+      "cross_stitch"
+     ]
+    ],
+    "unit": "deg",
+    "type": "float",
+    "default": 0,
+    "sort_index": 14
+   },
+   {
+    "name": "fill_coverage",
+    "label": "Fill coverage",
+    "tooltip": "Percentage of overlap for each cross with the fill area",
+    "type": "int",
+    "default": "50",
+    "unit": "%",
+    "select_items": [
+     [
+      "fill_method",
+      "cross_stitch"
+     ]
+    ],
+    "sort_index": 15
+   },
+   {
+    "name": "max_cross_stitch_length_mm",
+    "label": "Maximum stitch length",
+    "tooltip": "The length of each stitch in a row.  Shorter stitch may be used at the start or end of a row.",
+    "unit": "mm",
+    "sort_index": 23,
+    "type": "float",
+    "select_items": [
+     [
+      "fill_method",
+      "cross_stitch"
+     ]
+    ],
+    "default": 11.0
+   }
+  ],
+  "satin_column": [
+   {
+    "name": "satin_column",
+    "label": "Custom satin column",
+    "type": "toggle"
+   },
+   {
+    "name": "satin_method",
+    "label": "Method",
+    "type": "combo",
+    "default": 0,
+    "options": [
+     "satin_column",
+     "e_stitch",
+     "s_stitch",
+     "zigzag"
+    ],
+    "sort_index": 0
+   },
+   {
+    "name": "random_width_decrease_percent",
+    "label": "Random percentage of satin width decrease",
+    "tooltip": "shorten stitch across rails at most this percent. Two values separated by a space may be used for an asymmetric effect.",
+    "default": 0,
+    "type": "float",
+    "unit": "% (each side)",
+    "sort_index": 91
+   },
+   {
+    "name": "random_width_increase_percent",
+    "label": "Random percentage of satin width increase",
+    "tooltip": "lengthen stitch across rails at most this percent. Two values separated by a space may be used for an asymmetric effect.",
+    "default": 0,
+    "type": "float",
+    "unit": "% (each side)",
+    "sort_index": 90
+   },
+   {
+    "name": "random_zigzag_spacing_percent",
+    "label": "Random zig-zag spacing percentage",
+    "tooltip": "Amount of random jitter added to zigzag spacing.",
+    "default": 0,
+    "type": "float",
+    "unit": "± %",
+    "sort_index": 92
+   },
+   {
+    "name": "split_method",
+    "label": "Split Method",
+    "type": "combo",
+    "tooltip": "Display needle penetration points in simulator to see the effect of each split method.",
+    "default": 0,
+    "options": [
+     "default",
+     "simple",
+     "staggered"
+    ],
+    "sort_index": 93
+   },
+   {
+    "name": "max_stitch_length_mm",
+    "label": "Maximum stitch length",
+    "tooltip": "Maximum stitch length for split stitches.",
+    "type": "float",
+    "unit": "mm",
+    "sort_index": 94
+   },
+   {
+    "name": "random_split_jitter_percent",
+    "label": "Random jitter for split stitches",
+    "tooltip": "Randomizes split stitch length if random phase is enabled, stitch position if disabled.",
+    "select_items": [
+     [
+      "split_method",
+      "default"
+     ]
+    ],
+    "default": 0,
+    "type": "float",
+    "unit": "± %",
+    "sort_index": 95
+   },
+   {
+    "name": "random_split_phase",
+    "label": "Random phase for split stitches",
+    "tooltip": "Controls whether split stitches are centered or with a random phase (which may increase stitch count).",
+    "select_items": [
+     [
+      "split_method",
+      "default"
+     ]
+    ],
+    "default": false,
+    "type": "boolean",
+    "sort_index": 96
+   },
+   {
+    "name": "min_random_split_length_mm",
+    "label": "Minimum length for random-phase split",
+    "tooltip": "Defaults to maximum stitch length. Smaller values allow for a transition between single-stitch and split-stitch.",
+    "select_items": [
+     [
+      "split_method",
+      "default"
+     ]
+    ],
+    "default": "",
+    "type": "float",
+    "unit": "mm",
+    "sort_index": 97
+   },
+   {
+    "name": "split_staggers",
+    "label": "Stagger split stitches this many times before repeating",
+    "tooltip": "Length of the cycle by which successive stitch rows are staggered. Fractional values are allowed and can have less visible diagonals than integer values.",
+    "select_items": [
+     [
+      "split_method",
+      "staggered"
+     ]
+    ],
+    "default": 4,
+    "type": "float",
+    "sort_index": 98
+   },
+   {
+    "name": "short_stitch_inset",
+    "label": "Short stitch inset",
+    "tooltip": "Stitches in areas with high density will be inset by this amount.Two values separated by a space define inset levels if there are multiple consecutive short stitches.",
+    "type": "float",
+    "unit": "%",
+    "default": 15,
+    "sort_index": 3
+   },
+   {
+    "name": "short_stitch_distance_mm",
+    "label": "Short stitch distance",
+    "tooltip": "Inset stitches if the distance between stitches is smaller than this.",
+    "type": "float",
+    "unit": "mm",
+    "default": 0.25,
+    "sort_index": 4
+   },
+   {
+    "name": "zigzag_spacing_mm",
+    "label": "Zig-zag spacing (peak-to-peak)",
+    "tooltip": "Peak-to-peak distance between zig-zags. This is double the mm/stitch measurement used by most mechanical machines.",
+    "unit": "mm/cycle",
+    "type": "float",
+    "default": 0.4,
+    "sort_index": 5
+   },
+   {
+    "name": "pull_compensation_percent",
+    "label": "Pull compensation percentage",
+    "tooltip": "Additional pull compensation which varies as a percentage of stitch width. Two values separated by a space may be used for an asymmetric effect.",
+    "unit": "% (each side)",
+    "type": "float",
+    "default": 0,
+    "sort_index": 6
+   },
+   {
+    "name": "pull_compensation_mm",
+    "label": "Pull compensation",
+    "tooltip": "Satin stitches pull the fabric together, resulting in a column narrower than you draw in Inkscape. This setting expands each pair of needle penetrations outward from the center of the satin column by a fixed length. Two values separated by a space may be used for an asymmetric effect.",
+    "unit": "mm (each side)",
+    "type": "float",
+    "default": 0,
+    "sort_index": 7
+   },
+   {
+    "name": "push_compensation_mm",
+    "label": "Push compensation",
+    "tooltip": "Shrinks the column at start and/or end.",
+    "unit": "mm (each side)",
+    "type": "float",
+    "default": 0,
+    "sort_index": 8
+   },
+   {
+    "name": "reverse_rails",
+    "label": "Reverse rails",
+    "tooltip": "This may help if your satin renders very strangely.  Default: automatically detect and fix a reversed rail.",
+    "type": "combo",
+    "options": [
+     "automatic",
+     "none",
+     "first",
+     "second",
+     "both"
+    ],
+    "default": "automatic",
+    "sort_index": 10
+   },
+   {
+    "name": "swap_satin_rails",
+    "label": "Swap rails",
+    "tooltip": "Swaps the first and second rails of the satin column, affecting which side the thread finished on as well as any sided properties",
+    "type": "boolean",
+    "default": "false",
+    "sort_index": 11
+   },
+   {
+    "name": "running_stitch_length_mm",
+    "label": "Running stitch length",
+    "tooltip": "Length of stitches for start and end point connections.",
+    "unit": "mm",
+    "type": "float",
+    "default": 2.5,
+    "sort_index": 20
+   },
+   {
+    "name": "running_stitch_tolerance_mm",
+    "label": "Running stitch tolerance",
+    "tooltip": "Determines how hard Ink/Stitch tries to avoid stitching outside the shape.Lower numbers are less likely to stitch outside the shape but require more stitches.",
+    "unit": "mm",
+    "type": "float",
+    "default": 0.1,
+    "sort_index": 21
+   },
+   {
+    "name": "running_stitch_position",
+    "label": "Running Stitch Position",
+    "tooltip": "Position of running stitches between the rails. 0% is along the first rail, 50% is centered, 100% is along the second rail.",
+    "type": "float",
+    "unit": "%",
+    "default": 50,
+    "sort_index": 22
+   },
+   {
+    "name": "start_at_nearest_point",
+    "label": "Start at nearest point",
+    "tooltip": "Start at nearest point to previous element. A start position command will overwrite this setting.",
+    "default": true,
+    "type": "boolean",
+    "sort_index": 23
+   },
+   {
+    "name": "end_at_nearest_point",
+    "label": "End at nearest point",
+    "tooltip": "End at nearest point to the next element. An end position command will overwrite this setting.",
+    "default": true,
+    "type": "boolean",
+    "sort_index": 24
+   },
+   {
+    "name": "contour_underlay",
+    "label": "Contour underlay",
+    "type": "toggle",
+    "group": "Contour Underlay"
+   },
+   {
+    "name": "contour_underlay_stitch_length_mm",
+    "label": "Stitch length",
+    "unit": "mm",
+    "group": "Contour Underlay",
+    "type": "float",
+    "default": 3
+   },
+   {
+    "name": "contour_underlay_stitch_tolerance_mm",
+    "label": "Stitch tolerance",
+    "tooltip": "All stitches must be within this distance from the path. A lower tolerance means stitches will be closer together. A higher tolerance means sharp corners may be rounded. ",
+    "unit": "mm",
+    "group": "Contour Underlay",
+    "type": "float",
+    "default": 0.2
+   },
+   {
+    "name": "contour_underlay_inset_mm",
+    "label": "Inset distance (fixed)",
+    "tooltip": "Shrink the outline by a fixed length, to prevent the underlay from showing around the outside of the satin column.",
+    "group": "Contour Underlay",
+    "unit": "mm (each side)",
+    "type": "float",
+    "default": 0.4,
+    "sort_index": 2
+   },
+   {
+    "name": "contour_underlay_inset_percent",
+    "label": "Inset distance (proportional)",
+    "tooltip": "Shrink the outline by a proportion of the column width, to prevent the underlay from showing around the outside of the satin column.",
+    "group": "Contour Underlay",
+    "unit": "% (each side)",
+    "type": "float",
+    "default": 0,
+    "sort_index": 3
+   },
+   {
+    "name": "center_walk_underlay",
+    "label": "Center-walk underlay",
+    "type": "toggle",
+    "group": "Center-Walk Underlay"
+   },
+   {
+    "name": "center_walk_underlay_stitch_length_mm",
+    "label": "Stitch length",
+    "unit": "mm",
+    "group": "Center-Walk Underlay",
+    "type": "float",
+    "default": 3
+   },
+   {
+    "name": "center_walk_underlay_stitch_tolerance_mm",
+    "label": "Stitch tolerance",
+    "tooltip": "All stitches must be within this distance from the path. A lower tolerance means stitches will be closer together. A higher tolerance means sharp corners may be rounded. Defaults to stitch length.",
+    "unit": "mm",
+    "group": "Center-Walk Underlay",
+    "type": "float",
+    "default": 0.2
+   },
+   {
+    "name": "center_walk_underlay_repeats",
+    "label": "Repeats",
+    "tooltip": "For an odd number of repeats, this will reverse the direction the satin column is stitched, causing stitching to both begin and end at the start point.",
+    "group": "Center-Walk Underlay",
+    "type": "int",
+    "default": 2,
+    "sort_index": 2
+   },
+   {
+    "name": "center_walk_underlay_position",
+    "label": "Position",
+    "tooltip": "Position of underlay from between the rails. 0% is along the first rail, 50% is centered, 100% is along the second rail.",
+    "group": "Center-Walk Underlay",
+    "type": "float",
+    "unit": "%",
+    "default": 50,
+    "sort_index": 3
+   },
+   {
+    "name": "zigzag_underlay",
+    "label": "Zig-zag underlay",
+    "type": "toggle",
+    "group": "Zig-zag Underlay"
+   },
+   {
+    "name": "zigzag_underlay_spacing_mm",
+    "label": "Zig-Zag spacing (peak-to-peak)",
+    "tooltip": "Distance between peaks of the zig-zags.",
+    "unit": "mm",
+    "group": "Zig-zag Underlay",
+    "type": "float",
+    "default": 3
+   },
+   {
+    "name": "zigzag_underlay_inset_mm",
+    "label": "Inset amount (fixed)",
+    "tooltip": "default: half of contour underlay inset",
+    "unit": "mm (each side)",
+    "group": "Zig-zag Underlay",
+    "type": "float",
+    "default": ""
+   },
+   {
+    "name": "zigzag_underlay_inset_percent",
+    "label": "Inset amount (proportional)",
+    "tooltip": "default: half of contour underlay inset",
+    "unit": "% (each side)",
+    "group": "Zig-zag Underlay",
+    "type": "float",
+    "default": ""
+   },
+   {
+    "name": "zigzag_underlay_max_stitch_length_mm",
+    "label": "Maximum stitch length",
+    "tooltip": "Split stitch if distance of maximum stitch length is exceeded",
+    "unit": "mm",
+    "group": "Zig-zag Underlay",
+    "type": "float",
+    "default": ""
+   },
+   {
+    "name": "random_seed",
+    "label": "Random seed",
+    "tooltip": "Use a specific seed for randomized attributes. Uses the element ID if empty.",
+    "type": "random_seed",
+    "default": "",
+    "sort_index": 100
+   }
+  ],
+  "stroke": [
+   {
+    "name": "satin_column",
+    "label": "Running stitch along paths",
+    "type": "toggle",
+    "inverse": true
+   },
+   {
+    "name": "stroke_method",
+    "label": "Method",
+    "type": "combo",
+    "default": 0,
+    "options": [
+     "running_stitch",
+     "ripple_stitch",
+     "zigzag_stitch",
+     "manual_stitch"
+    ],
+    "sort_index": 0
+   },
+   {
+    "name": "repeats",
+    "label": "Repeats",
+    "tooltip": "Defines how many times to run down and back along the path.",
+    "type": "int",
+    "select_items": [
+     [
+      "stroke_method",
+      "running_stitch"
+     ],
+     [
+      "stroke_method",
+      "ripple_stitch"
+     ],
+     [
+      "stroke_method",
+      "zigzag_stitch"
+     ]
+    ],
+    "default": "1",
+    "sort_index": 2
+   },
+   {
+    "name": "bean_stitch_repeats",
+    "label": "Bean stitch number of repeats",
+    "tooltip": "Backtrack each stitch this many times.  A value of 1 would triple each stitch (forward, back, forward).  A value of 2 would quintuple each stitch, etc.\n\nA pattern with various repeats can be created with a list of values separated by a space.",
+    "type": "str",
+    "select_items": [
+     [
+      "stroke_method",
+      "running_stitch"
+     ],
+     [
+      "stroke_method",
+      "ripple_stitch"
+     ],
+     [
+      "stroke_method",
+      "manual_stitch"
+     ],
+     [
+      "stroke_method",
+      "zigzag_stitch"
+     ]
+    ],
+    "default": 0,
+    "sort_index": 3
+   },
+   {
+    "name": "manual_pattern_placement",
+    "label": "Manual stitch placement",
+    "tooltip": "No extra stitches will be added to the original ripple pattern and the running stitch length value will be ignored.",
+    "type": "boolean",
+    "select_items": [
+     [
+      "stroke_method",
+      "ripple_stitch"
+     ]
+    ],
+    "default": false,
+    "sort_index": 3
+   },
+   {
+    "name": "running_stitch_length_mm",
+    "label": "Running stitch length",
+    "tooltip": "Length of stitches. Stitches can be shorter according to the stitch tolerance setting.\nIt is possible to create stitch length patterns by adding multiple values separately.",
+    "unit": "mm",
+    "type": "string",
+    "select_items": [
+     [
+      "stroke_method",
+      "running_stitch"
+     ],
+     [
+      "stroke_method",
+      "ripple_stitch"
+     ]
+    ],
+    "default": "2.5",
+    "sort_index": 4
+   },
+   {
+    "name": "running_stitch_tolerance_mm",
+    "label": "Stitch tolerance",
+    "tooltip": "All stitches must be within this distance from the path.  A lower tolerance means stitches will be closer together.  A higher tolerance means sharp corners may be rounded.",
+    "unit": "mm",
+    "type": "float",
+    "select_items": [
+     [
+      "stroke_method",
+      "running_stitch"
+     ],
+     [
+      "stroke_method",
+      "ripple_stitch"
+     ]
+    ],
+    "default": 0.2,
+    "sort_index": 4
+   },
+   {
+    "name": "enable_random_stitch_length",
+    "label": "Randomize stitch length",
+    "tooltip": "Randomize stitch length and phase instead of dividing evenly or staggering. This is recommended for closely-spaced curved fills to avoid Moiré artefacts.",
+    "type": "boolean",
+    "select_items": [
+     [
+      "stroke_method",
+      "running_stitch"
+     ],
+     [
+      "stroke_method",
+      "ripple_stitch"
+     ]
+    ],
+    "enables": [
+     "random_stitch_length_jitter_percent"
+    ],
+    "default": false,
+    "sort_index": 5
+   },
+   {
+    "name": "random_stitch_length_jitter_percent",
+    "label": "Random stitch length jitter",
+    "tooltip": "Amount to vary the length of each stitch by when randomizing.",
+    "unit": "± %",
+    "type": "float",
+    "select_items": [
+     [
+      "stroke_method",
+      "running_stitch"
+     ],
+     [
+      "stroke_method",
+      "ripple_stitch"
+     ]
+    ],
+    "default": 10,
+    "sort_index": 6
+   },
+   {
+    "name": "max_stitch_length_mm",
+    "label": "Max stitch length",
+    "tooltip": "Split stitches longer than this.",
+    "unit": "mm",
+    "type": "float",
+    "select_items": [
+     [
+      "stroke_method",
+      "manual_stitch"
+     ]
+    ],
+    "sort_index": 5
+   },
+   {
+    "name": "zigzag_spacing_mm",
+    "label": "Zig-zag spacing (peak-to-peak)",
+    "tooltip": "Length of stitches in zig-zag mode.",
+    "unit": "mm",
+    "type": "string",
+    "default": "0.4",
+    "select_items": [
+     [
+      "stroke_method",
+      "zigzag_stitch"
+     ]
+    ],
+    "sort_index": 6
+   },
+   {
+    "name": "stroke_pull_compensation_mm",
+    "label": "Pull compensation",
+    "tooltip": "Zigzag stitches pull the fabric together, resulting in a column narrower than you draw in Inkscape. This widens the zigzag line width.",
+    "unit": "mm (each side)",
+    "type": "float",
+    "default": 0,
+    "select_items": [
+     [
+      "stroke_method",
+      "zigzag_stitch"
+     ]
+    ],
+    "sort_index": 6
+   },
+   {
+    "name": "zigzag_angle",
+    "label": "Zig-zag angle",
+    "tooltip": "Rotate zig-zag direction by this angle (degrees). Creates spoke/radial effects on curves.",
+    "unit": "°",
+    "type": "float",
+    "default": 0,
+    "select_items": [
+     [
+      "stroke_method",
+      "zigzag_stitch"
+     ]
+    ],
+    "sort_index": 7
+   },
+   {
+    "name": "line_count",
+    "label": "Number of lines",
+    "tooltip": "Number of lines from start to finish",
+    "type": "int",
+    "default": 10,
+    "select_items": [
+     [
+      "stroke_method",
+      "ripple_stitch"
+     ]
+    ],
+    "sort_index": 7
+   },
+   {
+    "name": "min_line_dist_mm",
+    "label": "Minimum line distance",
+    "tooltip": "Overrides the number of lines setting.",
+    "unit": "mm",
+    "type": "float",
+    "select_items": [
+     [
+      "stroke_method",
+      "ripple_stitch"
+     ]
+    ],
+    "sort_index": 8
+   },
+   {
+    "name": "satin_guide_pattern_position",
+    "label": "Pattern position",
+    "tooltip": "Pattern position for satin guided ripples.",
+    "type": "combo",
+    "options": [
+     "default",
+     "render_at_rungs",
+     "adaptive"
+    ],
+    "default": "default",
+    "select_items": [
+     [
+      "stroke_method",
+      "ripple_stitch"
+     ]
+    ],
+    "sort_index": 9
+   },
+   {
+    "name": "staggers",
+    "label": "Stagger lines this many times before repeating",
+    "tooltip": "Length of the cycle by which successive stitch lines are staggered. Fractional values are allowed and can have less visible diagonals than integer values. A value of 0 (default) disables staggering and instead stitches evenly.For linear ripples only.",
+    "type": "int",
+    "select_items": [
+     [
+      "stroke_method",
+      "ripple_stitch"
+     ]
+    ],
+    "default": 0,
+    "sort_index": 15
+   },
+   {
+    "name": "skip_start",
+    "label": "Skip first lines",
+    "tooltip": "Skip this number of lines at the beginning.",
+    "type": "int",
+    "default": 0,
+    "select_items": [
+     [
+      "stroke_method",
+      "ripple_stitch"
+     ]
+    ],
+    "sort_index": 16
+   },
+   {
+    "name": "skip_end",
+    "label": "Skip last lines",
+    "tooltip": "Skip this number of lines at the end",
+    "type": "int",
+    "default": 0,
+    "select_items": [
+     [
+      "stroke_method",
+      "ripple_stitch"
+     ]
+    ],
+    "sort_index": 17
+   },
+   {
+    "name": "flip_copies",
+    "label": "Flip every second line",
+    "tooltip": "Linear ripple: wether to flip the pattern every second line or not.",
+    "type": "boolean",
+    "select_items": [
+     [
+      "stroke_method",
+      "ripple_stitch"
+     ]
+    ],
+    "default": true,
+    "sort_index": 18
+   },
+   {
+    "name": "exponent",
+    "label": "Line distance exponent",
+    "tooltip": "Increase density towards one side.",
+    "type": "float",
+    "default": 1,
+    "select_items": [
+     [
+      "stroke_method",
+      "ripple_stitch"
+     ]
+    ],
+    "sort_index": 19
+   },
+   {
+    "name": "flip_exponent",
+    "label": "Flip exponent",
+    "tooltip": "Reverse exponent effect.",
+    "type": "boolean",
+    "default": false,
+    "select_items": [
+     [
+      "stroke_method",
+      "ripple_stitch"
+     ]
+    ],
+    "sort_index": 20
+   },
+   {
+    "name": "reverse",
+    "label": "Reverse",
+    "tooltip": "Flip start and end point",
+    "type": "boolean",
+    "default": false,
+    "select_items": [
+     [
+      "stroke_method",
+      "ripple_stitch"
+     ]
+    ],
+    "sort_index": 21
+   },
+   {
+    "name": "reverse_rails",
+    "label": "Reverse rails",
+    "tooltip": "Reverse satin ripple rails. Default: automatically detect and fix a reversed rail.",
+    "type": "combo",
+    "options": [
+     "automatic",
+     "none",
+     "first",
+     "second",
+     "both"
+    ],
+    "default": "automatic",
+    "select_items": [
+     [
+      "stroke_method",
+      "ripple_stitch"
+     ]
+    ],
+    "sort_index": 22
+   },
+   {
+    "name": "swap_satin_rails",
+    "label": "Swap rails",
+    "tooltip": "Swaps the first and second rails of a satin ripple, affecting which side the thread finished on as well as any sided properties",
+    "type": "boolean",
+    "default": "false",
+    "select_items": [
+     [
+      "stroke_method",
+      "ripple_stitch"
+     ]
+    ],
+    "sort_index": 23
+   },
+   {
+    "name": "grid_size_mm",
+    "label": "Grid size",
+    "tooltip": "Render as grid. Use with care and watch your stitch density.",
+    "type": "float",
+    "default": 0,
+    "unit": "mm",
+    "select_items": [
+     [
+      "stroke_method",
+      "ripple_stitch"
+     ]
+    ],
+    "sort_index": 24
+   },
+   {
+    "name": "grid_first",
+    "label": "Stitch grid first",
+    "tooltip": "Reverse the stitch paths, so that the grid will be stitched first",
+    "type": "boolean",
+    "default": false,
+    "select_items": [
+     [
+      "stroke_method",
+      "ripple_stitch"
+     ]
+    ],
+    "sort_index": 25
+   },
+   {
+    "name": "scale_axis",
+    "label": "Scale axis",
+    "tooltip": "Scale axis for satin guided ripple stitches.",
+    "type": "dropdown",
+    "default": 0,
+    "options": [
+     "X Y",
+     "X",
+     "Y",
+     "None"
+    ],
+    "select_items": [
+     [
+      "stroke_method",
+      "ripple_stitch"
+     ]
+    ],
+    "sort_index": 25
+   },
+   {
+    "name": "scale_start",
+    "label": "Starting scale",
+    "tooltip": "How big the first copy of the line should be, in percent. +   + Used only for ripple stitch with a guide line.",
+    "type": "float",
+    "unit": "%",
+    "default": 100,
+    "select_items": [
+     [
+      "stroke_method",
+      "ripple_stitch"
+     ]
+    ],
+    "sort_index": 26
+   },
+   {
+    "name": "scale_end",
+    "label": "Ending scale",
+    "tooltip": "How big the last copy of the line should be, in percent. +   + Used only for ripple stitch with a guide line.",
+    "type": "float",
+    "unit": "%",
+    "default": 0.0,
+    "select_items": [
+     [
+      "stroke_method",
+      "ripple_stitch"
+     ]
+    ],
+    "sort_index": 27
+   },
+   {
+    "name": "rotate_ripples",
+    "label": "Rotate",
+    "tooltip": "Rotate satin guided ripple stitches",
+    "type": "boolean",
+    "default": true,
+    "select_items": [
+     [
+      "stroke_method",
+      "ripple_stitch"
+     ]
+    ],
+    "sort_index": 30
+   },
+   {
+    "name": "join_style",
+    "label": "Join style",
+    "tooltip": "Join style for non circular ripples.",
+    "type": "dropdown",
+    "default": 0,
+    "options": [
+     "flat",
+     "point"
+    ],
+    "select_items": [
+     [
+      "stroke_method",
+      "ripple_stitch"
+     ]
+    ],
+    "sort_index": 31
+   },
+   {
+    "name": "random_seed",
+    "label": "Random seed",
+    "tooltip": "Use a specific seed for randomized attributes. Uses the element ID if empty.",
+    "select_items": [
+     [
+      "stroke_method",
+      "running_stitch"
+     ],
+     [
+      "stroke_method",
+      "ripple_stitch"
+     ]
+    ],
+    "type": "random_seed",
+    "default": "",
+    "sort_index": 100
+   }
+  ]
+ }
+}
