@@ -10,7 +10,7 @@
 * { box-sizing: border-box; }
 html, body { height: 100%; margin: 0; }
 body { background: var(--fond); color: var(--texte); font: 13px/1.4 -apple-system, BlinkMacSystemFont, "Helvetica Neue", sans-serif;
-       display: grid; grid-template-rows: auto 1fr auto; }
+       display: grid; grid-template-rows: auto 1fr auto auto auto; }
 h2 { font-size: 11px; text-transform: uppercase; letter-spacing: .05em; color: var(--muted); margin: 14px 0 6px; font-weight: 600; }
 h3 { font-size: 14px; margin: 0; }
 .muted { color: var(--muted); } .small { font-size: 11px; }
@@ -30,8 +30,10 @@ header { background: var(--panneau); border-bottom: 1px solid var(--bord); }
                   font-size: 12px; color: var(--muted); border-bottom: 2px solid transparent; }
 .onglets button svg { width: 20px; height: 20px; fill: none; stroke: currentColor; stroke-width: 1.6; stroke-linecap: round; }
 .onglets button.on { color: var(--texte); background: var(--sel); border-bottom-color: var(--accent); }
-main { overflow: auto; padding: 10px; display: flex; flex-direction: column; gap: 10px; min-height: 0; }
-.vue { display: flex; flex-direction: column; gap: 10px; min-height: 0; }
+main { overflow: hidden; display: flex; flex-direction: column; min-height: 0; }
+.vue { flex: 1; display: flex; flex-direction: column; gap: 10px; min-height: 0; overflow: auto; padding: 10px; }
+#v-objets { overflow: hidden; }
+#v-objets .defile { flex: 1; min-height: 0; overflow: auto; display: flex; flex-direction: column; gap: 10px; }
 .vue[hidden] { display: none; }
 #v-points, #v-apercu { flex: 1; }
 .carte { background: var(--carte); border: 1px solid var(--bord); border-radius: 10px; padding: 10px 12px; }
@@ -84,7 +86,12 @@ details.theme summary .nb { color: var(--muted); font-weight: 400; margin-left: 
 .outils { display: flex; flex-wrap: wrap; gap: 5px; }
 .outils button { font-size: 12px; padding: 4px 9px; }
 /* aperçu */
-#apercu { flex: 1; min-height: 280px; background: #fff; border: 1px solid var(--bord); border-radius: 10px; position: relative; overflow: hidden; cursor: grab; }
+.empl-apercu { display: flex; flex-direction: column; }
+#emplApercuObjets { flex: none; }
+#emplApercuObjets #apercu { height: 260px; min-height: 140px; max-height: 70vh; resize: vertical; flex: none; }
+.empl-apercu.grand { flex: 1; }
+.empl-apercu.grand #apercu { flex: 1; min-height: 280px; }
+#apercu { flex: 1; min-height: 140px; background: #fff; border: 1px solid var(--bord); border-radius: 10px; position: relative; overflow: hidden; cursor: grab; }
 #apercu.vide { display: flex; align-items: center; justify-content: center; color: #888; padding: 20px; text-align: center; cursor: default; }
 #apercu svg { position: absolute; inset: 0; width: 100%; height: 100%; }
 #apercu .calcul { position: absolute; right: 8px; top: 8px; background: rgba(0,0,0,.6); color: #fff; border-radius: 6px; padding: 2px 8px; font-size: 11px; }
@@ -110,8 +117,9 @@ details.theme summary .nb { color: var(--muted); font-weight: 400; margin-left: 
 .police.on { border-color: var(--accent); }
 .police img { display: block; max-width: 100%; height: 26px; object-fit: contain; object-position: left; }
 .police span { font-size: 10px; color: #666; }
-#journal { min-height: 14px; white-space: pre-wrap; }
-#tache { background: var(--sel); border-radius: 6px; padding: 4px 8px; font-size: 12px; }
+#journal { min-height: 0; white-space: pre-wrap; padding: 0 12px; }
+#journal:not(:empty) { padding: 4px 12px; }
+#tache { background: var(--sel); padding: 4px 12px; font-size: 12px; }
 footer { display: flex; gap: 8px; align-items: center; padding: 7px 12px; background: var(--panneau); border-top: 1px solid var(--bord); min-height: 36px; }
 footer #attenteInfo { flex: 1; }
 #attenteInfo.on { color: #f2b45a; font-weight: 600; }

@@ -21,6 +21,8 @@ from . import moteur as E
 
 UI = os.path.join(M.ICI, "ui")
 PORT = int(os.environ.get("BRODERIE_PORT") or 47811)
+SESSION = os.path.expanduser(os.environ.get("BRODERIE_SESSION") or
+                             "~/Library/Application Support/broderie-panneau/session-%d.json" % PORT)
 INACTIF = float(os.environ.get("BRODERIE_INACTIF") or 3600)    # secondes sans panneau ni Inkscape → arrêt
 
 
@@ -56,6 +58,32 @@ class Session:
         self.vu = 0.0                     # dernier signe de vie du panneau
         self.tache = None                 # commande Ink/Stitch en cours (fenêtre éventuelle)
         self.actif = time.time()
+
+    # --- sauvegarde : les modifications en attente survivent à un redémarrage du panneau ---------
+    def sauver(self):
+        try:
+            os.makedirs(os.path.dirname(SESSION), exist_ok=True)
+            d = {"recu": self.recu, "ids": self.ids, "nom": self.nom, "attente": self.attente,
+                 "document": etree.tostring(self.document.getroot(), encoding="unicode") if self.document is not None else None}
+            with open(SESSION + ".tmp", "w", encoding="utf-8") as f:
+                json.dump(d, f)
+            os.replace(SESSION + ".tmp", SESSION)
+        except (OSError, TypeError, ValueError) as e:
+            self.log("Sauvegarde impossible : %s" % e)
+
+    def restaurer(self):
+        try:
+            with open(SESSION, encoding="utf-8") as f:
+                d = json.load(f)
+        except (OSError, ValueError):
+            return
+        if d.get("document"):
+            self.document = _lire(d["document"])
+            self.recu = d.get("recu")
+            self.base = signature(_lire(d["recu"])) if d.get("recu") else None
+            self.ids, self.nom = d.get("ids") or [], d.get("nom") or "dessin"
+            self.attente = [tuple(op) for op in d.get("attente") or []]
+            self.version = 1
 
     # --- état -------------------------------------------------------------
     def etat(self):
@@ -120,6 +148,12 @@ class Session:
 
     # --- actions du panneau -------------------------------------------------
     def action(self, nom, d):
+        r = self._action(nom, d)
+        if nom in ("params", "couleur", "ordre", "abandonner", "sync", "lettrage"):
+            self.sauver()
+        return r
+
+    def _action(self, nom, d):
         if nom == "present":                           # signe de vie (sans verrou : jamais bloqué)
             self.vu = self.actif = time.time()
             return {"version": self.version, "attente": len(self.attente), "tache": self.tache}
@@ -227,6 +261,7 @@ class Session:
                         self.ids = []                  # objets créés ou remplacés : on montre tout le dessin
                         self.version += 1
                         self.attente.append(("commande", ext))
+                        self.sauver()
                         self.log("Commande Ink/Stitch : %s" % M.tr(cmd["nom"]))
                         res = {"modifie": True, "message": msg}
                     else:
@@ -342,6 +377,7 @@ def _gestionnaire(session):
 def principal():
     """Démarre le serveur (processus d'arrière-plan lancé par l'extension)."""
     session = Session()
+    session.restaurer()
     srv = ThreadingHTTPServer(("127.0.0.1", PORT), _gestionnaire(session))
     threading.Thread(target=srv.serve_forever, daemon=True).start()
     while True:

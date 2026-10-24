@@ -19,12 +19,15 @@
 <main>
   <!-- Objets : liste + réglages de l'objet choisi -->
   <section id="v-objets" class="vue">
+    <div id="emplApercuObjets" class="empl-apercu"></div>
+    <div class="defile">
     <div class="carte">
       <div class="carte-titre"><span>Calques et objets</span><button id="bTexte" class="petit" title="Ajouter un texte brodé">＋ Texte</button></div>
       <ul id="liste"></ul>
     </div>
     <div id="props" class="carte"></div>
     <div id="texte" class="carte" hidden></div>
+    </div>
   </section>
   <!-- Points : simulation de la broderie -->
   <section id="v-points" class="vue" hidden>
@@ -40,7 +43,7 @@
   </section>
   <!-- Aperçu : rendu des points, légende et statistiques -->
   <section id="v-apercu" class="vue" hidden>
-    <div id="apercu" class="vide">L'aperçu des points s'affiche ici.</div>
+    <div id="emplApercu" class="empl-apercu grand"><div id="apercu" class="vide">L'aperçu des points s'affiche ici.</div></div>
     <div class="carte" id="stats"></div>
   </section>
   <!-- Export -->
@@ -61,9 +64,9 @@
       <button id="bPlus">Toutes les commandes Ink/Stitch…</button>
     </div>
   </section>
-  <div id="tache" hidden></div>
-  <div id="journal" class="muted small"></div>
 </main>
+<div id="tache" hidden></div>
+<div id="journal" class="muted small"></div>
 <footer>
   <span id="attenteInfo" class="small"></span>
   <button id="bAbandonner" class="petit" hidden>Annuler</button>

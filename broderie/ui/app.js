@@ -349,6 +349,9 @@ function changerVue(v) {
   S.vue = v; message('');
   $$('#vues button').forEach((b) => b.classList.toggle('on', b.dataset.vue === v));
   for (const k of ['objets', 'points', 'apercu', 'export']) $('#v-' + k).hidden = k !== v;
+  // un seul aperçu, déplacé dans l'onglet affiché : en haut des Objets pour voir l'effet des réglages
+  if (v === 'objets') { $('#emplApercuObjets').appendChild($('#apercu')); apercu(); }
+  if (v === 'apercu') $('#emplApercu').appendChild($('#apercu'));
   if (v === 'points') chargerSimulation(); else arreterSimulation();
   if (v === 'apercu') { apercu(); rendreStats('#stats'); }
   if (v === 'export') rendreExport();
@@ -408,6 +411,7 @@ function apercuBientot() {
     S.simu = null;
     if (S.vue === 'points') chargerSimulation();
     else if (S.vue === 'apercu') { apercu(); rendreStats('#stats'); }
+    else if (S.vue === 'objets') apercu();
     else if (S.vue === 'export') rendreExport();
   }, 400);
 }
@@ -710,4 +714,5 @@ setInterval(surveiller, 2000);
     .map((f) => `<option value="${f}">.${f}${NOMS_FMT[f] ? ' (' + NOMS_FMT[f] + ')' : ''}</option>`).join('');
   await api('present');
   rendreTout();
+  changerVue('objets');
 })();

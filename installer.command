@@ -9,7 +9,13 @@ rm -rf "$DEST/broderie"
 cp -R "$ICI/broderie" "$DEST/"
 cp "$ICI/broderie_panneau.py" "$ICI/broderie_panneau.inx" "$ICI/broderie_serveur.py" "$DEST/"
 # arrête l'ancien serveur du panneau s'il tourne (il redémarre avec la nouvelle version)
-curl -s -m 2 -X POST http://127.0.0.1:47811/api/quitter -d '{}' >/dev/null 2>&1 || true
+# … sauf s'il garde des modifications pas encore envoyées à Inkscape (l'affichage est mis à jour quand même)
+ATTENTE=$(curl -s -m 2 -X POST http://127.0.0.1:47811/api/present -d '{}' 2>/dev/null | /usr/bin/sed -n 's/.*"attente": *\([0-9]*\).*/\1/p')
+if [ -n "$ATTENTE" ] && [ "$ATTENTE" != "0" ]; then
+  echo "Le panneau garde $ATTENTE modification(s) non envoyée(s) : il n'est pas redémarré (appuyez sur Cmd+Option+B dans Inkscape)."
+else
+  curl -s -m 2 -X POST http://127.0.0.1:47811/api/quitter -d '{}' >/dev/null 2>&1 || true
+fi
 find "$DEST" -name __pycache__ -prune -exec rm -rf {} +
 # raccourci clavier ⌘⌥B  pour le panneau, dans les raccourcis personnels d'Inkscape :
 # fichier créé s'il n'existe pas, sinon la ligne est ajoutée sans toucher au reste
