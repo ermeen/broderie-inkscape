@@ -150,7 +150,7 @@ class Session:
                 "attente": len(self.attente), "version": self.version,
                 "reserve": {k: len(v) for k, v in self.reserve.items()},
                 "version_panneau": VERSION_PANNEAU, "raccourci": S.RACCOURCI, "mac": S.MAC,
-                "ancien": E.ancien(self.document),
+                "ancien": E.ancien(self.document), "bati": M.reglages_bati(self.document),
                 "moteur": {"chemin": E.binaire(), "version": E.version()},
                 "commandes": cmds, "formats": sorties, "journal": self.journal[-20:]}
 
@@ -207,6 +207,9 @@ class Session:
         if op[0] == "fils":
             M.remplacer_couleurs(doc, op[1])
             return
+        if op[0] == "bati":
+            M.appliquer_bati(doc, *op[1:])
+            return
         if op[0] == "placer":
             M.placer(doc, op[1], op[2], op[3])
             return
@@ -229,7 +232,7 @@ class Session:
     # --- actions du panneau -------------------------------------------------
     def action(self, nom, d):
         r = self._action(nom, d)
-        if nom in ("params", "couleur", "ordre", "abandonner", "sync", "lettrage", "assembler", "marquer_a_jour", "cadre", "placer", "visible", "appliquer_fils"):
+        if nom in ("params", "couleur", "ordre", "abandonner", "sync", "lettrage", "assembler", "marquer_a_jour", "cadre", "placer", "visible", "appliquer_fils", "bati"):
             self.sauver()
         return r
 
@@ -280,6 +283,14 @@ class Session:
             if nom == "params":
                 M.ecrire(M.par_id(self.document, d["id"]), d.get("valeurs", {}))
                 self.attente.append(("params", d["id"], d.get("valeurs", {})))
+                return self.etat()
+            if nom == "bati":                          # faufilage autour du motif (ajouté, recalculé ou retiré)
+                op = ("bati", bool(d.get("actif")), float(d.get("ecart", 10)), float(d.get("longueur", 5)),
+                      float(d.get("arrondi", 6)), d.get("cadre_largeur"), d.get("cadre_hauteur"))
+                if not M.appliquer_bati(self.document, *op[1:]):
+                    raise ValueError("Aucun objet brodé autour duquel placer le bâti.")
+                self.attente.append(op)
+                self.version += 1
                 return self.etat()
             if nom == "appliquer_fils":                # couleurs exactes des bobines choisies
                 corr = {a: n for a, n in (d.get("correspondances") or {}).items() if M.hex6(a) != M.hex6(n)}

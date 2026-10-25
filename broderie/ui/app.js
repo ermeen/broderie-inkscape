@@ -615,6 +615,7 @@ function rendreTout() {
   $('#props').hidden = S.texte; $('#texte').hidden = !S.texte;
   if (S.texte) rendreTexte();
   if (S.vue === 'export') rendreExport();
+  if (S.vue === 'points') rendreCadres();
 }
 function rendreAncien() {
   const b = $('#bandeauAncien');
@@ -641,14 +642,32 @@ function rendreAttente() {
 function changerVue(v) {
   S.vue = v; message('');
   $$('#vues button').forEach((b) => b.classList.toggle('on', b.dataset.vue === v));
-  for (const k of ['objets', 'points', 'apercu', 'export']) $('#v-' + k).hidden = k !== v;
+  for (const k of ['objets', 'points', 'export']) $('#v-' + k).hidden = k !== v;
+  if (v !== 'points') { arreterSimulation(); restaurerMode(); }
   // un seul aperçu, déplacé dans l'onglet affiché : en haut des Objets pour voir l'effet des réglages
   if (v === 'objets') { $('#emplApercuObjets').insertBefore($('#apercu'), $('#poignee')); if (S.texte) apercuTexteBientot(); else apercu(); }
-  if (v === 'apercu') $('#emplApercu').appendChild($('#apercu'));
-  if (v === 'points') chargerSimulation(); else arreterSimulation();
-  if (v === 'apercu') { apercu(); rendreStats('#stats'); }
+  if (v === 'points') { rendreCadres(); rendreBati(); rendreStats('#stats').then(verifierCadre); modeSimulation(S.simMode); }
   if (v === 'export') rendreExport();
 }
+// Simulation : « Animation » (le simulateur) ou « Réaliste » (le rendu d'Ink/Stitch), sur la même page blanche,
+// avec le cadre schématisé ; le mode de l'aperçu des Objets est retrouvé en sortant
+S.simMode = 'animation';
+try { S.simMode = localStorage.getItem('broderie.simMode') === 'realiste' ? 'realiste' : 'animation'; } catch (e) { /* défaut */ }
+let modeObjets = null;
+function restaurerMode() { if (modeObjets !== null) { MODE = modeObjets; modeObjets = null; } }
+function modeSimulation(m) {
+  S.simMode = m; try { localStorage.setItem('broderie.simMode', m); } catch (e) { /* rien */ }
+  $$('#simMode button').forEach((b) => b.classList.toggle('on', b.dataset.mode === m));
+  const reel = m === 'realiste';
+  $('#simu').hidden = reel; $('#emplApercu').hidden = !reel;
+  if (reel) {
+    arreterSimulation();
+    if (modeObjets === null) modeObjets = MODE;
+    MODE = 'realiste'; vb = vb0 = null;
+    $('#emplApercu').appendChild($('#apercu')); apercu();
+  } else { restaurerMode(); chargerSimulation(); }
+}
+$$('#simMode button').forEach((b) => { b.onclick = () => modeSimulation(b.dataset.mode); });
 $$('#vues button').forEach((b) => { b.onclick = () => changerVue(b.dataset.vue); });
 $('#bTexte').onclick = () => { S.texte = true; S.texteVu = null; TX.dims = null; const o = S.etat.objets.find((x) => x.id === S.sel); if (o && typePrincipal(o) !== 'lettrage') S.sel = null; TX.pour = null; rendreTout(); };
 
@@ -705,8 +724,11 @@ async function apercu() {
     a.className = ''; a.innerHTML = r.svg; a.style.background = TISSU;
     a.appendChild(barreRendu());
     const svg = $('svg', a);
+    const MM = { mm: 1, cm: 10, in: 25.4, pt: 25.4 / 72, px: 25.4 / 96, '': 25.4 / 96 };   // largeur de la page en mm
+    const lw = /^([\d.]+)\s*(mm|cm|in|pt|px)?$/.exec(svg.getAttribute('width') || '');
     svg.removeAttribute('width'); svg.removeAttribute('height');
     let v = (svg.getAttribute('viewBox') || '0 0 100 100').split(/[ ,]+/).map(Number);
+    const uMM = lw ? v[2] / (parseFloat(lw[1]) * MM[lw[2] || '']) : 1;     // unités du dessin par mm
     // vue de départ : la page et tout le motif (un texte posé hors de la page reste visible)
     const plan = [...svg.children].find((g) => g.tagName === 'g' || g.tagName === 'image');   // réaliste : une image
     if (plan) {
@@ -722,6 +744,7 @@ async function apercu() {
         }
       } catch (e) { /* SVG pas encore mesurable : vue de la page */ }
     }
+    if (S.vue === 'points' && SIM_AFF.cadre) v = dessinerCadreApercu(svg, plan, v, uMM);
     vb0 = v; if (!garder) vb = v.slice();
     if (MODE !== 'points') habiller(svg, v); else { pointsAiguille(svg); superposerCommandes(svg); if (AFF.densite) carteDensite(svg); }
     zonesCliquables(svg);
@@ -732,6 +755,23 @@ async function apercu() {
     apercuEnCours = false; badge.remove();
     if (n !== apercuDemande) apercu();
   }
+}
+// cadre schématisé sur le rendu réaliste, centré sur le motif (comme à l'export) ; renvoie la vue agrandie
+function dessinerCadreApercu(svg, plan, v, u) {
+  const c = cadreChoisi(); if (!c || !plan) return v;
+  let b, m;
+  try { b = plan.getBBox(); m = svg.getCTM().inverse().multiply(plan.getCTM()); } catch (e) { return v; }
+  const p0 = new DOMPoint(b.x, b.y).matrixTransform(m), p1 = new DOMPoint(b.x + b.width, b.y + b.height).matrixTransform(m);
+  const w = c.largeur * u, h = c.hauteur * u, cx = (p0.x + p1.x) / 2, cy = (p0.y + p1.y) / 2;
+  const NS = 'http://www.w3.org/2000/svg';
+  const g = document.createElementNS(NS, 'g'); g.setAttribute('class', 'cadre-panneau'); g.setAttribute('pointer-events', 'none');
+  g.innerHTML = `<rect x="${cx - w / 2}" y="${cy - h / 2}" width="${w}" height="${h}" rx="${Math.min(w, h) * 0.04}" fill="none"
+    stroke="#8a8f99" stroke-width="${0.4 * u}" stroke-dasharray="${2 * u} ${1.3 * u}"/>
+    <text x="${cx - w / 2}" y="${cy - h / 2 - 1.5 * u}" font-size="${3.5 * u}" fill="#8a8f99" font-family="-apple-system, Segoe UI, sans-serif">Cadre ${c.largeur} × ${c.hauteur} mm</text>`;
+  svg.appendChild(g);
+  const x0 = Math.min(v[0], cx - w / 2 - 3 * u), y0 = Math.min(v[1], cy - h / 2 - 7 * u);
+  const x1 = Math.max(v[0] + v[2], cx + w / 2 + 3 * u), y1 = Math.max(v[1] + v[3], cy + h / 2 + 3 * u);
+  return [x0, y0, x1 - x0, y1 - y0];
 }
 // rendu réaliste : tissu tissé (à l'échelle du dessin, en mm) et ombre portée sous les fils
 function habiller(svg, v) {
@@ -932,8 +972,7 @@ function apercuBientot() {
   clearTimeout(minuterie);
   minuterie = setTimeout(() => {
     S.simu = null;
-    if (S.vue === 'points') chargerSimulation();
-    else if (S.vue === 'apercu') { apercu(); rendreStats('#stats'); }
+    if (S.vue === 'points') { if (S.simMode === 'realiste') apercu(); else chargerSimulation(); rendreStats('#stats').then(verifierCadre); }
     else if (S.vue === 'objets') { if (S.texte) apercuTexteBientot(); else apercu(); }
     else if (S.vue === 'export') rendreExport();
   }, 400);
@@ -983,14 +1022,21 @@ async function rendreStats(sel) {
 S.cadres = null;
 const cadreChoisi = () => (S.cadres || [])[+$('#fCadre').value];
 async function rendreExport() {
+  await rendreCadres();                               // le cadre choisi (dans Simulation) est rappelé ici
+  rendreBobines();
+  await rendreStats('#statsExport');
+  verifierCadre();
+}
+async function rendreCadres() {
   if (!S.cadres) S.cadres = (await api('cadres')).cadres;
   const sel = $('#fCadre');
   let c = 0; try { c = +(localStorage.getItem('broderie.cadreN') || 0); } catch (e) { /* sans stockage */ }
-  sel.innerHTML = S.cadres.map((x, i) => `<option value="${i}" ${i === c ? 'selected' : ''}>${esc(x.nom)} — ${x.largeur} × ${x.hauteur} mm</option>`).join('');
-  sel.onchange = () => { try { localStorage.setItem('broderie.cadreN', sel.value); } catch (e) { /* rien */ } verifierCadre(); pageAuCadre(); };
+  const taille = (x) => `${x.largeur} × ${x.hauteur} mm`;
+  const nomCadre = (x) => (x.nom || '').replace(/\s/g, '') === `${x.largeur}×${x.hauteur}` ? taille(x) : `${x.nom} — ${taille(x)}`;   // la taille une seule fois
+  sel.innerHTML = S.cadres.map((x, i) => `<option value="${i}" ${i === c ? 'selected' : ''}>${esc(nomCadre(x))}</option>`).join('');
+  sel.onchange = () => { try { localStorage.setItem('broderie.cadreN', sel.value); } catch (e) { /* rien */ } verifierCadre(); pageAuCadre();
+    if (BATI.actif) envoyerBati(); else redessinerCadre(); };     // le bâti suit le nouveau cadre
   $('#cbCadrePage').onchange = () => { if ($('#cbCadrePage').checked) pageAuCadre(); };
-  rendreBobines();
-  await rendreStats('#statsExport');
   verifierCadre();
 }
 
@@ -1063,28 +1109,61 @@ async function rendreNuancier(div) {
 }
 function verifierCadre() {
   const i = $('#cadreInfo'), c = cadreChoisi();
-  if (!c || !S.dimensions) { i.textContent = ''; return; }
+  if (!c || !S.dimensions) { i.textContent = ''; $('#cadreExport').textContent = ''; return; }
   const [w, h] = S.dimensions;
   const ok = (w <= c.largeur && h <= c.hauteur);
   const tourne = !ok && w <= c.hauteur && h <= c.largeur;
   i.innerHTML = ok ? `<span style="color:#5ec27a">✓ Le motif (${w.toFixed(0)} × ${h.toFixed(0)} mm) tient dans le cadre.</span>`
     : tourne ? `<span style="color:#f2b45a">⚠ Le motif tient seulement s'il est tourné d'un quart de tour (dans Inkscape).</span>`
     : `<span style="color:#f2b45a">⚠ Le motif (${w.toFixed(0)} × ${h.toFixed(0)} mm) dépasse ce cadre.</span>`;
+  $('#cadreExport').innerHTML = `Cadre ${c.largeur} × ${c.hauteur} mm : ` + i.innerHTML + ' (à régler dans Simulation)';
 }
+// Bâti : faufilage autour du motif, brodé en premier ; curseurs écart, longueur de point, arrondi des angles
+const BATI = { actif: false, ecart: 10, longueur: 5, arrondi: 6 };
+try { Object.assign(BATI, JSON.parse(localStorage.getItem('broderie.bati') || '{}')); } catch (e) { /* défaut */ }
+let minuterieBati = null;
+function rendreBati() {
+  const d = $('#bati'), present = S.etat && S.etat.bati;
+  if (present) Object.assign(BATI, present, { actif: true });
+  else BATI.actif = false;
+  const curseur = (k, lib, min, max, pas) => `<div class="curseur-bati"><div class="haut"><span>${lib}</span><b id="bv-${k}">${BATI[k]} mm</b></div>
+    <input type="range" data-k="${k}" min="${min}" max="${max}" step="${pas}" value="${BATI[k]}" ${BATI.actif ? '' : 'disabled'}></div>`;
+  d.innerHTML = `<div class="carte-titre"><span>Bâti</span><label class="interrupteur" style="margin:0"><input type="checkbox" id="cbBati" ${BATI.actif ? 'checked' : ''}></label></div>
+    ${curseur('ecart', 'Écart avec le motif', 2, 40, 1)}${curseur('longueur', 'Longueur de point', 2, 10, 0.5)}${curseur('arrondi', 'Arrondi des angles', 0, 30, 1)}
+    ${present && present.depasse ? '<p class="small" style="color:#f2b45a">⚠ Le bâti sort du cadre : réduisez l\'écart.</p>' : ''}
+    <p class="muted small">Brodé en premier, dans sa couleur (la machine s'arrête pour le fil de bâti), puis coupé. Sans points d'arrêt : il s'enlève facilement.</p>`;
+  $('#cbBati').onchange = (e) => { BATI.actif = e.target.checked; envoyerBati(); };
+  $$('#bati input[type=range]').forEach((r) => {
+    r.oninput = () => { BATI[r.dataset.k] = +r.value; $('#bv-' + r.dataset.k).textContent = r.value + ' mm'; clearTimeout(minuterieBati); minuterieBati = setTimeout(envoyerBati, 350); };
+  });
+}
+async function envoyerBati() {
+  try { localStorage.setItem('broderie.bati', JSON.stringify(BATI)); } catch (e) { /* rien */ }
+  try {
+    const c = cadreChoisi();
+    S.etat = await api('bati', { ...BATI, cadre_largeur: c ? c.largeur : null, cadre_hauteur: c ? c.hauteur : null });
+    S.simu = null; rendreAttente(); rendreBati();
+    if (S.simMode === 'realiste') apercu(); else chargerSimulation();
+    rendreStats('#stats').then(verifierCadre);
+    message(BATI.actif ? 'Bâti placé autour du motif : Synchroniser pour l\'envoyer à Inkscape.' : 'Bâti retiré : Synchroniser pour l\'enlever d\'Inkscape.');
+  } catch (e) { message(e.message, true); BATI.actif = false; rendreBati(); }
+}
+// le cadre change : on le redessine dans la simulation
+function redessinerCadre() { if (S.vue === 'points') { if (S.simMode === 'realiste') apercu(); else dessinerSimulation(); } }
 $('#bCadreAjout').onclick = async () => {
   const l = +$('#ncL').value, h = +$('#ncH').value;
   if (!(l > 0 && h > 0)) { message('Indiquez la largeur et la hauteur du cadre en millimètres.', true); return; }
   S.cadres = (await api('cadres_ecrire', { cadres: [...S.cadres, { nom: $('#ncNom').value.trim() || `${l} × ${h}`, largeur: l, hauteur: h }] })).cadres;
   try { localStorage.setItem('broderie.cadreN', S.cadres.length - 1); } catch (e) { /* rien */ }
   $('#nouveauCadre').open = false; $('#ncNom').value = $('#ncL').value = $('#ncH').value = '';
-  rendreExport(); message('Cadre ajouté.');
+  rendreCadres(); redessinerCadre(); message('Cadre ajouté.');
 };
 $('#bCadreSuppr').onclick = async () => {
   const n = +$('#fCadre').value, c = S.cadres[n];
   if (!c || !confirm(`Supprimer le cadre « ${c.nom} » de la liste ?`)) return;
   S.cadres = (await api('cadres_ecrire', { cadres: S.cadres.filter((_, i) => i !== n) })).cadres;
   try { localStorage.setItem('broderie.cadreN', 0); } catch (e) { /* rien */ }
-  rendreExport(); message('Cadre supprimé.');
+  rendreCadres(); redessinerCadre(); message('Cadre supprimé.');
 };
 // choisir un cadre : la feuille d'Inkscape prend sa taille à la prochaine synchronisation (le motif ne bouge pas)
 async function pageAuCadre() {
@@ -1109,7 +1188,7 @@ $('#bCadreCentrer').onclick = async () => {
 // mêmes affichages et mêmes raccourcis clavier que son simulateur, avec ses icônes.
 const SIM = { pts: null, fils: [], i: 0, lecture: false, raf: 0, sens: 1, niveau: 5, dernier: 0, reste: 0,
   vue: { k: 1, x: 0, y: 0 }, cmds: [], couleurs: [], page: null };
-const SIM_AFF = { npp: false, sauts: true, coupes: true, arrets: true, couleurs: true, mire: true, page: false, info: false, fond: '#ffffff' };
+const SIM_AFF = { npp: false, sauts: true, coupes: true, arrets: true, couleurs: true, mire: true, page: false, info: false, cadre: true, fond: '#ffffff' };
 const SIM_PREF = { epaisseur: 0.3, npp: 0.5, mireRayon: 12, mireEpaisseur: 2, mireCouleur: '#e74c3c', adapter: true };
 try {
   Object.assign(SIM_AFF, JSON.parse(localStorage.getItem('broderie.simAff') || '{}'));
@@ -1139,6 +1218,7 @@ const SF = {
   pause: `<rect x="6.5" y="5" width="3.6" height="14" rx="1.2" ${F}/><rect x="13.9" y="5" width="3.6" height="14" rx="1.2" ${F}/>`,
   forward_stitch: `<path d="M9.5 6l6 6-6 6"/>`,
   fleche: `<path d="M5 12h14M14 7l5 5-5 5"/>`,
+  cadre: `<rect x="3" y="3" width="18" height="18" rx="4"/><rect x="7.5" y="7.5" width="9" height="9" rx="1.5" stroke-dasharray="2 1.6"/>`,
   forward_command: `<path d="M18 5.5v13"/><path d="M6 6.5l8.5 5.5L6 17.5z" ${F}/>`,
   direction: `<path d="M4 8.5h15M15.5 5l3.5 3.5-3.5 3.5M20 15.5H5M8.5 12 5 15.5 8.5 19"/>`,
   slower: `<path d="M4.5 16.5a7.5 7.5 0 1 1 15 0"/><path d="M12 16.5 8 12.5"/><circle cx="12" cy="16.5" r="1.2" ${F}/>`,
@@ -1167,6 +1247,11 @@ async function chargerSimulation() {
 function cadreSimulation(cv) {
   let x0 = Infinity, x1 = -Infinity, y0 = Infinity, y1 = -Infinity;
   for (const [x, y] of SIM.pts) { if (x < x0) x0 = x; if (x > x1) x1 = x; if (y < y0) y0 = y; if (y > y1) y1 = y; }
+  const c = SIM_AFF.cadre && cadreChoisi();
+  if (c) {                                            // le cadre aussi (centré sur le motif, comme à l'export)
+    x0 = Math.min(x0, -c.largeur * 5); x1 = Math.max(x1, c.largeur * 5);
+    y0 = Math.min(y0, -c.hauteur * 5); y1 = Math.max(y1, c.hauteur * 5);
+  }
   if (SIM_AFF.page && SIM.page) {                     // la page entière doit tenir dans la vue
     const p = SIM.page;
     x0 = Math.min(x0, -p.cx * 10); x1 = Math.max(x1, (p.largeur - p.cx) * 10);
@@ -1191,6 +1276,15 @@ function dessinerSimulation() {
     g.strokeRect(ox - p.cx * 10 * k, oy - p.cy * 10 * k, p.largeur * 10 * k, p.hauteur * 10 * k);
   }
   const X = (x) => ox + x * k, Y = (y) => oy + y * k;
+  const cadre = SIM_AFF.cadre && cadreChoisi();
+  if (cadre) {                                        // cadre schématisé : contour en pointillés et sa taille
+    g.save(); g.strokeStyle = '#8a8f99'; g.lineWidth = 1.5 * dpr * px; g.setLineDash([6 * dpr * px, 4 * dpr * px]);
+    const w = cadre.largeur * 10 * k, h = cadre.hauteur * 10 * k;
+    g.beginPath(); g.roundRect(X(-cadre.largeur * 5), Y(-cadre.hauteur * 5), w, h, Math.min(w, h) * 0.04); g.stroke();
+    g.fillStyle = '#8a8f99'; g.font = `${12 * dpr * px}px -apple-system, "Segoe UI", sans-serif`;
+    g.fillText(`Cadre ${cadre.largeur} × ${cadre.hauteur} mm`, X(-cadre.largeur * 5), Y(-cadre.hauteur * 5) - 6 * dpr * px);
+    g.restore();
+  }
   const fin = Math.min(SIM.i, SIM.pts.length);
   // fil brodé, couleur par couleur
   g.lineWidth = Math.max(dpr * px * 0.6, SIM_PREF.epaisseur * 10 * k); g.lineCap = 'round'; g.lineJoin = 'round';
@@ -1343,7 +1437,7 @@ const ACTIONS_SIMU = {
   slower: ['Plus lent (↓)', () => { SIM.niveau = Math.max(1, SIM.niveau - 1); dessinerSimulation(); }],
   faster: ['Plus rapide (↑)', () => { SIM.niveau = Math.min(15, SIM.niveau + 1); dessinerSimulation(); }],
 };
-const VUES_SIMU = [['npp', 'npp', 'Pénétrations de l\'aiguille (O)'], ['sauts', 'jump', 'Sauts'], ['coupes', 'trim', 'Coupes'],
+const VUES_SIMU = [['cadre', 'cadre', 'Cadre de la brodeuse'], ['npp', 'npp', 'Pénétrations de l\'aiguille (O)'], ['sauts', 'jump', 'Sauts'], ['coupes', 'trim', 'Coupes'],
   ['arrets', 'stop', 'Arrêts'], ['couleurs', 'color_change', 'Changements de couleur'], ['mire', 'cursor', 'Mire sur l\'aiguille'],
   ['page', 'page', 'Afficher la page'], ['info', 'info', 'Informations sur le motif']];
 function construireBarresSimu() {
@@ -1768,7 +1862,8 @@ function adapterTouches(raccourci) {
   // lien direct vers un onglet : …/#points, #apercu, #export, #texte
   const [h, arg] = decodeURIComponent(location.hash.slice(1)).split('/');
   if (arg && h === 'objets') choisir([arg]);
-  if (arg === 'realiste') MODE = 'realiste';
+  if (arg === 'realiste' && h === 'objets') MODE = 'realiste';
+  if (h === 'apercu' || (h === 'points' && arg)) S.simMode = arg === 'animation' ? 'animation' : 'realiste';   // ancien onglet Aperçu
   if (h === 'texte') { changerVue('objets'); S.texte = true; rendreTout(); }
-  else changerVue(['points', 'apercu', 'export'].includes(h) ? h : 'objets');
+  else changerVue(h === 'apercu' ? 'points' : ['points', 'export'].includes(h) ? h : 'objets');
 })();

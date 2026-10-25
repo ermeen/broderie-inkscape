@@ -18,13 +18,11 @@ On **dessine dans Inkscape**, on **règle la broderie dans le panneau**, et **In
   - Copier et coller des réglages.
   - Colonnes satin : conversion d'un trait, assemblage des rails et traverses.
   - Texte brodé (140 polices) avec aperçu en direct : droit, en arc (jusqu'au cercle) ou sur une courbe dessinée dans Inkscape.
-- **Aperçu**
-  - Points d'aiguille, sauts, coupes et changements de couleur.
-  - Rendu réaliste sur tissu.
-- **Points** : simulation complète, comme le simulateur d'Ink/Stitch.
+- **Simulation**
+  - Animation point par point (sauts, coupes, changements de couleur) ou rendu réaliste sur tissu, avec zoom.
+  - Le cadre de la brodeuse dessiné autour du motif, et un **bâti** réglable (écart, longueur de point, arrondi des angles).
 - **Export**
   - 21 formats de machine.
-  - Cadres de la brodeuse, motif centré dans le cadre.
   - Bobines : marque de fil (75 nuanciers), bobine la plus proche pour chaque couleur, couleurs exactes des fils.
   - Durée estimée.
 - **Toutes les commandes Ink/Stitch**, en français.
@@ -38,7 +36,7 @@ Il faut Inkscape 1.4 et Ink/Stitch 3, testés avec Inkscape 1.4.2 et Ink/Stitch 
 3. Quittez puis relancez Inkscape.
 4. Appuyez sur **Cmd+Option+B**.
 
-Mode d'emploi complet et astuces de réglages : [docs/Notice-Broderie-1.4.1.pdf](docs/Notice-Broderie-1.4.1.pdf).
+Mode d'emploi complet et astuces de réglages : [docs/Notice-Broderie-1.5.0.pdf](docs/Notice-Broderie-1.5.0.pdf).
 
 **Windows (version d'essai)** : double-cliquez sur `Installer sous Windows.bat`, relancez Inkscape, puis **Ctrl+Alt+B**. Guide de test : [TESTER-WINDOWS.md](TESTER-WINDOWS.md).
 

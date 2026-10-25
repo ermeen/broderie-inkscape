@@ -12,8 +12,7 @@
   <div class="titre"><img class="logo" src="logo.png" alt=""><span class="nom-appli">Broderie</span></div>
   <nav class="onglets" id="vues">
     <button data-vue="objets" class="on" title="Objets : choisir et régler"><svg viewBox="0 0 24 24"><path d="M5 5l14 14M19 5L5 19M12 3v18M3 12h18"/></svg><span>Objets</span></button>
-    <button data-vue="points" title="Points : simulation de la broderie"><svg viewBox="0 0 24 24"><path d="M4 7h16M4 12h16M4 17h16"/><circle cx="9" cy="7" r="2"/><circle cx="15" cy="12" r="2"/><circle cx="8" cy="17" r="2"/></svg><span>Points</span></button>
-    <button data-vue="apercu" title="Aperçu : rendu, densité, statistiques"><svg viewBox="0 0 24 24"><path d="M2 12s4-7 10-7 10 7 10 7-4 7-10 7S2 12 2 12z"/><circle cx="12" cy="12" r="3"/></svg><span>Aperçu</span></button>
+    <button data-vue="points" title="Simulation : la broderie dans son cadre, animée ou en rendu réaliste"><svg viewBox="0 0 24 24"><path d="M4 7h16M4 12h16M4 17h16"/><circle cx="9" cy="7" r="2"/><circle cx="15" cy="12" r="2"/><circle cx="8" cy="17" r="2"/></svg><span>Simulation</span></button>
     <button data-vue="export" title="Export : cadre et fichier machine"><svg viewBox="0 0 24 24"><path d="M12 3v12M7 10l5 5 5-5M5 20h14"/></svg><span>Export</span></button>
   </nav>
   <button id="bLarge" class="ico-entete" title="Aperçu à gauche des réglages (élargit la fenêtre) / panneau étroit"><svg viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="M10 5v14"/></svg></button>
@@ -22,7 +21,7 @@
 <main>
   <!-- Objets : liste + réglages de l'objet choisi -->
   <section id="v-objets" class="vue">
-    <div id="emplApercuObjets" class="empl-apercu"><div id="poignee" title="Glisser pour agrandir ou réduire l'aperçu"></div></div>
+    <div id="emplApercuObjets" class="empl-apercu"><div id="apercu" class="vide">L'aperçu des points s'affiche ici.</div><div id="poignee" title="Glisser pour agrandir ou réduire l'aperçu"></div></div>
     <div class="defile">
     <div class="carte">
       <div class="carte-titre"><span>Calques et objets</span><button id="bTexte" class="petit" title="Ajouter un texte brodé">＋ Texte</button></div>
@@ -33,8 +32,11 @@
     <div id="texte" class="carte" hidden></div>
     </div>
   </section>
-  <!-- Points : simulation de la broderie -->
+  <!-- Simulation : animation ou rendu réaliste, dans le cadre ; cadre, bâti et statistiques à côté -->
   <section id="v-points" class="vue" hidden>
+    <div class="sim-scene">
+    <div class="sim-modes"><span class="seg" id="simMode"><button data-mode="animation" class="on">Animation</button><button data-mode="realiste">Réaliste</button></span></div>
+    <div id="emplApercu" class="empl-apercu grand" hidden></div>
     <div id="simu">
       <div class="simu-vue">
         <canvas id="simuCanvas"></canvas>
@@ -48,11 +50,26 @@
       <div class="simu-barre vues" id="simuVues"></div>
       <div class="simu-barre"><span id="sInfo" class="muted small"></span></div>
     </div>
-  </section>
-  <!-- Aperçu : rendu des points, légende et statistiques -->
-  <section id="v-apercu" class="vue" hidden>
-    <div id="emplApercu" class="empl-apercu grand"><div id="apercu" class="vide">L'aperçu des points s'affiche ici.</div></div>
-    <div class="carte" id="stats"></div>
+    </div>
+    <div class="sim-cote">
+      <div class="carte">
+        <div class="carte-titre"><span>Cadre</span></div>
+        <div class="ligne-cadre"><select id="fCadre"></select><button id="bCadreSuppr" class="petit" title="Supprimer ce cadre de la liste">Supprimer</button></div>
+        <div id="cadreInfo" class="small"></div>
+        <details id="nouveauCadre" class="theme"><summary>Ajouter un cadre</summary>
+          <div class="champ"><label>Nom</label><input type="text" id="ncNom" placeholder="ex. Grand cadre Brother"></div>
+          <div class="champ"><label>Largeur (mm)</label><input type="number" id="ncL" min="10" step="1"></div>
+          <div class="champ"><label>Hauteur (mm)</label><input type="number" id="ncH" min="10" step="1"></div>
+          <button id="bCadreAjout" class="petit">Ajouter ce cadre</button>
+        </details>
+        <div class="boutons-cadre">
+          <button id="bCadreCentrer" title="Centre le motif dans le cadre et fait de la page d'Inkscape la taille du cadre">⊕ Centrer le motif dans le cadre</button>
+          <label class="interrupteur"><span>Montrer le cadre dans Inkscape (la page prend sa taille)</span><input type="checkbox" id="cbCadrePage" checked></label>
+        </div>
+      </div>
+      <div class="carte" id="bati"></div>
+      <div class="carte" id="stats"></div>
+    </div>
   </section>
   <!-- Export -->
   <section id="v-export" class="vue" hidden>
@@ -60,19 +77,7 @@
       <div class="carte-titre"><span>Exporter</span></div>
       <label class="etiquette">Fichier de broderie</label>
       <select id="fFormat"></select>
-      <label class="etiquette">Cadre de la brodeuse</label>
-      <div class="ligne-cadre"><select id="fCadre"></select><button id="bCadreSuppr" class="petit" title="Supprimer ce cadre de la liste">Supprimer</button></div>
-      <div id="cadreInfo" class="small"></div>
-      <details id="nouveauCadre" class="theme"><summary>Ajouter un cadre</summary>
-        <div class="champ"><label>Nom</label><input type="text" id="ncNom" placeholder="ex. Grand cadre Brother"></div>
-        <div class="champ"><label>Largeur (mm)</label><input type="number" id="ncL" min="10" step="1"></div>
-        <div class="champ"><label>Hauteur (mm)</label><input type="number" id="ncH" min="10" step="1"></div>
-        <button id="bCadreAjout" class="petit">Ajouter ce cadre</button>
-      </details>
-      <div class="boutons-cadre">
-        <button id="bCadreCentrer" title="Centre le motif dans le cadre et fait de la page d'Inkscape la taille du cadre">⊕ Centrer le motif dans le cadre</button>
-        <label class="interrupteur"><span>Montrer le cadre dans Inkscape (la page prend sa taille)</span><input type="checkbox" id="cbCadrePage" checked></label>
-      </div>
+      <p class="muted small" id="cadreExport"></p>
       <button id="bExport" class="principal large">Exporter</button>
       <p class="muted small">Le fichier est calculé par Ink/Stitch et enregistré dans Téléchargements.</p>
     </div>

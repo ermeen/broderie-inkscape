@@ -266,8 +266,8 @@ c += [Chapitre(1, "Le principe", "Chacun son rôle : le dessin, les réglages, l
                ["Déplacer, tourner, agrandir, supprimer (formes et textes)", "Inkscape"],
                ["Choisir le type de point, la densité, l'angle, les sous-couches", "Panneau › Objets"],
                ["Créer un texte brodé, le courber sur un tracé", "Panneau › Objets › + Texte"],
-               ["Voir les points, les sauts, simuler la broderie", "Panneau › Aperçu, Points"],
-               ["Choisir le cadre, centrer le motif, exporter pour la machine", "Panneau › Export"],
+               ["Voir les points, simuler la broderie, le cadre, le bâti", "Panneau › Simulation"],
+               ["Choisir les bobines, exporter pour la machine", "Panneau › Export"],
                ["Enregistrer le travail", "Inkscape (Cmd S)"]], [112, 58]),
       Spacer(1, 7 * mm),
       Chapitre(2, "Installer", "Une seule fois"),
@@ -354,36 +354,36 @@ c += [Chapitre(5, "Colonnes satin", "Le point brillant des bordures et des lettr
              "deviennent des formes, à régler en remplissage ou en satin."),
       PageBreak()]
 
-# ---------------------------------------------------------------- 7. points
-c += [Chapitre(7, "Onglet Points", "Regarder la machine broder avant de lancer"),
-      capture("points", 168, "La simulation, avec les sauts (grenouilles), les changements de couleur (bobines) et la mire."),
-      tableau([["Touche", "Effet"],
-               [touche("P"), "lecture / pause"], [touche("R"), "recommencer"],
-               [touche("flèche haut") + " " + touche("flèche bas"), "plus rapide / plus lent"],
-               [touche("flèche gauche") + " " + touche("flèche droite"), "sens de l'animation"],
-               [touche("+") + " " + touche("−"), "un point en avant / en arrière"],
-               [touche("page haut") + " " + touche("page bas"), "commande suivante / précédente (saut, coupe, couleur)"],
-               [touche("O"), "afficher les pénétrations de l'aiguille"]], [50, 120]),
-      Spacer(1, 3 * mm),
-      p("Les boutons du bas affichent ou masquent les pénétrations, sauts, coupes, arrêts, changements de couleur, la mire, "
-        "la page (le cadre) et les informations. Le dernier bouton ouvre les préférences du simulateur (épaisseur du fil, "
-        "taille des pénétrations, mire)."),
+# ---------------------------------------------------------------- 7. simulation
+c += [Chapitre(7, "Onglet Simulation", "Regarder la machine broder, dans son cadre"),
+      capture("simulation", 120, "Animation des points dans le cadre schématisé (pointillés gris), avec le bâti (orange) ; "
+                                 "à droite le cadre, le bâti et les statistiques."),
+      *puces("<b>Animation</b> : la machine brode point par point (sauts, coupes, changements de couleur, mire). "
+             "<b>Réaliste</b> : le rendu du fil sur le tissu. Molette : zoom · glisser : déplacer · double-clic : tout voir.",
+             "<b>Cadre</b> : choisissez votre cadre (ou ajoutez-le). Il est dessiné autour du motif, centré comme la machine le "
+             "brodera ; le panneau dit si le motif tient. Choisir un cadre donne sa taille à la <b>feuille d'Inkscape</b> à la "
+             "prochaine synchronisation ; <b>Centrer le motif dans le cadre</b> centre aussi le motif.",
+             "<b>Bâti</b> : cochez la case pour faufiler le tissu au stabilisateur autour du motif, en premier. Trois curseurs : "
+             "<b>écart</b> avec le motif, <b>longueur de point</b>, <b>arrondi</b> des angles. Si le bâti sort du cadre, le "
+             "panneau le signale : réduisez l'écart, c'est à vous de vérifier que tout rentre."),
+      tableau([["Touche (Animation)", "Effet"],
+               [touche("P") + " " + touche("R"), "lecture / pause · recommencer"],
+               [touche("flèche haut") + " " + touche("flèche bas") + " " + touche("flèche gauche") + " " + touche("flèche droite"),
+                "plus rapide / plus lent · sens de l'animation"],
+               [touche("+") + " " + touche("−") + " " + touche("page haut") + " " + touche("page bas"),
+                "un point · une commande (saut, coupe, couleur)"],
+               [touche("O"), "pénétrations de l'aiguille"]], [70, 100]),
       PageBreak()]
 
-# ---------------------------------------------------------------- 8-9. aperçu, export
-c += [Chapitre(8, "Onglets Aperçu et Export", "Vérifier, choisir le cadre, envoyer à la machine"),
-      capture("apercu", 84, "Rendu réaliste sur tissu, avec le nombre de points, la durée estimée, la taille et les fils."),
-      capture("export", 84),
+# ---------------------------------------------------------------- 8. export
+c += [Chapitre(8, "Onglet Export", "Les bobines, le fichier pour la machine"),
+      capture("export", 100),
       *puces("<b>Fichier de broderie</b> : le format de votre machine (.pes Brother, .dst Tajima, .jef Janome, .exp Bernina, "
-             ".vp3 Husqvarna / Pfaff…), enregistré dans Téléchargements.",
+             ".vp3 Husqvarna / Pfaff…), enregistré dans Téléchargements. Le cadre choisi dans Simulation est rappelé.",
              "<b>Bobines</b> : choisissez la marque de vos fils ; pour chaque couleur, le panneau propose la bobine la plus "
              "proche (<b>Changer</b> pour en prendre une autre). <b>Prendre les couleurs exactes des fils</b> : Ink/Stitch "
              "reconnaît alors marque, numéro et nom (liste des fils, fichiers .vp3 et .inf ; un .pes ou un .dst ne garde que la couleur).",
-             "<b>Fiche PDF pour la machine</b> : la fiche d'Ink/Stitch à imprimer (aperçu, fils, ordre des couleurs).",
-             "<b>Cadre de la brodeuse</b> : le panneau vérifie que le motif y tient. <b>Ajouter un cadre</b> ou "
-             "<b>Supprimer</b> ceux que vous n'avez pas.",
-             "Choisir un cadre lui donne la taille de la <b>feuille d'Inkscape</b> à la prochaine synchronisation "
-             "(case « Montrer le cadre dans Inkscape »). <b>Centrer le motif dans le cadre</b> centre aussi le motif."),
+             "<b>Fiche PDF pour la machine</b> : la fiche d'Ink/Stitch à imprimer (aperçu, fils, ordre des couleurs)."),
       PageBreak()]
 
 # ---------------------------------------------------------------- 10. astuces

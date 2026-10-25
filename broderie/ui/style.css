@@ -308,3 +308,24 @@ footer button { padding: 9px 16px; font-size: 13.5px; border-radius: 9px; }
 .bob-teinte { display: flex; flex-direction: column; align-items: center; gap: 2px; padding: 4px 2px; font-size: 10.5px; }
 .bob-teinte i { width: 26px; height: 18px; border-radius: 4px; border: 1px solid rgba(127,127,127,.4); }
 .bob-actions { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 12px; }
+
+/* Simulation : scène (animation ou rendu réaliste, page blanche) et cartes Cadre, Bâti, statistiques */
+#v-points:not([hidden]) { display: flex; flex-direction: column; gap: 8px; overflow: auto; }
+.sim-scene { flex: none; height: max(380px, 64vh); display: flex; flex-direction: column; gap: 6px; }
+.sim-modes { flex: none; }
+.seg { display: inline-flex; background: var(--tuile); border: 1px solid var(--bord); border-radius: 8px; padding: 2px; }
+.seg button { border: none; background: none; padding: 4px 12px; border-radius: 6px; font-size: 12.5px; color: var(--muted); }
+.seg button.on { background: var(--accent); color: #fff; }
+#simu[hidden], #emplApercu[hidden] { display: none; }
+#v-points #emplApercu:not([hidden]) { flex: 1; min-height: 0; display: flex; }
+#v-points #emplApercu #apercu { flex: 1; height: auto; }
+#v-points .barre-rendu > button { display: none; }       /* Animation / Réaliste se choisissent au-dessus */
+.sim-cote { flex: none; display: flex; flex-direction: column; gap: 8px; }
+@media (min-width: 760px) {
+  #v-points:not([hidden]) { flex-direction: row; overflow: hidden; }
+  .sim-scene { flex: 1 1 auto; height: auto; min-height: 0; min-width: 0; }
+  .sim-cote { width: 340px; overflow: auto; }
+}
+.curseur-bati { margin: 8px 0; }
+.curseur-bati .haut { display: flex; justify-content: space-between; font-size: 12.5px; }
+.curseur-bati input { width: 100%; accent-color: var(--accent); }

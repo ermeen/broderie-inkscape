@@ -24,13 +24,11 @@ Ink/Stitch remains the engine: the panel does not replace it, it makes it easier
   - Copy and paste settings.
   - Satin columns: convert a stroke, join rails and rungs.
   - Lettering (140 fonts) with live preview: straight, arched (up to a full circle) or along a curve drawn in Inkscape.
-- **Preview**
-  - Needle points, jumps, trims and color changes.
-  - Realistic render on fabric.
-- **Stitches**: full simulator, like Ink/Stitch's.
+- **Simulation**
+  - Stitch-by-stitch animation (jumps, trims, color changes) or realistic render on fabric, with zoom.
+  - Your machine's hoop drawn around the design, and an adjustable **basting** outline (distance, stitch length, corner radius).
 - **Export**
   - 21 machine formats.
-  - Your machine's hoops, design centered in the hoop.
   - Thread spools: thread brand (75 Ink/Stitch palettes), closest spool for each color, apply exact thread colors.
   - Estimated stitching time.
 - **All Ink/Stitch commands** in one searchable list.
@@ -44,7 +42,7 @@ Requires Inkscape 1.4 and Ink/Stitch 3. Tested with Inkscape 1.4.2 and Ink/Stitc
 3. Quit and restart Inkscape.
 4. Press **Cmd+Option+B**.
 
-A full illustrated guide (in French) is included: [docs/Notice-Broderie-1.4.1.pdf](docs/Notice-Broderie-1.4.1.pdf).
+A full illustrated guide (in French) is included: [docs/Notice-Broderie-1.5.0.pdf](docs/Notice-Broderie-1.5.0.pdf).
 
 **Windows (test version):** double-click `Installer sous Windows.bat`, restart Inkscape, then press **Ctrl+Alt+B**. Test guide (in French): [TESTER-WINDOWS.md](TESTER-WINDOWS.md).
 

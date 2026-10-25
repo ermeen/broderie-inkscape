@@ -5,7 +5,23 @@ Le numéro de version suit le schéma `MAJEUR.MINEUR.CORRECTIF` :
 - **MINEUR** : nouvelle fonction ;
 - **CORRECTIF** : correction sans nouvelle fonction.
 
-## 1.4.1 — 25 octobre 2026
+## 1.5.0 — 25 octobre 2026
+
+**Onglet Simulation** (remplace Points et Aperçu)
+- Trois onglets au lieu de quatre : Objets, Simulation, Export. L'aperçu des réglages reste en haut de l'onglet Objets.
+- Simulation : **Animation** (le simulateur) ou **Réaliste** (le rendu du fil), sur la page blanche, avec zoom à la molette et déplacement à la souris dans les deux modes.
+- Le **cadre** choisi est dessiné en pointillés autour du motif, centré comme la machine le brodera. Bouton pour le masquer dans l'animation.
+- À droite : cartes **Cadre** (choix, ajout, vérification, centrage, feuille d'Inkscape), **Bâti** et statistiques. En fenêtre étroite, elles passent sous la simulation.
+- L'onglet Export rappelle le cadre choisi et s'il contient le motif.
+
+**Bâti** (nouveau)
+- Faufilage autour du motif, brodé en premier : point droit sans points d'arrêt (il s'enlève facilement), couleur à part (la machine s'arrête pour le fil de bâti), coupé à la fin.
+- Trois curseurs : écart avec le motif (2 à 40 mm), longueur de point (2 à 10 mm), arrondi des angles (0 à 30 mm).
+- Le panneau signale si le bâti sort du cadre. C'est à l'opératrice ou à l'opérateur de vérifier que tout rentre.
+
+**Cadres** : la taille ne s'affiche plus deux fois dans la liste (« 100 × 100 mm » au lieu de « 100 × 100 — 100 × 100 mm »).
+
+ — 25 octobre 2026
 
 - **Cadre → feuille d'Inkscape** : choisir un cadre dans la liste (par exemple 140 × 140) donne sa taille à la feuille d'Inkscape à la prochaine synchronisation, sans déplacer le motif. Le bouton Synchroniser passe à l'orange. Il faut que la case « Montrer le cadre dans Inkscape » soit cochée ; la cocher applique aussi le cadre choisi. « Centrer le motif dans le cadre » reste là pour centrer.
 

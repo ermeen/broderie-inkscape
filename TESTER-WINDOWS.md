@@ -22,7 +22,7 @@ Le panneau a été écrit pour Windows mais n'y a pas encore été essayé. Merc
 | 2 | Si Ctrl+Alt+B ne fait rien : menu **Extensions › Broderie › Panneau de broderie** | Même résultat |
 | 3 | Attendez quelques secondes | L'aperçu des points s'affiche en haut |
 | 4 | Changez le type de point (tuile Contour), puis **Ctrl+Alt+B** dans Inkscape | Le bouton Synchroniser passe au vert, le réglage est dans le dessin (Ctrl+Z l'annule) |
-| 5 | Onglet **Points** | La simulation se joue |
+| 5 | Onglet **Simulation**, puis cochez **Bâti** | La simulation se joue dans le cadre, le bâti apparaît autour du motif |
 | 6 | **＋ Texte**, tapez un mot, arc vers le haut | L'aperçu du texte s'affiche, puis « Ajouter au dessin » |
 | 7 | Onglet **Export**, format .pes ou .dst, **Exporter** | Le fichier arrive dans Téléchargements |
 | 8 | Onglet Export, carte **Bobines** | La liste des fils avec une marque (Madeira…) |

@@ -690,3 +690,70 @@ def remplacer_couleurs(svg, correspondances):
             el.set("style", ";".join(f"{k}:{v}" for k, v in st.items()))
             n += 1
     return n
+
+
+# ---------------------------------------------------------------- bâti : faufilage autour du motif
+# Un rectangle aux angles arrondis, brodé en premier au point droit long (fixe le tissu sur le
+# stabilisateur), dans sa couleur (la machine s'arrête pour le fil de bâti), puis coupé.
+BATI = "broderie_bati"
+BATI_DEFAUT = {"ecart": 10.0, "longueur": 5.0, "arrondi": 6.0}
+
+
+def reglages_bati(svg):
+    """Réglages du bâti présent dans le dessin (None s'il n'y en a pas)."""
+    el = par_id(svg, BATI)
+    if el is None:
+        return None
+    try:
+        return dict(BATI_DEFAUT, **json.loads(el.get("data-broderie-bati") or "{}"))
+    except ValueError:
+        return dict(BATI_DEFAUT)
+
+
+def appliquer_bati(svg, actif, ecart=10.0, longueur=5.0, arrondi=6.0, cadre_largeur=None, cadre_hauteur=None):
+    """Ajoute, recalcule ou retire le bâti (ecart, longueur de point et arrondi en mm). Avec un cadre, on note
+    si le bâti en sort (la machine centre le motif dans le cadre : le cadre est centré sur lui)."""
+    r = svg.getroot() if hasattr(svg, "getroot") else svg
+    ancien = par_id(r, BATI)
+    calque = ancien.getparent() if ancien is not None else None
+    if ancien is not None:
+        ancien.getparent().remove(ancien)
+    if calque is not None and calque.get("id") == BATI + "_calque" and not len(calque):
+        calque.getparent().remove(calque)
+        calque = None
+    if not actif:
+        return True
+    b = emprise(svg)                               # le motif, sans l'ancien bâti
+    if not b:
+        return False
+    u = 1.0 / mm_par_unite(svg)                    # unités du dessin par mm
+    e, a = max(0.0, float(ecart)) * u, max(0.0, float(arrondi)) * u
+    x0, y0, x1, y1 = b[0] - e, b[1] - e, b[2] + e, b[3] + e
+    depasse = bool(cadre_largeur and cadre_hauteur and
+                   (x1 - x0 > float(cadre_largeur) * u or y1 - y0 > float(cadre_hauteur) * u))
+    a = min(a, (x1 - x0) / 2, (y1 - y0) / 2)
+    if a > 0:
+        d = ("M %g,%g H %g A %g,%g 0 0 1 %g,%g V %g A %g,%g 0 0 1 %g,%g H %g A %g,%g 0 0 1 %g,%g V %g "
+             "A %g,%g 0 0 1 %g,%g Z" % (x0 + a, y0, x1 - a, a, a, x1, y0 + a, y1 - a, a, a, x1 - a, y1,
+                                        x0 + a, a, a, x0, y1 - a, y0 + a, a, a, x0 + a, y0))
+    else:
+        d = "M %g,%g H %g V %g H %g Z" % (x0, y0, x1, y1, x0)
+    if calque is None:                             # son propre calque, tout en haut : brodé en premier
+        calque = etree.Element("{%s}g" % SVG_NS)
+        calque.set("id", BATI + "_calque")
+        calque.set("{%s}groupmode" % INKSCAPE_NS, "layer")
+        calque.set("{%s}label" % INKSCAPE_NS, "Bâti")
+        premiers = [i for i, c in enumerate(r) if isinstance(c.tag, str) and local(c) not in ("defs", "metadata", "namedview")]
+        r.insert(premiers[0] if premiers else len(r), calque)
+    el = etree.SubElement(calque, "{%s}path" % SVG_NS)
+    el.set("id", BATI)
+    el.set("{%s}label" % INKSCAPE_NS, "Bâti")
+    el.set("d", d)
+    el.set("style", "fill:none;stroke:#e8892e;stroke-width:%g" % (0.3 * u))
+    el.set("{%s}stroke_method" % INKSTITCH_NS, "running_stitch")
+    el.set("{%s}running_stitch_length_mm" % INKSTITCH_NS, "%g" % float(longueur))
+    el.set("{%s}trim_after" % INKSTITCH_NS, "True")
+    el.set("{%s}ties" % INKSTITCH_NS, "3")          # sans points d'arrêt : le bâti s'enlève facilement
+    el.set("data-broderie-bati", json.dumps({"ecart": float(ecart), "longueur": float(longueur), "arrondi": float(arrondi),
+                                             "depasse": depasse}))
+    return True
