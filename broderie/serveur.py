@@ -19,6 +19,7 @@ from lxml import etree
 
 from . import modele as M
 from . import moteur as E
+from . import systeme as S
 
 UI = os.path.join(M.ICI, "ui")
 try:
@@ -38,7 +39,7 @@ def perime():
         return False
 PORT = int(os.environ.get("BRODERIE_PORT") or 47811)
 SESSION = os.path.expanduser(os.environ.get("BRODERIE_SESSION") or
-                             "~/Library/Application Support/broderie-panneau/session-%d.json" % PORT)
+                             os.path.join(S.donnees(), "session-%d.json" % PORT))
 INACTIF = float(os.environ.get("BRODERIE_INACTIF") or 3600)    # secondes sans panneau ni Inkscape → arrêt
 
 
@@ -47,7 +48,7 @@ def _lire(svg):
                                               etree.XMLParser(huge_tree=True)))
 
 
-CADRES = os.path.expanduser("~/Library/Application Support/broderie-panneau/cadres.json")
+CADRES = os.path.join(S.donnees(), "cadres.json")
 CADRES_DEFAUT = [{"nom": "100 × 100", "largeur": 100, "hauteur": 100}, {"nom": "130 × 180", "largeur": 130, "hauteur": 180},
                  {"nom": "160 × 260", "largeur": 160, "hauteur": 260}, {"nom": "200 × 200", "largeur": 200, "hauteur": 200},
                  {"nom": "200 × 300", "largeur": 200, "hauteur": 300}, {"nom": "240 × 150", "largeur": 240, "hauteur": 150},
@@ -137,7 +138,7 @@ class Session:
     def etat(self):
         if self.document is None:
             return {"objets": [], "selection": [], "nom": self.nom, "attente": 0, "version": self.version,
-                    "version_panneau": VERSION_PANNEAU,
+                    "version_panneau": VERSION_PANNEAU, "raccourci": S.RACCOURCI, "mac": S.MAC,
                     "moteur": {"chemin": E.binaire(), "version": E.version()}, "commandes": [], "formats": [],
                     "journal": self.journal[-20:], "sans_dessin": True}
         objs = M.objets(self.document, self.ids, masques=True)
@@ -148,7 +149,7 @@ class Session:
         return {"objets": [M.decrire(o) for o in objs], "selection": self.ids, "nom": self.nom,
                 "attente": len(self.attente), "version": self.version,
                 "reserve": {k: len(v) for k, v in self.reserve.items()},
-                "version_panneau": VERSION_PANNEAU,
+                "version_panneau": VERSION_PANNEAU, "raccourci": S.RACCOURCI, "mac": S.MAC,
                 "ancien": E.ancien(self.document),
                 "moteur": {"chemin": E.binaire(), "version": E.version()},
                 "commandes": cmds, "formats": sorties, "journal": self.journal[-20:]}
@@ -234,6 +235,8 @@ class Session:
 
     def _action(self, nom, d):
         if nom == "envoyer":                           # bouton « Envoyer à Inkscape » (sans verrou : Inkscape va appeler /sync)
+            if not S.MAC:                              # cliquer le menu d'Inkscape : seulement sur macOS
+                return {"ok": False, "message": "Appuyez sur %s dans Inkscape." % S.RACCOURCI}
             from . import fenetre
             ok, msg = fenetre.envoyer_a_inkscape()
             return {"ok": ok, "message": msg}
@@ -243,7 +246,7 @@ class Session:
         if nom == "bobines":
             return self._bobines(d)
         if nom == "nuancier":
-            chemin = M.palettes(E.binaire()).get(d.get("marque") or "")
+            chemin = M.palettes(E.ressources()).get(d.get("marque") or "")
             return {"fils": M.lire_palette(chemin) if chemin else []}
         if nom == "apercu_texte":
             return self._apercu_texte(d)
@@ -307,6 +310,8 @@ class Session:
             if nom == "commande":
                 return self._commande(d)
             if nom == "fenetre":                       # largeur de la fenêtre du panneau (bouton ⇆)
+                if not S.MAC:                          # ailleurs, la fenêtre se règle à la main
+                    return {"ok": False, "message": "Élargissez la fenêtre du navigateur."}
                 from . import fenetre
                 ok, msg = fenetre.placer("http://127.0.0.1:%d" % PORT, int(d.get("largeur") or 440), forcer=True)
                 return {"ok": ok, "message": msg}
@@ -361,7 +366,7 @@ class Session:
             if nom == "lettrage":
                 return self._lettrage(d)
             if nom == "choisir":
-                return {"chemin": choisir(d.get("mode") or "file")}
+                return {"chemin": S.choisir(d.get("mode") or "file")}
             if nom == "quitter":
                 threading.Timer(0.3, os._exit, (0,)).start()
                 return {"ok": True}
@@ -453,7 +458,7 @@ class Session:
             if self.document is None:
                 raise ValueError("Aucun dessin : appuyez sur ⌘⌥B dans Inkscape.")
             fils = M.fils_du_dessin(self.document)
-        marques = M.palettes(E.binaire())
+        marques = M.palettes(E.ressources())
         marque = d.get("marque")
         if marque not in marques:                       # comme Ink/Stitch : le nuancier qui contient presque toutes
             def exactes(m):                             # les couleurs exactes du dessin, sinon Madeira Rayon
@@ -554,24 +559,6 @@ def normaliser(cmd, params):
                 pass
         out[k] = v
     return out
-
-
-def choisir(mode):
-    """Boîte de dialogue macOS de choix de fichier ou de dossier ; renvoie le chemin ou None."""
-    import subprocess
-    script = {"folder": "choose folder", "file_new": "choose file name",
-              "files": "choose file with multiple selections allowed"}.get(mode, "choose file")
-    if mode == "files":
-        prog = 'set L to (%s)\nset R to ""\nrepeat with f in L\nset R to R & POSIX path of f & "|"\nend repeat\nreturn R' % script
-    else:
-        prog = "POSIX path of (%s)" % script
-    try:
-        p = subprocess.run(["/usr/bin/osascript", "-e", 'tell application "System Events" to activate', "-e", prog],
-                           capture_output=True, text=True, timeout=600)
-    except (OSError, subprocess.SubprocessError):
-        return None
-    r = p.stdout.strip().rstrip("|")
-    return r.replace("|", ",") if r else None
 
 
 def _gestionnaire(session):

@@ -11,6 +11,8 @@ import os
 
 from lxml import etree
 
+from . import systeme as S
+
 INKSTITCH_NS = "http://inkstitch.org/namespace"
 SVG_NS = "http://www.w3.org/2000/svg"
 XLINK_NS = "http://www.w3.org/1999/xlink"
@@ -353,8 +355,8 @@ def contour_svg(svg, i):
 def _inkex():
     """Bibliothèque d'Inkscape (chemins et transformations), fournie avec Inkscape."""
     import sys
-    p = "/Applications/Inkscape.app/Contents/Resources/share/inkscape/extensions"
-    if os.path.isdir(p) and p not in sys.path:
+    p = S.bibliotheque_inkex()
+    if p and os.path.isdir(p) and p not in sys.path:
         sys.path.append(p)
     import inkex
     return inkex
@@ -591,17 +593,17 @@ def mm_par_unite(svg):
 # ---------------------------------------------------------------- bobines : nuanciers des fabricants de fil
 # Les nuanciers d'Ink/Stitch (fichiers .gpl : rouge vert bleu, nom, numéro), ceux installés dans Inkscape
 # (avec les palettes personnelles) en premier.
-def _dossiers_palettes(binaire=None):
-    d = [os.path.expanduser("~/Library/Application Support/org.inkscape.Inkscape/config/inkscape/palettes")]
-    if binaire:
-        d.append(os.path.join(os.path.dirname(os.path.dirname(binaire)), "Resources", "palettes"))
+def _dossiers_palettes(ressources=None):
+    d = [os.path.join(S.profil_inkscape(), "palettes")]
+    if ressources:
+        d.append(os.path.join(ressources, "palettes"))
     return [x for x in d if os.path.isdir(x)]
 
 
-def palettes(binaire=None):
+def palettes(ressources=None):
     """Noms des nuanciers de fil disponibles (« Madeira Rayon », « Isacord Polyester »…) → chemin du fichier."""
     r = {}
-    for d in _dossiers_palettes(binaire):
+    for d in _dossiers_palettes(ressources):
         for f in sorted(os.listdir(d)):
             if f.startswith("InkStitch ") and f.endswith(".gpl"):
                 r.setdefault(f[len("InkStitch "):-4], os.path.join(d, f))

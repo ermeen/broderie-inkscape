@@ -14,7 +14,7 @@ Ink/Stitch remains the engine: the panel does not replace it, it makes it easier
 
 > **Language:** the panel's interface is in French for now. An English interface can be added if there is interest — please say so in the issues.
 >
-> **Platforms:** macOS (tested). A Windows version is being tested.
+> **Platforms:** macOS (tested). Windows: test version, see below.
 
 ## What the panel does
 
@@ -44,7 +44,9 @@ Requires Inkscape 1.4 and Ink/Stitch 3. Tested with Inkscape 1.4.2 and Ink/Stitc
 3. Quit and restart Inkscape.
 4. Press **Cmd+Option+B**.
 
-A full illustrated guide (in French) is included: [docs/Notice-Broderie-1.3.0.pdf](docs/Notice-Broderie-1.3.0.pdf).
+A full illustrated guide (in French) is included: [docs/Notice-Broderie-1.4.0.pdf](docs/Notice-Broderie-1.4.0.pdf).
+
+**Windows (test version):** double-click `Installer sous Windows.bat`, restart Inkscape, then press **Ctrl+Alt+B**. Test guide (in French): [TESTER-WINDOWS.md](TESTER-WINDOWS.md).
 
 ## Where are the settings saved?
 

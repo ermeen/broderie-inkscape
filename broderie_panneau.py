@@ -22,13 +22,15 @@ sys.path.insert(0, ICI)
 import inkex  # noqa: E402
 from lxml import etree  # noqa: E402
 
+from broderie import systeme as S  # noqa: E402
+
 PORT = int(os.environ.get("BRODERIE_PORT") or 47811)
 JOURNAL = os.path.join(tempfile.gettempdir(), "broderie-panneau.log")
 
 
 def note(msg):
     try:
-        with open(JOURNAL, "a") as j:
+        with open(JOURNAL, "a", encoding="utf-8") as j:
             j.write("%s [ext %d] %s\n" % (time.strftime("%H:%M:%S"), os.getpid(), msg))
     except OSError:
         pass
@@ -50,8 +52,8 @@ def _demarrer_serveur():
         pass
     # sorties redirigées vers un journal : sinon Inkscape attendrait la fin du serveur
     with open(os.path.join(tempfile.gettempdir(), "broderie-panneau.log"), "ab") as journal:
-        serveur = subprocess.Popen([sys.executable, os.path.join(ICI, "broderie_serveur.py")], cwd=ICI,
-                                   stdin=subprocess.DEVNULL, stdout=journal, stderr=journal, start_new_session=True)
+        serveur = subprocess.Popen([S.python_sans_console(), os.path.join(ICI, "broderie_serveur.py")], cwd=ICI,
+                                   stdin=subprocess.DEVNULL, stdout=journal, stderr=journal, **S.detache())
     serveur.returncode = 0          # il doit survivre à l'extension : pas d'avertissement « still running »
     for _ in range(50):
         time.sleep(0.2)
@@ -81,7 +83,11 @@ def ouvrir_navigateur(deja_ouvert=False):
     """Montre le panneau au premier plan : dans Safari, il a sa propre fenêtre étroite contre le bord
     droit de l'écran (comme un panneau ancré) ; avec un autre navigateur, il est ouvert par `open`.
     `open` de macOS plutôt que le module webbrowser (AppleScript, que macOS peut bloquer sans rien dire)."""
-    if sys.platform != "darwin":
+    if S.WINDOWS:
+        if not deja_ouvert:
+            ouvrir_fenetre_windows()
+        return
+    if not S.MAC:
         webbrowser.open(URL)
         return
     nav = navigateur_par_defaut()
@@ -97,6 +103,20 @@ def ouvrir_navigateur(deja_ouvert=False):
     except (OSError, subprocess.SubprocessError) as e:
         note("ouverture du navigateur : %s" % e)
         webbrowser.open(URL)
+
+
+def ouvrir_fenetre_windows():
+    """Sous Windows, le panneau a sa propre fenêtre étroite (mode application d'Edge, présent sur
+    Windows 10 et 11), comme un panneau ancré ; sinon le navigateur par défaut."""
+    for base in (os.environ.get("ProgramFiles(x86)"), os.environ.get("ProgramFiles"), os.environ.get("LOCALAPPDATA")):
+        edge = os.path.join(base or "", "Microsoft", "Edge", "Application", "msedge.exe")
+        if base and os.path.exists(edge):
+            try:
+                subprocess.Popen([edge, "--app=" + URL, "--window-size=480,900"], **S.detache())
+                return
+            except OSError as e:
+                note("Edge : %s" % e)
+    webbrowser.open(URL)
 
 
 class PanneauBroderie(inkex.EffectExtension):

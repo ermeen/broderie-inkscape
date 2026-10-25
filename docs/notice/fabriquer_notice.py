@@ -278,6 +278,10 @@ c += [Chapitre(1, "Le principe", "Chacun son rôle : le dessin, les réglages, l
              "Confidentialité et sécurité › <b>Accessibilité</b>."),
       Spacer(1, 3 * mm),
       p("Pour retirer le panneau : <b>desinstaller.command</b>. Ink/Stitch n'est jamais modifié."),
+      p("<b>Windows (version d'essai)</b> : double-cliquez sur <b>Installer sous Windows.bat</b>, relancez Inkscape, "
+        "puis <b>Ctrl+Alt+B</b>. Partout dans cette notice, lisez Ctrl à la place de Cmd, et Alt à la place d’Option. Le panneau s'ouvre dans une fenêtre étroite "
+        "d'Edge. Le bouton Synchroniser n'y clique pas le menu d'Inkscape : appuyez sur Ctrl+Alt+B. Guide de test : "
+        "<b>TESTER-WINDOWS.md</b>."),
       PageBreak()]
 
 # ---------------------------------------------------------------- 3. le geste

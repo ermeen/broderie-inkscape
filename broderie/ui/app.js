@@ -1724,11 +1724,30 @@ async function surveiller() {
 }
 setInterval(surveiller, 2000);
 
+// Hors macOS, les touches s'appellent autrement : ⌘⌥B devient Ctrl+Alt+B, ⌘-clic devient Ctrl-clic…
+// (les textes du panneau et les messages du serveur sont écrits pour le Mac, on les traduit à l'affichage)
+function adapterTouches(raccourci) {
+  const conv = (t) => t.replace(/⌘⌥B/g, raccourci).replace(/Cmd\+Option\+B/g, raccourci).replace(/⌘-clic/g, 'Ctrl-clic').replace(/⇧-clic/g, 'Maj-clic')
+    .replace(/⌘K/g, 'Ctrl+K').replace(/Cmd\+Z/g, 'Ctrl+Z');
+  const passer = (racine) => {
+    const w = document.createTreeWalker(racine, NodeFilter.SHOW_TEXT);
+    for (let n = w.nextNode(); n; n = w.nextNode()) if (/⌘|⇧-clic|Cmd\+/.test(n.nodeValue)) n.nodeValue = conv(n.nodeValue);
+    if (racine.querySelectorAll) for (const e of [racine, ...racine.querySelectorAll('[title]')]) {
+      const t = e.getAttribute && e.getAttribute('title'); if (t && /⌘|Cmd\+/.test(t)) e.setAttribute('title', conv(t));
+    }
+  };
+  passer(document.body);
+  new MutationObserver((ms) => ms.forEach((m) => { m.addedNodes.forEach((n) => passer(n.nodeType === 1 ? n : n.parentNode || document.body));
+    if (m.type === 'characterData' && /⌘|Cmd\+/.test(m.target.nodeValue)) m.target.nodeValue = conv(m.target.nodeValue); }))
+    .observe(document.body, { childList: true, subtree: true, characterData: true });
+}
+
 (async () => {
   try {
     [S.etat, S.schema] = await Promise.all([api('etat'), api('schema')]);
   } catch (e) { message('Impossible de joindre le panneau : ' + e.message, true); return; }
   $('.titre').insertAdjacentHTML('beforeend', `<span class="version-appli" title="Version du panneau">v${esc(S.etat.version_panneau || '')}</span>`);
+  if (S.etat.mac === false) adapterTouches(S.etat.raccourci);
   const prefere = ['dst', 'pes', 'jef', 'exp', 'vp3', 'xxx'];
   const fmts = S.etat.formats.length ? S.etat.formats : prefere;
   const NOMS_FMT = { dst: 'Tajima', pes: 'Brother', jef: 'Janome', exp: 'Melco / Bernina', vp3: 'Husqvarna / Pfaff', xxx: 'Singer' };

@@ -5,7 +5,17 @@ Le numéro de version suit le schéma `MAJEUR.MINEUR.CORRECTIF` :
 - **MINEUR** : nouvelle fonction ;
 - **CORRECTIF** : correction sans nouvelle fonction.
 
-## 1.3.0 — 24 octobre 2026
+## 1.4.0 — 25 octobre 2026
+
+**Windows (version d'essai)**
+- Le panneau fonctionne aussi sous Windows : installation par « Installer sous Windows.bat », raccourci Ctrl+Alt+B, panneau dans une fenêtre étroite d'Edge, boîtes de choix de fichier de Windows, Ink/Stitch lancé sans fenêtre noire.
+- Les textes du panneau affichent les touches de Windows (Ctrl+Alt+B, Ctrl-clic, Maj-clic).
+- Pas encore essayé sur un vrai PC : guide de test dans TESTER-WINDOWS.md.
+- Ce qui dépend du système est regroupé dans un seul fichier (`broderie/systeme.py`). Le Mac fonctionne comme avant (vérifié : aperçu, simulation, texte en arc, densité, export, bobines).
+
+**README en anglais** et appel aux testeurs.
+
+ — 24 octobre 2026
 
 **Bobines (onglet Export)**
 - Choix de la marque de fil parmi les nuanciers d'Ink/Stitch : Madeira, Isacord, Brother, Gütermann, Sulky, DMC, Janome, Mettler…, et vos palettes personnelles installées dans Inkscape.

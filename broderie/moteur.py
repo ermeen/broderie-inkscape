@@ -11,32 +11,41 @@ import tempfile
 
 from lxml import etree
 
-DOSSIERS = [
-    "~/Library/Application Support/org.inkscape.Inkscape/config/inkscape/extensions",
-    "~/.config/inkscape/extensions",
-]
+from . import systeme as S
+
+
+def _dossiers():
+    return [os.path.join(S.profil_inkscape(), "extensions"), os.path.expanduser("~/.config/inkscape/extensions")]
 
 
 def binaire():
     env = os.environ.get("BRODERIE_INKSTITCH")
     if env and os.path.exists(env):
         return env
-    for d in DOSSIERS:
-        d = os.path.expanduser(d)
-        for motif in ("**/inkstitch.app/Contents/MacOS/inkstitch", "**/inkstitch/bin/inkstitch", "**/bin/inkstitch"):
+    for d in _dossiers():
+        for motif in ("**/inkstitch.app/Contents/MacOS/inkstitch", "**/inkstitch/bin/inkstitch.exe",
+                      "**/inkstitch/bin/inkstitch", "**/bin/inkstitch.exe", "**/bin/inkstitch"):
             for f in glob.glob(os.path.join(d, motif), recursive=True):
                 if os.access(f, os.X_OK):
                     return f
     return None
 
 
-def _ressources():
+def ressources():
+    """Dossier des fichiers d'Ink/Stitch (polices, palettes, icônes…) : « Resources » de l'application
+    sur macOS, dossier « inkstitch » sous Windows et Linux."""
     b = binaire()
-    return os.path.normpath(os.path.join(os.path.dirname(b), "..", "Resources")) if b else None
+    if not b:
+        return None
+    for d in (os.path.join(os.path.dirname(b), "..", "Resources"), os.path.join(os.path.dirname(b), "..")):
+        d = os.path.normpath(d)
+        if any(os.path.exists(os.path.join(d, x)) for x in ("VERSION", "fonts", "palettes")):
+            return d
+    return None
 
 
 def fichier_traduction(langue="fr_FR"):
-    r = _ressources()
+    r = ressources()
     if not r:
         return None
     f = os.path.join(r, "locales", langue, "LC_MESSAGES", "inkstitch.mo")
@@ -44,7 +53,7 @@ def fichier_traduction(langue="fr_FR"):
 
 
 def version():
-    r = _ressources()
+    r = ressources()
     try:
         if not r:
             return None
@@ -58,7 +67,7 @@ def _env():
     # l'environnement Python d'Inkscape ne doit pas déteindre sur le moteur (application autonome)
     env = {k: v for k, v in os.environ.items() if not k.startswith(("PYTHON", "DYLD_", "GI_", "GTK_", "GDK_"))}
     # le rendu réaliste en image appelle « inkscape » : on lui indique où il se trouve
-    env["PATH"] = "/Applications/Inkscape.app/Contents/MacOS:" + env.get("PATH", "/usr/bin:/bin")
+    env["PATH"] = S.chemin_programmes(env.get("PATH", os.defpath))
     return env
 
 
@@ -135,10 +144,11 @@ def executer(document, extension, ids=None, params=None, attendre=True, delai=60
     f = ecrire_temp(document)
     cmd = [b] + _args(extension, ids, params) + [f]
     if not attendre:                   # fenêtre d'Ink/Stitch (simulateur…) : on ne bloque pas
-        subprocess.Popen(cmd, env=_env(), cwd=os.path.dirname(f), stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+        subprocess.Popen(cmd, env=_env(), cwd=os.path.dirname(f), stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL,
+                         **S.sans_fenetre())
         return 0, b"", ""
     try:
-        p = subprocess.run(cmd, env=_env(), cwd=os.path.dirname(f), capture_output=True, timeout=delai)
+        p = subprocess.run(cmd, env=_env(), cwd=os.path.dirname(f), capture_output=True, timeout=delai, **S.sans_fenetre())
     except subprocess.TimeoutExpired:      # le moteur est arrêté par subprocess
         return 1, b"", "Ink/Stitch n'a pas répondu à temps (une fenêtre d'Ink/Stitch attend peut-être une réponse)."
     return p.returncode, p.stdout, p.stderr.decode("utf-8", "replace")
@@ -207,7 +217,7 @@ def polices():
     """Polices de lettrage fournies avec Ink/Stitch (nom, description, échelle permise, aperçu)."""
     import json
     import lzma
-    r = _ressources()
+    r = ressources()
     out = []
     if not r:
         return out
@@ -230,7 +240,7 @@ def polices():
 
 
 def apercu_police(ident):
-    r = _ressources()
+    r = ressources()
     f = os.path.normpath(os.path.join(r or "", "fonts", "src", ident, "preview.png"))
     return f if r and f.startswith(os.path.join(r, "fonts", "src")) and os.path.exists(f) else None
 
@@ -256,7 +266,7 @@ def lettrage(document, params):
 def motifs_meandre():
     """Motifs du remplissage « Méandre » fournis avec Ink/Stitch (identifiant, nom, aperçu)."""
     import json
-    r = _ressources()
+    r = ressources()
     base = os.path.join(r, "tiles") if r else None
     out = []
     for d in os.listdir(base) if base and os.path.isdir(base) else []:
@@ -270,14 +280,14 @@ def motifs_meandre():
 
 
 def apercu_motif(dossier):
-    r = _ressources()
+    r = ressources()
     f = os.path.normpath(os.path.join(r or "", "tiles", dossier, "preview.png"))
     return f if r and f.startswith(os.path.join(r, "tiles")) and os.path.exists(f) else None
 
 
 def icone(nom):
     """Icônes du simulateur d'Ink/Stitch (saut = grenouille, coupe = ciseaux, arrêt, bobine…)."""
-    r = _ressources()
+    r = ressources()
     f = os.path.normpath(os.path.join(r or "", "icons", nom))
     return f if r and f.startswith(os.path.join(r, "icons")) and f.endswith(".png") and os.path.exists(f) else None
 
