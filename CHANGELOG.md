@@ -25,6 +25,8 @@ Le numéro de version suit le schéma `MAJEUR.MINEUR.CORRECTIF` :
 - L'original est masqué (œil fermé), pas supprimé : rouvrez son œil pour revenir en arrière.
 - Vérifié : un remplissage de 534 points donne 534 points identiques (0,01 mm d'écart au plus).
 
+**Correction : couleur d'un objet** (onglet Objets). Faire glisser un curseur du sélecteur de couleur du Mac (luminosité…) pouvait faire planter Safari. Le panneau redessinait la fiche à chaque mouvement et le sélecteur perdait son champ. Maintenant, seule la pastille change pendant le réglage, et la couleur est envoyée une fois, après une courte pause (40 mouvements : 1 seul envoi, vérifié).
+
 **Cadres** : la taille ne s'affiche plus deux fois dans la liste (« 100 × 100 mm » au lieu de « 100 × 100 — 100 × 100 mm »).
 
  — 25 octobre 2026

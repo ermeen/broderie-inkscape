@@ -204,8 +204,20 @@ function changerCouleur(o, valeur) {
   if (o.contour && o.contour !== 'none') cibles.push('stroke');
   return (async () => {
     for (const quoi of cibles) S.etat = await api('couleur', { id: o.id, quoi, valeur });
-    rendreTout(); apercuBientot();
+    rendreListe(); rendreAttente(); apercuBientot();      // la fiche n'est pas redessinée : le sélecteur y reste accroché
   })();
+}
+// Sélecteur de couleur du Mac : il envoie une couleur à chaque mouvement de curseur. On ne touche pas à la fiche
+// pendant ce temps (sinon le sélecteur perd son champ et Safari peut planter) : la couleur part après une pause.
+function suivreCouleur(input, appliquer, apercuLocal) {
+  let minut = null;
+  const envoyer = () => { clearTimeout(minut); minut = null; S.choixCouleur = false; appliquer(input.value); };
+  const bouger = () => {
+    S.choixCouleur = true; if (apercuLocal) apercuLocal(input.value);
+    clearTimeout(minut); minut = setTimeout(envoyer, 600);
+  };
+  input.addEventListener('input', bouger); input.addEventListener('change', bouger);
+  input.addEventListener('blur', () => { if (minut) envoyer(); });
 }
 
 // ---------------------------------------------------------------- propriétés
@@ -562,7 +574,7 @@ function rendreMulti(objs) {
   }
   const coul = document.createElement('div'); coul.className = 'ligne';
   coul.innerHTML = `<label>Couleur (tous)</label><span class="couleur"><input type="color" value="${(o.couleur || '#000000').slice(0, 7)}"></span>`;
-  $('input', coul).onchange = async (e) => { for (const x of objs) await changerCouleur(x, e.target.value); };
+  suivreCouleur($('input', coul), async (v) => { for (const x of objs) await changerCouleur(x, v); });
   div.appendChild(coul);
   const el = S.schema.element;
   if (el) {
@@ -588,7 +600,7 @@ function rendreProps() {
   const hexa = (c) => (/^#[0-9a-f]{3}$/i.test(c) ? '#' + [...c.slice(1)].map((x) => x + x).join('') : (c || '#000000').slice(0, 7));
   const coul = document.createElement('div'); coul.className = 'ligne';
   coul.innerHTML = `<label>Couleur</label><span class="couleur"><input type="color" value="${hexa(o.couleur)}"><span class="muted small">${esc(o.couleur)}</span></span>`;
-  $('input', coul).onchange = (e) => changerCouleur(o, e.target.value);
+  suivreCouleur($('input', coul), (v) => changerCouleur(o, v), (v) => { $('.muted', coul).textContent = v; ent.querySelector('.vignette').style.color = v; });
   if (t === 'lettrage') {
     const b = document.createElement('button'); b.className = 'principal'; b.textContent = 'Modifier le texte';
     b.onclick = () => { S.texte = true; rendreTout(); };
@@ -623,7 +635,7 @@ function rendreTout() {
   S.choix = new Set([...S.choix].filter((i) => existants.has(i)));
   if (S.sel && !existants.has(S.sel)) S.sel = null;
   if (!S.sel && S.etat.objets.length) S.sel = (S.etat.objets.find((o) => S.etat.selection.includes(o.id)) || S.etat.objets[0]).id;
-  rendreListe(); rendreProps(); rendreAttente(); rendreAncien(); afficherSelection();
+  rendreListe(); if (!S.choixCouleur) rendreProps(); rendreAttente(); rendreAncien(); afficherSelection();   // sélecteur de couleur ouvert : fiche intacte
   $('#props').hidden = S.texte; $('#texte').hidden = !S.texte;
   if (S.texte) rendreTexte();
   if (S.vue === 'export') rendreExport();
