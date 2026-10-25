@@ -987,7 +987,8 @@ async function rendreExport() {
   const sel = $('#fCadre');
   let c = 0; try { c = +(localStorage.getItem('broderie.cadreN') || 0); } catch (e) { /* sans stockage */ }
   sel.innerHTML = S.cadres.map((x, i) => `<option value="${i}" ${i === c ? 'selected' : ''}>${esc(x.nom)} — ${x.largeur} × ${x.hauteur} mm</option>`).join('');
-  sel.onchange = () => { try { localStorage.setItem('broderie.cadreN', sel.value); } catch (e) { /* rien */ } verifierCadre(); };
+  sel.onchange = () => { try { localStorage.setItem('broderie.cadreN', sel.value); } catch (e) { /* rien */ } verifierCadre(); pageAuCadre(); };
+  $('#cbCadrePage').onchange = () => { if ($('#cbCadrePage').checked) pageAuCadre(); };
   rendreBobines();
   await rendreStats('#statsExport');
   verifierCadre();
@@ -1085,6 +1086,15 @@ $('#bCadreSuppr').onclick = async () => {
   try { localStorage.setItem('broderie.cadreN', 0); } catch (e) { /* rien */ }
   rendreExport(); message('Cadre supprimé.');
 };
+// choisir un cadre : la feuille d'Inkscape prend sa taille à la prochaine synchronisation (le motif ne bouge pas)
+async function pageAuCadre() {
+  const c = cadreChoisi(); if (!c || !$('#cbCadrePage').checked) return;
+  try {
+    S.etat = await api('cadre', { largeur: c.largeur, hauteur: c.hauteur, centrer: false, page: true });
+    rendreAttente(); apercuBientot();
+    message(`La feuille d'Inkscape prendra la taille du cadre ${c.largeur} × ${c.hauteur} mm : appuyez sur Synchroniser (ou ⌘⌥B).`);
+  } catch (e) { message(e.message, true); }
+}
 $('#bCadreCentrer').onclick = async () => {
   const c = cadreChoisi(); if (!c) return;
   try {

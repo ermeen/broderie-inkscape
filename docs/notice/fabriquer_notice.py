@@ -382,8 +382,8 @@ c += [Chapitre(8, "Onglets Aperçu et Export", "Vérifier, choisir le cadre, env
              "<b>Fiche PDF pour la machine</b> : la fiche d'Ink/Stitch à imprimer (aperçu, fils, ordre des couleurs).",
              "<b>Cadre de la brodeuse</b> : le panneau vérifie que le motif y tient. <b>Ajouter un cadre</b> ou "
              "<b>Supprimer</b> ceux que vous n'avez pas.",
-             "<b>Centrer le motif dans le cadre</b> : le motif est centré et la <b>page d'Inkscape prend la taille du "
-             "cadre</b>. Puis " + CMD + "."),
+             "Choisir un cadre lui donne la taille de la <b>feuille d'Inkscape</b> à la prochaine synchronisation "
+             "(case « Montrer le cadre dans Inkscape »). <b>Centrer le motif dans le cadre</b> centre aussi le motif."),
       PageBreak()]
 
 # ---------------------------------------------------------------- 10. astuces

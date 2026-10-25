@@ -5,7 +5,11 @@ Le numéro de version suit le schéma `MAJEUR.MINEUR.CORRECTIF` :
 - **MINEUR** : nouvelle fonction ;
 - **CORRECTIF** : correction sans nouvelle fonction.
 
-## 1.4.0 — 25 octobre 2026
+## 1.4.1 — 25 octobre 2026
+
+- **Cadre → feuille d'Inkscape** : choisir un cadre dans la liste (par exemple 140 × 140) donne sa taille à la feuille d'Inkscape à la prochaine synchronisation, sans déplacer le motif. Le bouton Synchroniser passe à l'orange. Il faut que la case « Montrer le cadre dans Inkscape » soit cochée ; la cocher applique aussi le cadre choisi. « Centrer le motif dans le cadre » reste là pour centrer.
+
+ — 25 octobre 2026
 
 **Windows (version d'essai)**
 - Le panneau fonctionne aussi sous Windows : installation par « Installer sous Windows.bat », raccourci Ctrl+Alt+B, panneau dans une fenêtre étroite d'Edge, boîtes de choix de fichier de Windows, Ink/Stitch lancé sans fenêtre noire.
