@@ -2,6 +2,8 @@
 
 # Panneau de broderie pour Inkscape
 
+*[English version](README.en.md)*
+
 Une interface simple pour [Ink/Stitch](https://inkstitch.org), dans [Inkscape](https://inkscape.org).
 
 On **dessine dans Inkscape**, on **règle la broderie dans le panneau**, et **Ink/Stitch calcule les points**. Un seul geste relie les deux : **Cmd+Option+B**.
@@ -45,6 +47,10 @@ Dans votre fichier `.svg`, exactement comme Ink/Stitch les enregistre. Le dessin
 ## Versions
 
 Numérotation `MAJEUR.MINEUR.CORRECTIF`, détail dans [CHANGELOG.md](CHANGELOG.md).
+
+## Vos retours
+
+Les testeurs sont les bienvenus : signalez ce qui marche et ce qui ne marche pas dans les [issues](https://github.com/ermeen/broderie-inkscape/issues), avec votre système et vos versions d'Inkscape et d'Ink/Stitch. Une version Windows est en cours d'essai.
 
 ## Licence
 
