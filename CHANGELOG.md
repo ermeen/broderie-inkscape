@@ -19,6 +19,12 @@ Le numéro de version suit le schéma `MAJEUR.MINEUR.CORRECTIF` :
 - Trois curseurs : écart avec le motif (2 à 40 mm), longueur de point (2 à 10 mm), arrondi des angles (0 à 30 mm).
 - Le panneau signale si le bâti sort du cadre. C'est à l'opératrice ou à l'opérateur de vérifier que tout rentre.
 
+**Figer en points** (Objets › Plus d'outils, nouveau)
+- Le trajet réel de l'aiguille, calculé par Ink/Stitch (« Prévisualisation du plan de broderie », mode Plan de broderie), devient des tracés en point manuel. Chaque nœud est un point, à retoucher dans Inkscape : dentelle autoportante (FSL), point mal placé…
+- Le résultat est placé juste après l'original, au même rang de couture. Les sauts restent des sauts, et les coupes et arrêts de l'original sont gardés.
+- L'original est masqué (œil fermé), pas supprimé : rouvrez son œil pour revenir en arrière.
+- Vérifié : un remplissage de 534 points donne 534 points identiques (0,01 mm d'écart au plus).
+
 **Cadres** : la taille ne s'affiche plus deux fois dans la liste (« 100 × 100 mm » au lieu de « 100 × 100 — 100 × 100 mm »).
 
  — 25 octobre 2026

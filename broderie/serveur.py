@@ -232,7 +232,7 @@ class Session:
     # --- actions du panneau -------------------------------------------------
     def action(self, nom, d):
         r = self._action(nom, d)
-        if nom in ("params", "couleur", "ordre", "abandonner", "sync", "lettrage", "assembler", "marquer_a_jour", "cadre", "placer", "visible", "appliquer_fils", "bati"):
+        if nom in ("params", "couleur", "ordre", "abandonner", "sync", "lettrage", "assembler", "marquer_a_jour", "cadre", "placer", "visible", "appliquer_fils", "bati", "figer"):
             self.sauver()
         return r
 
@@ -376,6 +376,8 @@ class Session:
                 return {"polices": E.polices()}
             if nom == "lettrage":
                 return self._lettrage(d)
+            if nom == "figer":
+                return self._figer(d)
             if nom == "choisir":
                 return {"chemin": S.choisir(d.get("mode") or "file")}
             if nom == "quitter":
@@ -487,6 +489,35 @@ class Session:
             f["bobine"] = b
             f["ecart"] = round(M.ecart(f["couleur"], b["couleur"]), 1) if b else None
         return {"marques": list(marques), "marque": marque, "fils": fils}
+
+    def _figer(self, d):
+        """« Figer en points » : chaque objet choisi devient ses points réels en point manuel (retouche point par
+        point, dentelle FSL). Ink/Stitch calcule le plan de broderie de chaque objet seul, sur une copie."""
+        doc = _lire(etree.tostring(self.document.getroot()))
+        faits = []
+        for i in d.get("ids") or []:
+            el = M.par_id(doc, i)
+            if el is None or M.masque(el):
+                continue
+            code, out, err = E.executer(doc, "stitch_plan_preview", [i], {
+                "render-mode": "simple", "move-to-side": False, "layer-visibility": "unchanged", "needle-points": False,
+                "render-jumps": False, "ignore-layer": False, "overwrite": True, "visual-commands": False,
+                "insensitive": False}, delai=180)
+            res = E.document_modifie(out)
+            plan = res.getroot().xpath("//*[@id='%s']" % M.PLAN) if res is not None else []
+            if not plan:
+                raise ValueError(_message(err) or "Ink/Stitch n'a pas calculé les points de « %s »." % M.decrire(el)["nom"])
+            g = M.figer_points(doc, i, plan[0])
+            if g:
+                faits.append(g)
+        if not faits:
+            raise ValueError("Aucun objet brodé à figer.")
+        self.document = doc
+        self.ids = []
+        self.version += 1
+        self.attente.append(("commande", "figer_points"))
+        self.log("%d objet(s) figé(s) en points" % len(faits))
+        return {"ids": faits, "etat": self.etat()}
 
     def _apercu_texte(self, d):
         """Aperçu d'un texte avant de l'ajouter : fabriqué sur un dessin vide, points calculés par Ink/Stitch."""

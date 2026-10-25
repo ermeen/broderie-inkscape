@@ -322,8 +322,8 @@ c += [Chapitre(4, "Onglet Objets", "Régler la broderie de chaque forme"),
              "<b>Copier les réglages</b> puis <b>Coller</b> sur une autre forme, ou sur toutes celles du même type. "
              "La petite flèche circulaire remet un réglage à sa valeur par défaut.",
              "<b>Outils</b> selon le type d'objet (agencement automatique des satins, remplissage en satin, contour, "
-             "redwork…) ; <b>Plus d'outils</b> pour les autres. Toutes les commandes d'Ink/Stitch restent dans "
-             "Export › Outils avancés."),
+             "redwork…) ; <b>Plus d'outils</b> pour les autres, dont <b>Figer en points</b> : les vrais points de l'aiguille "
+             "deviennent un tracé à retoucher nœud par nœud (dentelle FSL)."),
       p("Lire l'aperçu", "h2"),
       *puces("<b>Points</b> : les points d'aiguille, les sauts (pointillés et grenouille), les coupes, les arrêts et les "
              "changements de couleur. Les boutons de la barre les affichent ou les masquent : grenouille (sauts), ciseaux (coupes et arrêts), carreaux (<b>densité</b> : rouge = trop serré, risque de casse ; jaune = limite) et aiguille (pénétrations).",

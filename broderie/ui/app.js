@@ -409,6 +409,18 @@ function outils(o) {
     det.innerHTML = '<summary>Plus d’outils</summary>';
     const d2 = document.createElement('div'); d2.className = 'outils';
     autres.forEach((e) => d2.appendChild(bouton(e)));
+    // les vrais points de l'aiguille deviennent des tracés modifiables (dentelle FSL, retouches)
+    const f = document.createElement('button'); f.textContent = 'Figer en points (retouche point par point)';
+    f.title = 'Le trajet réel de l’aiguille devient des tracés en point manuel : chaque nœud est un point, à déplacer dans Inkscape. '
+      + 'L’original est masqué (œil fermé) pour revenir en arrière.';
+    f.onclick = async () => {
+      try {
+        const r = await api('figer', { ids: o.ids || [o.id] }, 'Ink/Stitch calcule les points…');
+        S.etat = r.etat; S.sel = r.ids[r.ids.length - 1]; S.choix = new Set(); rendreTout(); apercuBientot();
+        message('Objet figé en points : synchronisez, puis retouchez les nœuds dans Inkscape (outil Nœuds, F2). L’original est masqué : rouvrez son œil pour revenir en arrière.');
+      } catch (e) { message(e.message, true); }
+    };
+    d2.appendChild(f);
     det.appendChild(d2); blocO.appendChild(det);
   }
   return blocO;

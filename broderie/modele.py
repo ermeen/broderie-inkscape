@@ -757,3 +757,50 @@ def appliquer_bati(svg, actif, ecart=10.0, longueur=5.0, arrondi=6.0, cadre_larg
     el.set("data-broderie-bati", json.dumps({"ecart": float(ecart), "longueur": float(longueur), "arrondi": float(arrondi),
                                              "depasse": depasse}))
     return True
+
+
+# ---------------------------------------------------------------- figer en points (dentelle FSL, retouches)
+# Le trajet réel de l'aiguille, calculé par Ink/Stitch (« Prévisualisation du plan de broderie », mode
+# « Plan de broderie »), devient des tracés en point manuel : chaque nœud est une piqûre, modifiable dans
+# Inkscape. Un tracé par morceau brodé d'un seul tenant : les sauts restent des sauts.
+REGLAGES_FIN = ("trim_after", "stop_after", "force_lock_stitches")
+
+
+def figer_points(svg, i, plan):
+    """Remplace l'objet i par ses points (plan : calque « Stitch Plan » calculé pour lui seul).
+    L'original est masqué (œil fermé) ; le groupe de points est placé juste après lui (même ordre de couture).
+    Renvoie l'identifiant du groupe, ou None."""
+    ix = _inkex()
+    el = par_id(svg, i)
+    traces = [p for p in plan.iter("{%s}path" % SVG_NS) if p.get("d")]
+    if el is None or not traces:
+        return None
+    t = ix.transforms.Transform()                  # repère du parent de l'objet → repère du dessin
+    for a in reversed(list(el.iterancestors())):
+        if a.get("transform"):
+            t = t @ ix.transforms.Transform(a.get("transform"))
+    g = etree.Element("{%s}g" % SVG_NS)
+    g.set("id", "points_" + i)
+    g.set("{%s}label" % INKSCAPE_NS, "Points de %s" % decrire(el)["nom"])
+    if t != ix.transforms.Transform():
+        g.set("transform", str(-t))
+    for k, p in enumerate(traces):
+        q = etree.SubElement(g, "{%s}path" % SVG_NS)
+        q.set("id", "points_%s_%d" % (i, k + 1))
+        q.set("d", p.get("d"))
+        tp = ix.transforms.Transform()             # transformations du plan (groupes et tracé) gardées telles quelles
+        for a in list(reversed(list(p.iterancestors()))) + [p]:
+            if a.get("transform") and a is not plan.getparent():
+                tp = tp @ ix.transforms.Transform(a.get("transform"))
+        if tp != ix.transforms.Transform():
+            q.set("transform", str(tp))
+        q.set("style", "fill:none;stroke:%s;stroke-width:0.4" % couleur(el))     # couleur exacte (bobines)
+        q.set("{%s}label" % INKSCAPE_NS, "Points de %s%s" % (decrire(el)["nom"], " (%d)" % (k + 1) if len(traces) > 1 else ""))
+        q.set("{%s}stroke_method" % INKSTITCH_NS, "manual_stitch")
+    for k in REGLAGES_FIN:                         # coupe, arrêt… de l'original : après le dernier morceau
+        v = el.get("{%s}%s" % (INKSTITCH_NS, k))
+        if v is not None:
+            g[-1].set("{%s}%s" % (INKSTITCH_NS, k), v)
+    el.addnext(g)
+    montrer(svg, i, False)                         # l'original n'est plus brodé, mais reste là pour revenir en arrière
+    return g.get("id")
