@@ -8,6 +8,7 @@ Ink/Stitch installé (voir moteur.py).
 import gettext
 import json
 import os
+import re
 
 from lxml import etree
 
@@ -1257,3 +1258,42 @@ def poser_commande(svg, i, quoi, groupe, symbole):
     g = etree.fromstring(groupe)
     el.addnext(g)
     return True
+
+
+# ---------------------------------------------------------------- largeur d'une colonne satin
+def _echantillons(sp, n=8):
+    """Points d'un sous-chemin (CubicSuperPath) : n points par segment de Bézier."""
+    out = []
+    for a, b in zip(sp, sp[1:]):
+        p0, p1, p2, p3 = a[1], a[2], b[0], b[1]
+        for k in range(n):
+            t = k / n
+            u = 1 - t
+            out.append(tuple(u ** 3 * p0[i] + 3 * u * u * t * p1[i] + 3 * u * t * t * p2[i] + t ** 3 * p3[i] for i in (0, 1)))
+    if sp:
+        out.append(tuple(sp[-1][1]))
+    return out
+
+
+def largeur_satin(svg, el):
+    """Largeur maximale (mm) d'une colonne satin : l'écart entre ses deux rails (les deux plus longs sous-chemins),
+    ou l'épaisseur du trait pour un satin fait d'un seul tracé. None si on ne sait pas la mesurer."""
+    import math
+    ix = _inkex()
+    t = _repere(el)
+    mm = mm_par_unite(svg)
+    try:
+        csp = ix.paths.Path(_tracé(el)).transform(t).to_superpath()
+    except Exception:
+        return None
+    subs = [_echantillons(sp) for sp in csp if len(sp) > 1]
+    longueur = lambda pts: sum(math.dist(a, b) for a, b in zip(pts, pts[1:]))
+    if len(subs) < 2:                                   # un seul tracé : la largeur est l'épaisseur du trait
+        try:
+            ep = float(re.sub(r"[^\d.]", "", _style_herite(el, "stroke-width") or "") or 0)
+        except ValueError:
+            return None
+        return ep * math.sqrt(abs(t.a * t.d - t.b * t.c)) * mm if ep else None
+    rails = sorted(subs, key=longueur, reverse=True)[:2]
+    a, b = rails
+    return max(min(math.dist(p, q) for q in b) for p in a) * mm

@@ -83,7 +83,12 @@ details.theme summary::before { content: "›"; color: var(--muted); transition:
 details.theme[open] summary::before { transform: rotate(90deg); }
 details.theme summary .nb { color: var(--muted); font-weight: 400; margin-left: auto; }
 .couleur { display: flex; align-items: center; gap: 8px; }
-.couleur input[type=color] { width: 30px; height: 26px; border: 1px solid var(--bord); border-radius: 6px; padding: 0; background: none; cursor: pointer; }
+.couleur input[type=color] { width: 26px; height: 26px; border: 1px solid var(--bord); border-radius: 50%; padding: 0; background: none;
+  cursor: pointer; overflow: hidden; -webkit-appearance: none; appearance: none; }
+.couleur input[type=color]::-webkit-color-swatch-wrapper { padding: 0; }
+.couleur input[type=color]::-webkit-color-swatch { border: none; border-radius: 50%; }
+.couleur input[type=color]::-moz-color-swatch { border: none; border-radius: 50%; }
+.couleur input[type=color]:hover { transform: scale(1.08); }
 .outils { display: flex; flex-wrap: wrap; gap: 5px; }
 .outils button { font-size: 12px; padding: 4px 9px; }
 /* aperçu */
@@ -279,6 +284,11 @@ footer button { padding: 9px 16px; font-size: 13.5px; border-radius: 9px; }
 .synchro.attente:hover { background: #d47a22; }
 .synchro.ok { background: #3f9d5a; }
 .synchro.ok:hover { background: #378a4f; }
+.synchro.calme { background: var(--tuile); color: var(--texte); border: 1px solid var(--bord); }
+.synchro.calme:hover { background: var(--survol); }
+.synchro.rappel { background: var(--accent); animation: rappel-synchro 1.6s ease-in-out 3; }
+@keyframes rappel-synchro { 50% { box-shadow: 0 0 0 6px rgba(47,128,237,.3); } }
+#attenteInfo.rappel { color: var(--accent); font-weight: 600; }
 .synchro:disabled { opacity: .7; }
 /* simulation : la zone de dessin rétrécit si besoin, la poignée et les commandes restent visibles */
 #simu > :not(.simu-vue) { flex: none; }
@@ -425,3 +435,12 @@ footer button { padding: 9px 16px; font-size: 13.5px; border-radius: 9px; }
 /* liste limitée à la sélection d'Inkscape */
 #bandeauSelection { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin: 0 0 6px; padding: 6px 9px;
   border-radius: 8px; background: var(--sel); font-size: 12px; }
+
+/* conseils : petit « i » à côté d'un réglage, bulle avec la bonne pratique et le lien vers la documentation */
+button.info { width: 16px; height: 16px; min-width: 16px; padding: 0; margin-left: 5px; border-radius: 50%; border: 1px solid var(--muted);
+  background: none; color: var(--muted); font: italic 600 10px/14px Georgia, serif; cursor: pointer; vertical-align: 1px; }
+button.info:hover { border-color: var(--accent); color: var(--accent); }
+.bloc h2 button.info { text-transform: none; letter-spacing: 0; }
+.bulle-info { margin: 6px 0 4px; padding: 8px 10px; border-radius: 8px; background: var(--sel); color: var(--texte); font-size: 12px; line-height: 1.45;
+  text-transform: none; letter-spacing: 0; font-weight: 400; }
+.bulle-info a { color: var(--accent); white-space: nowrap; }

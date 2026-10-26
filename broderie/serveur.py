@@ -168,7 +168,7 @@ class Session:
         cmds = M.commandes()
         sorties = sorted({c["format"] for c in M.CATALOGUE["commandes"] if c["type"] == "output" and c["format"]})
         total = len(M.objets(self.document, masques=True)) if self.ids else len(objs)
-        return {"objets": [M.decrire(o) for o in objs], "selection": self.ids, "nom": self.nom, "total": total,
+        return {"objets": [M.decrire(o) for o in objs], "selection": self.ids, "nom": self.nom, "total": total, "synchro": getattr(self, "synchro", 0),
                 "attente": len(self.attente), "version": self.version,
                 "reserve": {k: len(v) for k, v in self.reserve.items()},
                 "version_panneau": VERSION_PANNEAU, "raccourci": S.RACCOURCI, "mac": S.MAC,
@@ -184,7 +184,7 @@ class Session:
     def sync(self, d):
         """Dessin actuel d'Inkscape → applique les modifications en attente → dessin à renvoyer (ou None)."""
         with self.verrou:
-            self.actif = time.time()
+            self.actif = self.synchro = time.time()
             recu = d["svg"]
             doc = _lire(recu)
             E.versionner(doc)
@@ -801,7 +801,20 @@ class Session:
                                 "de densité dans l'aperçu (bouton carreaux)." % n, ident)
             except etree.XMLSyntaxError:
                 pass
-        # 4. objets minuscules
+        # 4. satins trop larges : au-delà de 8 mm, les points sont longs, lâches, et s'accrochent
+        for ident in boites:
+            el = M.par_id(doc, ident)
+            if el is None or "satin_column" not in M.types(el) or M.attr(el, "satin_method") in ("e_stitch", "s_stitch"):
+                continue
+            if M.attr(el, "max_stitch_length_mm"):
+                continue                               # découpe des longs points déjà active
+            larg = M.largeur_satin(doc, el)
+            if larg and larg > 8:
+                ajouter("alerte", "Satin trop large",
+                        "Jusqu'à %.0f mm de large : des points aussi longs sont lâches et s'accrochent. Découpez les longs "
+                        "points, ou brodez cette forme en remplissage." % larg, ident,
+                        {"action": "params", "valeurs": {"max_stitch_length_mm": 7}, "libelle": "Découper à 7 mm"})
+        # 5. objets minuscules
         for ident, b in boites.items():
             if (b[2] - b[0]) * mm < 1 and (b[3] - b[1]) * mm < 1:
                 ajouter("alerte", "Objet minuscule", "Moins de 1 mm : il ne se brodera pas bien. Agrandissez-le ou masquez-le.",

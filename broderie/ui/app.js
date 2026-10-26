@@ -65,11 +65,13 @@ const TYPES = {
 const ESSENTIELS = {
   fill_stitch: ['row_spacing_mm', 'angle', 'max_stitch_length_mm', 'contour_strategy', 'meander_pattern', 'meander_scale_percent',
     'guided_fill_strategy', 'cross_stitch_method', 'pattern_size_mm', 'rows_per_thread', 'pull_compensation_mm'],
-  satin_column: ['zigzag_spacing_mm', 'pull_compensation_mm', 'max_stitch_length_mm', 'split_method'],
+  satin_column: ['zigzag_spacing_mm', 'pull_compensation_mm', 'pull_compensation_percent', 'max_stitch_length_mm', 'split_method'],
   stroke: ['running_stitch_length_mm', 'repeats', 'zigzag_spacing_mm', 'line_count', 'min_line_dist_mm', 'satin_guide_pattern_position'],
 };
 // même réglage, sens différent selon le type : pour un satin, la longueur max. sert à découper les longs points
-const NOMS_TYPE = { satin_column: { max_stitch_length_mm: 'Découpe des longs points (longueur max.)', split_method: 'Méthode de découpe' } };
+const NOMS_TYPE = { satin_column: { max_stitch_length_mm: 'Découpe des longs points (longueur max.)', split_method: 'Méthode de découpe',
+  pull_compensation_mm: 'Compensation (mm)', pull_compensation_percent: 'Compensation (% de la largeur)',
+  short_stitch_inset: 'Raccourcir de (% de la largeur)', short_stitch_distance_mm: 'quand les points sont à moins de' } };
 const NOMS = { // libellés simples
   row_spacing_mm: 'Densité (écart entre les rangs)', angle: 'Angle', max_stitch_length_mm: 'Longueur de point',
   zigzag_spacing_mm: 'Densité (écart entre les points)', pull_compensation_mm: 'Compensation', running_stitch_length_mm: 'Longueur de point',
@@ -82,6 +84,7 @@ const BORNES = { // curseurs : [min, max, pas, valeur par défaut d'Ink/Stitch]
   zigzag_spacing_mm: [0.1, 1.5, 0.05, 0.4], pull_compensation_mm: [0, 1.5, 0.05, 0], running_stitch_length_mm: [0.5, 6, 0.1, 2.5],
   repeats: [1, 10, 1, 1], line_count: [2, 50, 1, 10], min_line_dist_mm: [0.2, 10, 0.1, 0], meander_scale_percent: [20, 400, 5, 100],
   pattern_size_mm: [1, 10, 0.5, 3], rows_per_thread: [1, 10, 1, 2],
+  pull_compensation_percent: [0, 50, 1, 0], short_stitch_inset: [0, 100, 5, 15], short_stitch_distance_mm: [0, 2, 0.05, 0.25],
 };
 // réglages vides par défaut dans Ink/Stitch : ce que veut dire « vide » (sinon : « auto »)
 const VIDE = { max_stitch_length_mm: 'non' };
@@ -337,7 +340,7 @@ function reglage(o, p, nomSimple) {
     if (p.inverse) on = !on;
     d.innerHTML = `<label title="${aide}">${lib}</label><input type="checkbox" ${on ? 'checked' : ''}>`;
     $('input', d).onchange = (e) => envoyer(o, { [p.name]: p.inverse ? !e.target.checked : e.target.checked });
-    return d;
+    return avecConseil(d, o, p.name);
   }
   d.className = 'reglage' + (modifie ? ' modifie' : '');
   const unite = p.unite ? `<span class="unite">${esc(p.unite.replace(/\(.*\)/, '').trim())}</span>` : '';
@@ -382,6 +385,50 @@ function reglage(o, p, nomSimple) {
     $('input', d).onchange = (e) => envoyer(o, { [p.name]: e.target.value });
   }
   const raz0 = $('.raz', d); if (raz0) raz0.onclick = () => envoyer(o, { [p.name]: null });   // absent si le réglage est vide
+  return avecConseil(d, o, p.name);
+}
+
+// ---------------------------------------------------------------- conseils (ⓘ) : bonne pratique en deux phrases,
+// et la page de la documentation d'Ink/Stitch pour aller plus loin
+const DOC = 'https://inkstitch.org/fr/docs/';
+const DOC_SATIN = DOC + 'stitches/satin-column/', DOC_REMP = DOC + 'stitches/fill-stitch/', DOC_TRAIT = DOC + 'stitches/running-stitch/';
+const CONSEILS = {
+  'satin_column.zigzag_spacing_mm': ['Écart entre deux points de satin. 0,35 à 0,45 mm couvre bien ; plus serré, c\'est plus brillant mais le fil s\'entasse ; plus large pour un fil épais ou un effet léger.', DOC_SATIN + '#paramètres'],
+  'satin_column.pull_compensation_mm': ['Le fil tire le tissu et la colonne se rétrécit : on l\'élargit d\'autant. 0,2 à 0,4 mm, davantage sur la maille et les tissus souples. Trop : les bords débordent.', DOC_SATIN + '#paramètres'],
+  'satin_column.pull_compensation_percent': ['La même compensation, proportionnelle à la largeur : pratique pour un satin large ou de largeur variable (10 à 20 %). S\'ajoute à la compensation en mm.', DOC_SATIN + '#paramètres'],
+  'satin_column.max_stitch_length_mm': ['Au-delà de 7 à 8 mm de large, les points de satin sont lâches et s\'accrochent. Activez la découpe (7 mm par exemple) : chaque point trop long est coupé en deux.', DOC_SATIN + '#paramètres'],
+  'fill_stitch.row_spacing_mm': ['Écart entre les rangs. 0,25 à 0,4 mm selon le fil (fil 40 : environ 0,4). Trop serré, le tissu devient raide et l\'aiguille peut casser : regardez la carte de densité.', DOC_REMP + '#paramètres'],
+  'fill_stitch.angle': ['Sens des rangs. Changez l\'angle entre deux zones voisines (45° et 135°) : elles se distinguent mieux et le tissu ne tire pas toujours dans le même sens.', DOC_REMP + '#paramètres'],
+  'fill_stitch.max_stitch_length_mm': ['Longueur des points dans un rang : 3 à 4 mm. Plus court pour les petites zones ; plus long, c\'est plus brillant mais moins solide.', DOC_REMP + '#paramètres'],
+  'stroke.running_stitch_length_mm': ['2 à 2,5 mm en général ; 1,5 mm dans les courbes serrées et les petits détails ; plus long pour un bâti.', DOC_TRAIT + '#paramétres'],
+  'stroke.repeats': ['Nombre de passages sur le tracé. 2 ou 3 pour un trait plus visible (voir aussi le point Triple).', DOC_TRAIT + '#paramétres'],
+  trim_after: ['La machine coupe le fil après cet objet (si elle sait couper) : utile avant un long saut. Sinon, il faudra couper ce fil à la main.', DOC + 'commands/'],
+  stop_after: ['La machine s\'arrête après cet objet : pour poser le tissu d\'un appliqué, couper un surplus ou vérifier.', DOC + 'commands/'],
+};
+const CONSEILS_BLOC = {
+  'Sous-couche': ['Elle fixe le tissu avant le remplissage : indispensable sur la maille et les grandes zones, inutile sur les petits éléments.', DOC_REMP + '#underlay'],
+  'Sous-couches (plusieurs possibles)': ['Centre : colonnes fines (moins de 2 mm). Contour : de 2 à 5 mm, bords nets. Contour + Zigzag : satins larges ou tissus épais.', DOC_SATIN + '#sous-couche-centrale'],
+  'Points courts dans les courbes': ['Dans une courbe serrée, les points s\'entassent côté intérieur : Ink/Stitch y raccourcit un point sur deux. Les valeurs par défaut conviennent presque toujours.', DOC_SATIN + '#paramètres'],
+  'Départ et fin de l’aiguille': ['Facultatif : sans repère, Ink/Stitch part au plus près de l\'aiguille. Placez la fin près de l\'objet suivant pour raccourcir le saut.', DOC_REMP + '#définir-les-points-de-départ-et-darrivée'],
+};
+function boutonConseil(c) {
+  const b = document.createElement('button'); b.type = 'button'; b.className = 'info'; b.textContent = 'i'; b.title = 'Conseil';
+  b.onclick = (e) => {
+    e.preventDefault(); e.stopPropagation();
+    const hote = b.closest('.reglage, .interrupteur, .bloc'), ouverte = hote && hote.querySelector(':scope > .bulle-info');
+    $$('.bulle-info').forEach((x) => x.remove());
+    if (ouverte) return;
+    const bulle = document.createElement('div'); bulle.className = 'bulle-info';
+    bulle.innerHTML = `${esc(c[0])} <a href="${c[1]}" target="_blank" rel="noopener">Documentation Ink/Stitch ↗</a>`;
+    if (hote.classList.contains('bloc')) hote.querySelector('h2').after(bulle); else hote.appendChild(bulle);
+  };
+  return b;
+}
+document.addEventListener('pointerdown', (e) => { if (!e.target.closest('.bulle-info, button.info')) $$('.bulle-info').forEach((x) => x.remove()); });
+function avecConseil(d, o, nom) {
+  const c = CONSEILS[typePrincipal(o) + '.' + nom] || CONSEILS[nom];
+  const lab = c && $('label', d);
+  if (lab) lab.appendChild(boutonConseil(c));             // dans le libellé : reste collé au nom du réglage
   return d;
 }
 
@@ -400,6 +447,7 @@ function tuiles(liste, actif, clic, multi = false) {
 function bloc(titre, ...enfants) {
   const d = document.createElement('div'); d.className = 'bloc';
   if (titre) d.innerHTML = `<h2>${esc(titre)}</h2>`;
+  if (titre && CONSEILS_BLOC[titre]) $('h2', d).appendChild(boutonConseil(CONSEILS_BLOC[titre]));
   enfants.filter(Boolean).forEach((e) => d.appendChild(e));
   return d;
 }
@@ -454,6 +502,12 @@ function sectionType(o, typ) {
     const sc = [['center_walk_underlay', 'Centre', 'centre'], ['contour_underlay', 'Contour', 'contour'], ['zigzag_underlay', 'Zigzag', 'zigzag_sc']];
     const actifs = sc.filter(([n]) => estVrai(o.valeurs[n] ?? false)).map(([n]) => n);
     out.push(bloc('Sous-couches (plusieurs possibles)', tuiles(sc, actifs, (n) => envoyer(o, { [n]: !actifs.includes(n) }), true)));
+    // points courts : dans une courbe, un point sur deux est raccourci côté intérieur (moins de fil entassé)
+    const pc = ['short_stitch_inset', 'short_stitch_distance_mm'].map((n) => parNom(typ, n)).filter((p) => p && visible(o, p, typ));
+    if (pc.length) {
+      out.push(bloc('Points courts dans les courbes', ...pc.map((p) => reglage(o, p, NOMS_TYPE.satin_column[p.name]))));
+      pc.forEach((p) => ess.push(p));                   // déjà montrés : pas répétés dans « Plus de réglages »
+    }
   }
   return { sections: out, montres: new Set([T.param, 'fill_underlay', 'center_walk_underlay', 'contour_underlay', 'zigzag_underlay',
     'satin_column', 'bean_stitch_repeats', ...ess.map((p) => p.name)]) };
@@ -984,13 +1038,27 @@ function rendreAncien() {
   $('#baMaj').onclick = () => message('Dans Inkscape : Extensions › Ink/Stitch › Résolution de problèmes › Mettre à jour le svg d’Inkstitch. Ink/Stitch propose « Update » : cliquez-le, puis appuyez sur ⌘⌥B.');
   $('#baRecent').onclick = async () => { S.etat = await api('marquer_a_jour'); rendreTout(); apercuBientot(); };
 }
+// retour dans le panneau après être passé par Inkscape (la fenêtre reprend le focus) : rappel discret de synchroniser
+let quitte = 0;
+window.addEventListener('blur', () => { quitte = Date.now(); });
+window.addEventListener('focus', () => {
+  if (quitte && Date.now() - quitte > 3000 && !S.retourInkscape) { S.retourInkscape = true; if (S.etat) rendreAttente(); }
+});
 function rendreAttente() {
   const n = S.etat.attente || 0, i = $('#attenteInfo');
-  i.className = n ? 'on' : '';
-  i.textContent = n ? `${n} modification${n > 1 ? 's' : ''} à envoyer à Inkscape` : 'Le dessin est à jour dans Inkscape';
+  if (S.etat.synchro !== S.synchroVue) { S.synchroVue = S.etat.synchro; S.retourInkscape = false; }   // le dessin vient d'arriver
+  // Le panneau ne voit pas ce qu'on fait dans Inkscape : sans modification en attente, le bouton reste une invitation
+  // (pas un « ✓ » vert trompeur) ; au retour d'Inkscape, il le rappelle.
+  i.className = n ? 'on' : (S.retourInkscape ? 'rappel' : '');
+  i.textContent = n ? `${n} modification${n > 1 ? 's' : ''} à envoyer à Inkscape`
+    : S.retourInkscape ? 'De retour d’Inkscape ? Synchronisez pour reprendre vos changements.'
+    : 'Modifié dans Inkscape ? Synchronisez (ou ⌘⌥B) pour mettre le panneau à jour.';
   $('#bAbandonner').hidden = !n;
   const b = $('#bEnvoyer');
-  if (!b.disabled) { b.className = 'synchro ' + (n ? 'attente' : 'ok'); b.textContent = n ? `⇄ Synchroniser (${n})` : '✓ Synchronisé'; }
+  if (!b.disabled) {
+    b.className = 'synchro ' + (n ? 'attente' : S.retourInkscape ? 'rappel' : 'calme');
+    b.textContent = n ? `⇄ Synchroniser (${n})` : '⇄ Synchroniser';
+  }
   const r = Object.entries(S.etat.reserve || {});
   if (r.length) i.title = 'Modifications gardées pour d\'autres dessins : ' + r.map(([k, v]) => `« ${k} » (${v})`).join(', ');
   if (S.etat.sans_dessin) i.textContent = 'Aucun dessin reçu : appuyez sur ⌘⌥B dans Inkscape.';

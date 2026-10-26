@@ -13,6 +13,10 @@ Le numéro de version suit le schéma `MAJEUR.MINEUR.CORRECTIF` :
 
 **Objets**
 - **Couleurs déjà dans le dessin** : sous la couleur de l'objet, une pastille par couleur utilisée (tous calques). Un clic donne exactement la même couleur à l'objet, ou à tous les objets choisis. Au survol : les objets qui l'utilisent, et le fil si une bobine est choisie.
+- **Conseils ⓘ** à côté des réglages importants (densité, compensation, découpe, sous-couches, points courts, angle, longueur de point, coupe, arrêt…) : la bonne pratique en deux phrases et le lien vers la page de la documentation d'Ink/Stitch en français.
+- **Satin** : compensation en % de la largeur et **Points courts dans les courbes** remontés en haut de la fiche. **Vérifier avant d'exporter** signale un satin de plus de 8 mm de large (« Découper à 7 mm »).
+- **Bouton Synchroniser** : plus de « ✓ Synchronisé » vert trompeur (le panneau ne voit pas ce qu'on fait dans Inkscape). Il est orange quand des réglages attendent, discret sinon, et bleu quand on revient d'Inkscape : « De retour d'Inkscape ? Synchronisez pour reprendre vos changements. »
+- **Bouton de couleur rond**, comme les pastilles des couleurs du dessin.
 - **Choisir les semblables** (à côté des favoris) : tous les objets du même point (ex. tous les points droits triples), ou du même point et des mêmes réglages, choisis d'un coup pour les régler ou les glisser ensemble.
 - **Départ et fin de l'aiguille** (remplissages) : « Placer », puis un clic dans l'aperçu ; le repère d'Ink/Stitch y est posé (▶ vert, ■ rouge dans l'aperçu, symbole relié à la forme dans Inkscape) et l'aiguille part ou finit au bord le plus proche. « Automatique » le retire (Ink/Stitch choisit de nouveau). Vérifié : premier et dernier point exactement aux endroits cliqués.
 - **Carte de densité** : légende en bas de l'aperçu avec les seuils réglables (nombre de points dans un rayon en mm, pour le rouge et le jaune), retenus d'un dessin à l'autre ; ↺ revient à ceux d'Ink/Stitch.

@@ -291,8 +291,9 @@ c += [Chapitre(3, "Le geste à retenir", "Un raccourci relie Inkscape et le pann
               "• après avoir <b>changé des réglages</b> dans le panneau : ils passent dans le dessin "
               "(Cmd Z dans Inkscape les annule).", "LE RACCOURCI"),
       p("Le bas du panneau indique combien de modifications attendent d'être envoyées. Le bouton "
-        "<b>Synchroniser</b> fait la même chose que le raccourci : il est <b>orange</b> quand des modifications "
-        "attendent, <b>vert</b> quand tout est à jour. <b>Annuler</b> oublie les modifications pas encore envoyées."),
+        "<b>Synchroniser</b> fait la même chose que le raccourci, <b>dans les deux sens</b> : il reprend le dessin "
+        "d'Inkscape et y renvoie les réglages. Il est <b>orange</b> quand des réglages attendent, <b>bleu</b> quand vous "
+        "revenez d'Inkscape (le panneau ne voit pas ce que vous y faites). <b>Annuler</b> oublie ce qui n'est pas envoyé."),
       encadre("<b>Avant de fermer Inkscape : " + CMD + " puis Cmd S.</b> Les réglages de broderie sont enregistrés "
               "<b>dans votre fichier .svg</b>, exactement comme Ink/Stitch les enregistre : le fichier reste utilisable "
               "avec les menus Ink/Stitch habituels.", "SAUVEGARDE", SABLE, ROSE_FONCE),
@@ -310,8 +311,7 @@ c += [Chapitre(4, "Onglet Objets", "Régler la broderie de chaque forme"),
              + touche("Maj") + " " + touche("clic") + " toute une suite.",
              "Un clic sur la <b>ligne d'un calque</b> le replie ou le déplie ; son bouton <b>Tout</b> (au survol) choisit tous "
              "ses objets ; un <b>clic dans l'aperçu</b> choisit l'objet sous la souris. La <b>punaise</b> garde la liste en haut.",
-             "<b>Glissez</b> un objet ou un calque dans la liste pour changer l'ordre de couture. L'<b>œil</b> masque "
-             "un objet ou un calque : il n'est plus brodé, mais reste dans la liste.",
+             "<b>Glissez</b> un objet ou un calque pour changer l'ordre de couture ; l'<b>œil</b> le masque (plus brodé).",
              "Plusieurs objets : les réglages s'appliquent à tous ; <b>≠</b> signale une valeur différente. "
              "<b>Choisir les semblables</b> : tous les objets du même point (et mêmes réglages) d'un coup."),
       p("Régler", "h2"),
@@ -320,7 +320,7 @@ c += [Chapitre(4, "Onglet Objets", "Régler la broderie de chaque forme"),
              "<b>Paramètres</b> essentiels en curseurs, tous les autres dans <b>Plus de réglages</b> ; <b>sous-couche</b> en tuiles ; <b>couper le fil</b> et "
              "<b>arrêter la machine</b> après l'objet.",
              "<b>Copier les réglages</b> puis <b>Coller</b> sur une autre forme, ou sur toutes celles du même type. "
-             "La flèche circulaire remet la valeur par défaut. <b>Mes réglages favoris</b> : un jeu de réglages gardé sous un nom.",
+             "La flèche circulaire remet la valeur par défaut ; le petit <b>i</b> donne un conseil et le lien vers la documentation. <b>Mes réglages favoris</b> : un jeu de réglages gardé sous un nom.",
              "<b>Couleurs déjà dans le dessin</b> : pastilles sous la couleur, un clic donne exactement la même. "
              "<b>Départ et fin</b> d'un remplissage : « Placer », puis un clic dans l'aperçu.",
              "<b>Outils</b> selon le type d'objet (agencement automatique des satins, remplissage en satin, contour, "
