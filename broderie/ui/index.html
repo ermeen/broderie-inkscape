@@ -80,6 +80,16 @@
       <div class="carte-titre"><span>Vérifier avant d'exporter</span><button id="bVerifier" class="petit">Vérifier</button></div>
       <div id="verifListe" class="muted small">Formes à réparer, sauts sans coupe, zones trop denses, objets minuscules, cadre : tout est contrôlé en une fois.</div>
     </div>
+    <div class="carte" id="preparer">
+      <div class="carte-titre"><span>Préparer la broderie</span></div>
+      <label class="etiquette">Adapter au tissu (tout le dessin)</label>
+      <div class="ligne-tissu"><select id="prTissu"></select><button id="bPrTissu" class="petit">Adapter</button></div>
+      <label class="etiquette">Ordre de couture</label>
+      <div class="ligne-tissu"><button id="bPrOrdre" class="petit">Regrouper les couleurs…</button><span id="prOrdreInfo" class="muted small"></span></div>
+      <label class="etiquette">Coupes</label>
+      <div class="ligne-tissu"><span class="small">Couper après chaque saut de plus de</span><input type="number" id="prSeuil" value="5" min="1" step="1" style="width:56px"><span class="small">mm</span><button id="bPrCoupes" class="petit">Couper</button></div>
+      <p class="muted small">Tout reste modifiable, et « Annuler » en bas oublie ce qui n'est pas encore envoyé à Inkscape.</p>
+    </div>
     <div class="carte">
       <div class="carte-titre"><span>Exporter</span></div>
       <label class="etiquette">Fichier de broderie</label>

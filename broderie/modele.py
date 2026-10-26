@@ -965,3 +965,47 @@ def problemes_inkstitch(svg, resultat):
             except Exception:
                 continue
     return out
+
+
+# ---------------------------------------------------------------- optimiser l'ordre de couture
+def ordre_par_couleur(svg):
+    """Regroupe les objets de même couleur, calque par calque, en gardant l'ordre d'apparition des couleurs et
+    l'ordre des objets d'une même couleur (le fond reste dessous si sa couleur vient en premier). Renvoie True si
+    l'ordre a changé. Les calques ne sont pas mélangés : un calque reste un ensemble cousu d'un seul tenant."""
+    change = False
+    parents = {}
+    for el in objets(svg, masques=True):
+        parents.setdefault(el.getparent(), []).append(el)
+    for parent, els in parents.items():
+        if len(els) < 2:
+            continue
+        couleurs = []
+        for el in els:
+            c = hex6(couleur(el))
+            if c not in couleurs:
+                couleurs.append(c)
+        nouveau = [el for c in couleurs for el in els if hex6(couleur(el)) == c]
+        if nouveau == els:
+            continue
+        places = sorted(parent.index(el) for el in els)
+        for el in els:
+            parent.remove(el)
+        for pos, el in zip(places, nouveau):
+            parent.insert(pos, el)
+        change = True
+    return change
+
+
+def resume_couture(points):
+    """Nombre de changements de fil, de sauts et de coupes d'une liste de points (export d'Ink/Stitch)."""
+    chg = sum(1 for p in points if p[2] == "COLOR_CHANGE")
+    coupes = sum(1 for p in points if p[2] == "TRIM")
+    sauts, dans = 0, False
+    for p in points:
+        if p[2] == "JUMP":
+            if not dans:
+                sauts += 1
+            dans = True
+        elif p[2] == "STITCH":
+            dans = False
+    return {"changements": chg, "sauts": sauts, "coupes": coupes}

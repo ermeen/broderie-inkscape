@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape" xmlns:inkstitch="http://inkstitch.org/namespace" width="100mm" height="60mm" viewBox="0 0 100 60">
+  <metadata><inkstitch:inkstitch_svg_version>4</inkstitch:inkstitch_svg_version></metadata>
+  <g inkscape:groupmode="layer" id="calque" inkscape:label="Fleurs">
+    <circle id="r1" inkscape:label="Rouge 1" cx="15" cy="15" r="8" style="fill:#cc2222"/>
+    <circle id="b1" inkscape:label="Bleu 1" cx="40" cy="15" r="8" style="fill:#2244cc"/>
+    <circle id="r2" inkscape:label="Rouge 2" cx="65" cy="15" r="8" style="fill:#cc2222"/>
+    <circle id="b2" inkscape:label="Bleu 2" cx="90" cy="15" r="8" style="fill:#2244cc"/>
+    <circle id="r3" inkscape:label="Rouge 3" cx="15" cy="45" r="8" style="fill:#cc2222"/>
+  </g>
+</svg>

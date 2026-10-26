@@ -225,6 +225,9 @@ class Session:
         if op[0] == "visible":
             M.montrer(doc, op[1], op[2])
             return
+        if op[0] == "ordre_couleurs":
+            M.ordre_par_couleur(doc)
+            return
         if op[0] == "lettres":
             M.regler_lettres(doc, *op[1:])
             return
@@ -274,6 +277,10 @@ class Session:
             return self._bobines(d)
         if nom == "verifier":
             return self._verifier(d)
+        if nom == "optimiser":
+            return self._optimiser(d)
+        if nom == "couper_sauts":
+            return self._couper_sauts(d)
         if nom == "lettres_resume":
             with self.verrou:
                 return {"lettres": M.resume_lettres(self.document, d["id"]) if self.document is not None else None}
@@ -507,10 +514,85 @@ class Session:
         self.log("Texte brodé ajouté")
         return {"id": g.get("id")}
 
+    @staticmethod
+    def _sauts_longs(doc, boites, seuil):
+        """Sauts plus longs que seuil (mm) sans coupe, hors changement de fil : [(objet de départ, longueur mm)]."""
+        import math
+        r, err = E.points(doc)
+        out = []
+        if not (r and r["points"] and boites):
+            return out
+        pts, mm = r["points"], M.mm_par_unite(doc)
+        xs = [p[0] for p in pts if p[2] == "STITCH"] or [0]
+        ys = [p[1] for p in pts if p[2] == "STITCH"] or [0]
+        cpx, cpy = (min(xs) + max(xs)) / 2, (min(ys) + max(ys)) / 2
+        cbx = (min(b[0] for b in boites.values()) + max(b[2] for b in boites.values())) / 2
+        cby = (min(b[1] for b in boites.values()) + max(b[3] for b in boites.values())) / 2
+        dessin = lambda x, y: (cbx + (x - cpx) / 10 / mm, cby + (y - cpy) / 10 / mm)      # points (0,1 mm, centrés) → dessin
+        dernier, depart, coupe, apres_couleur = None, None, False, False
+        for x, y, c in pts:
+            if c == "STITCH":
+                if depart is not None and not coupe and not apres_couleur:
+                    long_mm = math.dist(depart, (x, y)) / 10
+                    if long_mm > seuil:
+                        out.append((M._objet_proche(doc, *dessin(*depart), boites), long_mm))
+                dernier, depart, coupe, apres_couleur = (x, y), None, False, False
+            elif c == "JUMP":
+                if depart is None:
+                    depart = dernier
+            elif c == "TRIM":
+                coupe = True
+            elif c == "COLOR_CHANGE":
+                apres_couleur = True
+        return out
+
+    def _optimiser(self, d):
+        """Regrouper les couleurs (calque par calque) : gain calculé par Ink/Stitch avant d'appliquer."""
+        with self.verrou:
+            if self.document is None:
+                raise ValueError("Aucun dessin : appuyez sur ⌘⌥B dans Inkscape.")
+            avant = _lire(etree.tostring(self.document.getroot()))
+        apres = _lire(etree.tostring(avant.getroot()))
+        if not M.ordre_par_couleur(apres):
+            return {"change": False}
+        r1, e1 = E.points(avant)
+        r2, e2 = E.points(apres)
+        if not (r1 and r2):
+            raise ValueError(_message(e1 or e2) or "Calcul impossible.")
+        res = {"change": True, "avant": M.resume_couture(r1["points"]), "apres": M.resume_couture(r2["points"])}
+        if d.get("appliquer"):
+            with self.verrou:
+                M.ordre_par_couleur(self.document)
+                self.attente.append(("ordre_couleurs",))
+                self.version += 1
+                self.sauver()
+                res["etat"] = self.etat()
+        return res
+
+    def _couper_sauts(self, d):
+        """Ajoute une coupe après chaque objet suivi d'un saut plus long que le seuil (mm)."""
+        with self.verrou:
+            if self.document is None:
+                raise ValueError("Aucun dessin : appuyez sur ⌘⌥B dans Inkscape.")
+            doc = _lire(etree.tostring(self.document.getroot()))
+        idents = []
+        for ident, long_mm in self._sauts_longs(doc, M.boites_objets(doc), float(d.get("seuil") or 5)):
+            if ident and ident not in idents:
+                idents.append(ident)
+        with self.verrou:
+            for ident in idents:
+                el = M.par_id(self.document, ident)
+                if el is not None:
+                    M.ecrire(el, {"trim_after": True})
+                    self.attente.append(("params", ident, {"trim_after": True}))
+            if idents:
+                self.version += 1
+                self.sauver()
+            return {"coupes": len(idents), "etat": self.etat()}
+
     def _verifier(self, d):
         """Vérifier avant d'exporter : dépistage d'Ink/Stitch (traduit), sauts longs sans coupe, zones trop denses,
         objets minuscules. Chaque problème est rattaché à l'objet concerné, avec ce qu'il faut faire."""
-        import math
         with self.verrou:
             if self.document is None:
                 raise ValueError("Aucun dessin : appuyez sur ⌘⌥B dans Inkscape.")
@@ -537,35 +619,10 @@ class Session:
                 gravite, titre, detail = M.PROBLEMES.get(nom, ("alerte", nom, "Signalé par Ink/Stitch."))
                 ajouter(gravite, titre, detail, M._objet_proche(doc, x, y, boites))
         # 2. sauts longs sans coupe (le point de départ du saut désigne l'objet à couper)
-        r, err = E.points(doc)
-        seuil = float(d.get("saut_max") or 5)
-        if r and r["points"] and boites:
-            pts = r["points"]
-            xs = [p[0] for p in pts if p[2] == "STITCH"] or [0]
-            ys = [p[1] for p in pts if p[2] == "STITCH"] or [0]
-            cpx, cpy = (min(xs) + max(xs)) / 2, (min(ys) + max(ys)) / 2
-            bx0, by0 = min(b[0] for b in boites.values()), min(b[1] for b in boites.values())
-            bx1, by1 = max(b[2] for b in boites.values()), max(b[3] for b in boites.values())
-            cbx, cby = (bx0 + bx1) / 2, (by0 + by1) / 2
-            dessin = lambda x, y: (cbx + (x - cpx) / 10 / mm, cby + (y - cpy) / 10 / mm)
-            dernier, depart, coupe, apres_couleur = None, None, False, False
-            for x, y, c in pts:
-                if c == "STITCH":
-                    if depart is not None and not coupe and not apres_couleur:
-                        long_mm = math.dist(depart, (x, y)) / 10
-                        if long_mm > seuil:
-                            ident = M._objet_proche(doc, *dessin(*depart), boites)
-                            ajouter("alerte", "Saut long sans coupe",
-                                    "Un saut de %.0f mm laisse un fil à couper à la main : ajoutez une coupe après cet objet." % long_mm,
-                                    ident, {"action": "params", "valeurs": {"trim_after": True}, "libelle": "Couper après"})
-                    dernier, depart, coupe, apres_couleur = (x, y), None, False, False
-                elif c == "JUMP":
-                    if depart is None:
-                        depart = dernier
-                elif c == "TRIM":
-                    coupe = True
-                elif c == "COLOR_CHANGE":
-                    apres_couleur = True
+        for ident, long_mm in self._sauts_longs(doc, boites, float(d.get("saut_max") or 5)):
+            ajouter("alerte", "Saut long sans coupe",
+                    "Un saut de %.0f mm laisse un fil à couper à la main : ajoutez une coupe après cet objet." % long_mm,
+                    ident, {"action": "params", "valeurs": {"trim_after": True}, "libelle": "Couper après"})
         # 3. zones trop denses (carte de densité d'Ink/Stitch : points rouges)
         dens, err = E.densite(doc)
         if dens:
@@ -578,9 +635,14 @@ class Session:
                             k = 0.264583 if "scale" in (ci.get("transform") or gr.get("transform") or "") else 1
                             ident = M._objet_proche(doc, float(ci.get("cx", 0)) * k, float(ci.get("cy", 0)) * k, boites)
                             rouges[ident] = rouges.get(ident, 0) + 1
+                # la carte d'Ink/Stitch marque toujours quelques points serrés aux bords : on ne signale que les vrais excès
                 for ident, n in rouges.items():
-                    ajouter("alerte", "Zone trop dense", "%d point(s) trop serrés (risque de casse) : espacez les rangs "
-                            "ou réduisez les sous-couches de cet objet." % n, ident)
+                    if n > 200:
+                        ajouter("alerte", "Zone trop dense", "%d points trop serrés (risque de casse) : espacez les rangs "
+                                "ou réduisez les sous-couches de cet objet." % n, ident)
+                    elif n > 30:
+                        ajouter("conseil", "Quelques points serrés", "%d points serrés, souvent aux bords : regardez la carte "
+                                "de densité dans l'aperçu (bouton carreaux)." % n, ident)
             except etree.XMLSyntaxError:
                 pass
         # 4. objets minuscules

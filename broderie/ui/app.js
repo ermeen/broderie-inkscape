@@ -1389,6 +1389,43 @@ async function verifier() {
 }
 $('#bVerifier').onclick = verifier;
 
+// Préparer la broderie : adapter tout le dessin au tissu, regrouper les couleurs, couper les sauts longs
+$('#prTissu').innerHTML = Object.entries(TISSUS).map(([cle, x]) => `<option value="${cle}">${esc(x.nom)}</option>`).join('');
+$('#bPrTissu').onclick = async () => {
+  const x = TISSUS[$('#prTissu').value];
+  let n = 0;
+  try {
+    for (const o of S.etat.objets) {
+      const t = typePrincipal(o);
+      if (t === 'lettrage') {
+        const r = (await api('lettres_resume', { id: o.id })).lettres;
+        for (const typ of Object.keys(r ? r.types : {})) if (x[typ]) await api('lettres', { id: o.id, type: typ, valeurs: x[typ] });
+        n++;
+      } else if (x[t]) { S.etat = await api('params', { id: o.id, valeurs: x[t] }); n++; }
+    }
+    S.etat = await api('etat'); S.simu = null; rendreTout(); rendreExport();
+    message(`${n} objet(s) réglé(s) pour ${x.nom.toLowerCase()}. Stabilisateur conseillé : ${x.conseil}.`);
+  } catch (e) { message(e.message, true); }
+};
+$('#bPrOrdre').onclick = async () => {
+  const i = $('#prOrdreInfo'); i.textContent = 'Ink/Stitch compare…';
+  try {
+    const r = await api('optimiser', {}, 'Calcul du nouvel ordre…');
+    if (!r.change) { i.textContent = 'Les couleurs sont déjà regroupées.'; return; }
+    const gain = `changements de fil : ${r.avant.changements} → ${r.apres.changements} · sauts : ${r.avant.sauts} → ${r.apres.sauts}`;
+    if (!confirm(`Regrouper les couleurs (calque par calque) ?\n${gain}\n\nVérifiez ensuite la simulation : un objet peut passer au-dessus d'un autre.`)) { i.textContent = gain; return; }
+    const r2 = await api('optimiser', { appliquer: true });
+    S.etat = r2.etat; S.simu = null; rendreTout(); rendreExport(); i.textContent = '✓ ' + gain;
+  } catch (e) { i.textContent = ''; message(e.message, true); }
+};
+$('#bPrCoupes').onclick = async () => {
+  try {
+    const r = await api('couper_sauts', { seuil: +$('#prSeuil').value || 5 }, 'Recherche des sauts longs…');
+    S.etat = r.etat; S.simu = null; rendreTout(); rendreExport();
+    message(r.coupes ? `${r.coupes} coupe(s) ajoutée(s) après les sauts longs.` : 'Aucun saut long sans coupe.');
+  } catch (e) { message(e.message, true); }
+};
+
 // Bobines : la marque de fil, et pour chaque couleur du dessin la bobine la plus proche (ou choisie à la main)
 const BOB = { marque: null, choix: {}, donnees: null, ouvert: null, nuancier: null };
 try { BOB.marque = localStorage.getItem('broderie.marque'); } catch (e) { /* sans stockage */ }
