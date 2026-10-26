@@ -244,6 +244,9 @@ class Session:
         if op[0] == "bati":
             M.appliquer_bati(doc, *op[1:])
             return
+        if op[0] == "bati_couleur":
+            M.recolorer_bati(doc)
+            return
         if op[0] == "placer":
             M.placer(doc, op[1], op[2], op[3])
             return
@@ -262,6 +265,11 @@ class Session:
             M.changer_couleur(el, op[2], op[3])
         elif op[0] == "ordre":
             M.deplacer(el, op[2])
+
+    def _suivre_bati(self):
+        """Le bâti garde le fil de la première forme brodée (couleur ou ordre changés)."""
+        if M.recolorer_bati(self.document):
+            self.attente.append(("bati_couleur",))
 
     # --- actions du panneau -------------------------------------------------
     def action(self, nom, d):
@@ -362,10 +370,12 @@ class Session:
             if nom == "couleur":
                 M.changer_couleur(M.par_id(self.document, d["id"]), d["quoi"], d["valeur"])
                 self.attente.append(("couleur", d["id"], d["quoi"], d["valeur"]))
+                self._suivre_bati()
                 return self.etat()
             if nom == "ordre":
                 if M.deplacer(M.par_id(self.document, d["id"]), int(d["sens"])):
                     self.attente.append(("ordre", d["id"], int(d["sens"])))
+                    self._suivre_bati()
                 return self.etat()
             if nom == "abandonner":                    # oublie les modifications en attente
                 if self.recu is not None:
@@ -418,11 +428,13 @@ class Session:
             if nom == "visible":                      # œil : objet ou calque brodé ou non
                 if M.montrer(self.document, d["id"], bool(d.get("visible"))):
                     self.attente.append(("visible", d["id"], bool(d.get("visible"))))
+                    self._suivre_bati()
                     self.version += 1
                 return self.etat()
             if nom == "placer":                       # glisser-déposer dans la liste (objets et calques)
                 if M.placer(self.document, d["id"], d["cible"], bool(d.get("apres"))):
                     self.attente.append(("placer", d["id"], d["cible"], bool(d.get("apres"))))
+                    self._suivre_bati()
                 return self.etat()
             if nom == "contours":                     # contours de tous les objets : clic dans l'aperçu
                 return {"objets": [{"id": o["id"], "svg": M.contour_svg(self.document, o["id"])}
@@ -582,6 +594,7 @@ class Session:
             with self.verrou:
                 M.ordre_par_couleur(self.document)
                 self.attente.append(("ordre_couleurs",))
+                self._suivre_bati()
                 self.version += 1
                 self.sauver()
                 res["etat"] = self.etat()

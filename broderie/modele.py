@@ -768,7 +768,7 @@ def appliquer_bati(svg, actif, ecart=10.0, longueur=5.0, arrondi=6.0, cadre_larg
     el.set("id", BATI)
     el.set("{%s}label" % INKSCAPE_NS, "Bâti")
     el.set("d", d)
-    el.set("style", "fill:none;stroke:#e8892e;stroke-width:%g" % (0.3 * u))
+    el.set("style", "fill:none;stroke:%s;stroke-width:%g" % (_couleur_premier(svg), 0.3 * u))
     el.set("{%s}stroke_method" % INKSTITCH_NS, "running_stitch")
     el.set("{%s}running_stitch_length_mm" % INKSTITCH_NS, "%g" % float(longueur))
     el.set("{%s}trim_after" % INKSTITCH_NS, "True")
@@ -776,6 +776,32 @@ def appliquer_bati(svg, actif, ecart=10.0, longueur=5.0, arrondi=6.0, cadre_larg
     el.set("data-broderie-bati", json.dumps({"ecart": float(ecart), "longueur": float(longueur), "arrondi": float(arrondi),
                                              "depasse": depasse}))
     return True
+
+
+def recolorer_bati(svg):
+    """Redonne au bâti la couleur du premier objet brodé ; True s'il a changé."""
+    el = par_id(svg.getroot() if hasattr(svg, "getroot") else svg, BATI)
+    if el is None:
+        return False
+    c = _couleur_premier(svg)
+    if (_style(el).get("stroke") or "").lower() == c.lower():
+        return False
+    changer_couleur(el, "stroke", c)
+    return True
+
+
+def _couleur_premier(svg):
+    """Couleur du premier objet brodé (texte : sa première lettre) : le bâti se brode avec ce fil,
+    sans changement de fil avant le motif. Orange si le dessin n'en a pas."""
+    for el in objets(svg):
+        if el.get("id") == BATI:
+            continue
+        if local(el) == "g":                       # lettrage : la première lettre visible
+            el = next((x for x in el.iter() if isinstance(x.tag, str) and local(x) in FORMES and types(x)), None)
+            if el is None:
+                continue
+        return couleur(el)
+    return "#e8892e"
 
 
 # ---------------------------------------------------------------- figer en points (dentelle FSL, retouches)

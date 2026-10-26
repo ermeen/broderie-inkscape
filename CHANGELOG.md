@@ -14,10 +14,12 @@ Le numéro de version suit le schéma `MAJEUR.MINEUR.CORRECTIF` :
 **Objets**
 - **Couleurs déjà dans le dessin** : sous la couleur de l'objet, une pastille par couleur utilisée (tous calques). Un clic donne exactement la même couleur à l'objet, ou à tous les objets choisis. Au survol : les objets qui l'utilisent, et le fil si une bobine est choisie.
 - **Mes réglages favoris** : enregistrer un jeu de réglages sous un nom, le réappliquer sur n'importe quel dessin.
+- **Remplissage en satin** : choisissez une forme remplie et ses traverses (petits traits qui la coupent d'un bord à l'autre, ⌘-clic) ; le bouton apparaît en premier dans les outils, options en français. Sans traverse, le panneau prévient au lieu de laisser Ink/Stitch ouvrir une fenêtre d'erreur en anglais. Les outils avec options agissent sur les objets choisis dans le panneau, et les formes créées par Ink/Stitch reçoivent un identifiant (réglables aussitôt).
 - **Appliqué** (outil d'un remplissage) : placement, fixation et bordure satin, séparés par des arrêts machine.
 - **Découpe des longs points** et autres réglages vides : bouton **Activer** (plus de case à cocher) ; une fois activé, la flèche ↺ le désactive.
 
 **Simulation**
+- **Bâti dans la couleur de la première forme brodée** : pas de changement de fil entre le bâti et le motif. Il suit si cette couleur ou l'ordre change dans le panneau (orange seulement si le dessin est vide).
 - **Point suivant / précédent** : un clic avance ou recule d'un point ; **appui maintenu**, les points défilent en continu (de plus en plus vite) et s'arrêtent au relâchement.
 - **Position du motif** dans le cadre : centré (comme la machine le fait) ou selon sa place sur la feuille (origine Ink/Stitch au centre de la feuille).
 

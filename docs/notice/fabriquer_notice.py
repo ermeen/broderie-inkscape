@@ -324,7 +324,8 @@ c += [Chapitre(4, "Onglet Objets", "Régler la broderie de chaque forme"),
              "<b>Couleurs déjà dans le dessin</b> : pastilles sous la couleur, un clic donne exactement la même.",
              "<b>Outils</b> selon le type d'objet (agencement automatique des satins, remplissage en satin, contour, "
              "redwork…), <b>Appliqué</b> (placement, fixation, bordure satin) ; <b>Plus d'outils</b> pour les autres, dont <b>Figer en points</b> : les vrais points de l'aiguille "
-             "deviennent un tracé à retoucher nœud par nœud (dentelle FSL)."),
+             "deviennent un tracé à retoucher nœud par nœud (dentelle FSL). <b>Remplissage en satin</b> : choisissez la forme "
+             "et des traverses qui la coupent (" + touche("Cmd") + " " + touche("clic") + ")."),
       p("Lire l'aperçu", "h2"),
       *puces("<b>Points</b> : les points d'aiguille, les sauts (pointillés et grenouille), les coupes, les arrêts et les "
              "changements de couleur. Les boutons de la barre les affichent ou les masquent : grenouille (sauts), ciseaux (coupes et arrêts), carreaux (<b>densité</b> : rouge = trop serré, risque de casse ; jaune = limite) et aiguille (pénétrations).",
@@ -359,7 +360,7 @@ c += [Chapitre(5, "Colonnes satin", "Le point brillant des bordures et des lettr
 
 # ---------------------------------------------------------------- 7. simulation
 c += [Chapitre(7, "Onglet Simulation", "Regarder la machine broder, dans son cadre"),
-      capture("simulation", 120, "Animation des points dans le cadre schématisé (pointillés gris), avec le bâti (orange) ; "
+      capture("simulation", 120, "Animation des points dans le cadre schématisé (pointillés gris), avec le bâti (couleur du premier fil) ; "
                                  "à droite le cadre, le bâti et les statistiques."),
       *puces("<b>Animation</b> : la machine brode point par point. Boutons <b>vue en points</b> (chaque piqûre), "
              "<b>tout voir</b>, <b>suivre l'aiguille</b> et <b>règle</b> (mesure en mm d'une piqûre à l'autre). "
@@ -368,7 +369,7 @@ c += [Chapitre(7, "Onglet Simulation", "Regarder la machine broder, dans son cad
              "brodera ; le panneau dit si le motif tient. Choisir un cadre donne sa taille à la <b>feuille d'Inkscape</b> à la "
              "prochaine synchronisation ; <b>Centrer le motif dans le cadre</b> centre aussi le motif. <b>Position du motif</b> : "
              "centré (comme la machine) ou selon sa place sur la feuille.",
-             "<b>Bâti</b> : cochez la case pour faufiler le tissu au stabilisateur autour du motif, en premier. Trois curseurs : "
+             "<b>Bâti</b> : cochez la case pour faufiler le tissu au stabilisateur autour du motif, en premier, avec le fil de la première forme. Trois curseurs : "
              "<b>écart</b> avec le motif, <b>longueur de point</b>, <b>arrondi</b> des angles. Si le bâti sort du cadre, le "
              "panneau le signale : réduisez l'écart, c'est à vous de vérifier que tout rentre."),
       tableau([["Touche (Animation)", "Effet"],
