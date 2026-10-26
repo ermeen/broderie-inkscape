@@ -804,3 +804,99 @@ def figer_points(svg, i, plan):
     el.addnext(g)
     montrer(svg, i, False)                         # l'original n'est plus brodé, mais reste là pour revenir en arrière
     return g.get("id")
+
+
+# ---------------------------------------------------------------- réglages des lettres d'un texte brodé
+# Les lettres d'un texte Ink/Stitch sont des formes déjà réglées par la police (satin, point droit, remplissage).
+# On règle toutes les formes d'un même type d'un coup, ou celles d'une seule lettre ; les réglages sont gardés
+# sur le texte (data-broderie-lettres) et réappliqués quand Ink/Stitch le refabrique (texte, police, taille…).
+LETTRES = "data-broderie-lettres"
+
+
+def _type_forme(el):
+    t = types(el)
+    for k in ("satin_column", "fill_stitch", "stroke"):
+        if k in t:
+            return k
+    return None
+
+
+def lettres_du_texte(g):
+    """Lettres (glyphes) du texte, dans l'ordre : [(caractère, [formes])]."""
+    out = []
+    for gl in g.iter("{%s}g" % SVG_NS):
+        if gl.get("{%s}letter-group" % INKSTITCH_NS) == "glyph":
+            formes = [f for f in gl.iter() if isinstance(f.tag, str) and local(f) in FORMES - {"use"} and _type_forme(f)]
+            out.append((gl.get("{%s}label" % INKSCAPE_NS) or "?", formes))
+    return out
+
+
+def reglages_lettres(g):
+    try:
+        r = json.loads(g.get(LETTRES) or "{}")
+    except ValueError:
+        r = {}
+    r.setdefault("tous", {})
+    r.setdefault("lettres", {})
+    return r
+
+
+def resume_lettres(svg, gid):
+    """Pour le panneau : les lettres, les types de formes présents et leurs valeurs actuelles, les réglages gardés."""
+    g = par_id(svg, gid)
+    if g is None:
+        return None
+    lettres = lettres_du_texte(g)
+    par_type = {}
+    for _, formes in lettres:
+        for f in formes:
+            t = _type_forme(f)
+            par_type.setdefault(t, {"nombre": 0, "valeurs": {}})
+            par_type[t]["nombre"] += 1
+            if not par_type[t]["valeurs"]:      # valeurs de la première forme : celles de la police
+                par_type[t]["valeurs"] = {etree.QName(k).localname: v for k, v in f.attrib.items()
+                                          if k.startswith("{%s}" % INKSTITCH_NS)}
+    b = emprise(svg, [gid])
+    try:
+        lignes = max(1, len(json.loads(g.get("{%s}lettering" % INKSTITCH_NS) or "{}").get("text", "").split("\n")))
+    except ValueError:
+        lignes = 1
+    return {"lettres": [{"car": c, "types": sorted({_type_forme(f) for f in fs})} for c, fs in lettres],
+            "types": par_type, "reglages": reglages_lettres(g), "lignes": lignes,
+            "hauteur_mm": round((b[3] - b[1]) * mm_par_unite(svg), 1) if b else None}
+
+
+def _appliquer_lettres(g, reglages):
+    lettres = lettres_du_texte(g)
+    for k, (_, formes) in enumerate(lettres):
+        for f in formes:
+            t = _type_forme(f)
+            v = dict(reglages["tous"].get(t, {}))
+            v.update(reglages["lettres"].get(str(k), {}).get(t, {}))
+            if v:
+                ecrire(f, v)
+
+
+def regler_lettres(svg, gid, type_forme, valeurs, lettre=None):
+    """Règle les formes d'un type (toutes les lettres, ou la lettre n° lettre) et garde le réglage sur le texte."""
+    g = par_id(svg, gid)
+    if g is None:
+        return False
+    r = reglages_lettres(g)
+    cible = r["tous"] if lettre is None else r["lettres"].setdefault(str(int(lettre)), {})
+    t = cible.setdefault(type_forme, {})
+    for k, v in valeurs.items():
+        if v is None:
+            t.pop(k, None)
+        else:
+            t[k] = v
+    g.set(LETTRES, json.dumps(r, ensure_ascii=False))
+    _appliquer_lettres(g, r)
+    return True
+
+
+def reappliquer_lettres(g, reglages):
+    """Après qu'Ink/Stitch a refabriqué le texte : on lui redonne les réglages gardés."""
+    if reglages and (reglages.get("tous") or reglages.get("lettres")):
+        g.set(LETTRES, json.dumps(reglages, ensure_ascii=False))
+        _appliquer_lettres(g, reglages)

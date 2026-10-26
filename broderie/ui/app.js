@@ -261,6 +261,10 @@ function visible(o, p, typ) {
 
 async function envoyer(o, valeurs) {
   try {
+    if (o.lettres) {                                    // lettres d'un texte : toutes, ou une seule, d'un même type de forme
+      const r = await api('lettres', { id: o.id, type: o.lettres.type, valeurs, lettre: o.lettres.lettre });
+      S.etat = r.etat; rendreTout(); apercuBientot(); return;
+    }
     for (const id of o.ids || [o.id]) S.etat = await api('params', { id, valeurs });
     rendreTout(); apercuBientot();
   } catch (e) { message(e.message, true); }
@@ -466,6 +470,130 @@ function outils(o) {
   return blocO;
 }
 
+// Réglages des lettres d'un texte : par type de forme (satin, remplissage, point droit), pour toutes les lettres
+// ou une seule. Gardés sur le texte et réappliqués quand on le modifie (Ink/Stitch, lui, les perd).
+const ESS_LETTRES = {
+  satin_column: ['zigzag_spacing_mm', 'pull_compensation_mm', 'center_walk_underlay', 'contour_underlay', 'zigzag_underlay'],
+  fill_stitch: ['row_spacing_mm', 'angle', 'pull_compensation_mm', 'fill_underlay'],
+  stroke: ['running_stitch_length_mm', 'repeats'],
+};
+const TITRES_LETTRES = { satin_column: 'Satin des lettres', fill_stitch: 'Remplissage des lettres', stroke: 'Point droit des lettres' };
+const NOMS_LETTRES = { center_walk_underlay: 'Sous-couche centrale', contour_underlay: 'Sous-couche contour', zigzag_underlay: 'Sous-couche zigzag',
+  fill_underlay: 'Sous-couche', repeats: 'Passages' };
+let lettreChoisie = { texte: null, lettre: null };
+function reglagesLettres(o) {
+  const d = document.createElement('div'); d.className = 'bloc';
+  d.innerHTML = '<h2>Réglages des lettres</h2><span class="muted small">Lecture des lettres…</span>';
+  (async () => {
+    let r;
+    try { r = (await api('lettres_resume', { id: o.id })).lettres; } catch (e) { d.lastChild.textContent = e.message; return; }
+    if (!r || !d.isConnected) return;
+    if (lettreChoisie.texte !== o.id) lettreChoisie = { texte: o.id, lettre: null };
+    const k = lettreChoisie.lettre;
+    d.innerHTML = '<h2>Réglages des lettres</h2>';
+    // pour quelles lettres
+    const choix = document.createElement('div'); choix.className = 'reglage';
+    choix.innerHTML = `<div class="haut"><label>Appliquer à</label></div><select>${['<option value="">Toutes les lettres</option>']
+      .concat(r.lettres.map((l, i) => `<option value="${i}" ${String(k) === String(i) ? 'selected' : ''}>Lettre ${i + 1} : « ${esc(l.car)} »</option>`)).join('')}</select>`;
+    $('select', choix).onchange = (e) => { lettreChoisie.lettre = e.target.value === '' ? null : +e.target.value; rendreProps(); };
+    d.appendChild(choix);
+    // un groupe de curseurs par type de forme présent dans le texte (ou dans la lettre choisie)
+    const typesIci = k === null ? Object.keys(r.types) : r.lettres[k].types;
+    for (const typ of ['satin_column', 'fill_stitch', 'stroke'].filter((t) => typesIci.includes(t))) {
+      const gardes = Object.assign({}, r.reglages.tous[typ] || {}, k === null ? {} : (r.reglages.lettres[k] || {})[typ] || {});
+      const po = { id: o.id, lettres: { type: typ, lettre: k }, valeurs: Object.assign({}, r.types[typ].valeurs, gardes), types: [typ] };
+      const params = ESS_LETTRES[typ].map((n) => parNom(typ, n)).filter((p) => p && visible(po, p, typ));
+      const titre = `${TITRES_LETTRES[typ]}${k === null ? ` (${r.types[typ].nombre} formes)` : ''}`;
+      d.appendChild(bloc(titre, ...params.map((p) => reglage(po, p, NOMS_LETTRES[p.name] || NOMS[p.name]))));
+    }
+    // adapter au tissu (toutes les lettres)
+    const t = document.createElement('div'); t.className = 'ligne-tissu';
+    t.innerHTML = `<select>${Object.entries(TISSUS).map(([cle, x]) => `<option value="${cle}">${esc(x.nom)}</option>`).join('')}</select><button class="petit">Adapter au tissu</button>`;
+    $('button', t).onclick = async () => {
+      const x = TISSUS[$('select', t).value];
+      try {
+        for (const typ of Object.keys(r.types)) if (x[typ]) await api('lettres', { id: o.id, type: typ, valeurs: x[typ] });
+        S.etat = await api('etat'); rendreTout(); apercuBientot(); message(`Lettres réglées pour ${x.nom.toLowerCase()} (${x.conseil}).`);
+      } catch (e) { message(e.message, true); }
+    };
+    d.appendChild(bloc('Adapter au tissu', t));
+    // alertes de lisibilité
+    if (!S.polices) { try { S.polices = (await api('polices')).polices; } catch (e) { /* sans la plage de la police */ } }
+    if (!d.isConnected) return;
+    const al = alertesLettres(o, r);
+    if (al.length) { const a = document.createElement('div'); a.innerHTML = al.map((x) => `<div class="alerte">⚠ ${esc(x)}</div>`).join(''); d.appendChild(a); }
+    // revenir aux réglages de la police
+    const gardesTous = Object.keys(r.reglages.tous).length + Object.keys(r.reglages.lettres).length;
+    const n = document.createElement('p'); n.className = 'muted small';
+    n.textContent = 'Ces réglages sont gardés sur le texte : ils reviennent même si vous changez le texte, la police ou la taille.';
+    d.appendChild(n);
+    if (gardesTous) {
+      const b = document.createElement('button'); b.className = 'petit'; b.textContent = 'Revenir aux réglages de la police';
+      b.onclick = () => revenirPolice(o);
+      d.appendChild(b);
+    }
+  })();
+  return d;
+}
+function alertesLettres(o, r) {
+  const out = [], h = r.hauteur_mm ? r.hauteur_mm / (r.lignes || 1) : null;
+  if (h && h < 5) out.push(`Lettres d'environ ${h.toFixed(1)} mm : trop petites pour la plupart des polices (au moins 5 mm), ou choisissez une police « small ».`);
+  const satin = r.types.satin_column;
+  if (satin && h && h < 8) {
+    const dens = parseFloat(Object.assign({}, satin.valeurs, r.reglages.tous.satin_column || {}).zigzag_spacing_mm);
+    if (dens && dens < 0.35) out.push(`Satin dense (${dens} mm) sur des petites lettres : risque de bourrage ; essayez 0,4 mm.`);
+  }
+  try {
+    const j = JSON.parse(o.valeurs.lettering || '{}'), pol = (S.polices || []).find((p) => p.id === j.font);
+    if (pol && j.scale && (j.scale < pol.min * 100 - 0.5 || j.scale > pol.max * 100 + 0.5)) out.push(`Taille hors de la plage de la police (${Math.round(pol.min * 100)} à ${Math.round(pol.max * 100)} %).`);
+  } catch (e) { /* texte illisible */ }
+  return out;
+}
+// réglages d'un texte existant (gardés par Ink/Stitch sur le texte) → formulaire du texte
+function chargerTexteDe(o) {
+  try {
+    const j = JSON.parse(o.valeurs.lettering || '{}');
+    TX.texte = j.text ?? TX.texte; TX.echelle = j.scale ?? 100;
+    TX.police = ((S.polices || []).find((p) => p.id === j.font) || {}).nom || TX.police;
+    TX.align = ['left', 'center', 'right'][j.text_align || 0] || 'left';
+    TX.lettres = j.letter_spacing || 0; TX.mots = j.word_spacing || 0; TX.lignes = j.line_height || 0;
+    TX.coupes = ['off', 'line', 'word', 'glyph'][j.trim_option || 0] || 'off';
+    TX.tri = ['off', 'all', 'line', 'word'][j.color_sort || 0] || 'off'; TX.symboles = !!j.use_trim_symbols;
+    TX.courbure = parseFloat(o.arc || 0) || 0;
+    TX.trace = o.trace || null; TX.position = o.position || 'center';
+  } catch (e) { /* lettrage illisible : valeurs actuelles */ }
+  TX.pour = o.id;
+}
+async function revenirPolice(o) {
+  if (!S.polices) S.polices = (await api('polices')).polices;
+  const avant = JSON.stringify(TX);
+  try {
+    chargerTexteDe(o);
+    const r = await api('lettrage', { remplacer: o.id, ...requeteTexte(), sans_reglages: true }, 'Ink/Stitch refait le texte avec les réglages de la police…');
+    S.etat = await api('etat'); S.sel = r.id; rendreTout(); apercuBientot(); message('Réglages de la police remis.');
+  } catch (e) { message(e.message, true); } finally { Object.assign(TX, JSON.parse(avant)); }
+}
+// Adapter au tissu : valeurs de départ (notice, astuces de réglages), à affiner par un essai
+const TISSUS = {
+  coton: { nom: 'Coton, lin, toile', conseil: 'stabilisateur à déchirer',
+    satin_column: { zigzag_spacing_mm: 0.4, pull_compensation_mm: 0.2, center_walk_underlay: true, contour_underlay: true, zigzag_underlay: false },
+    fill_stitch: { row_spacing_mm: 0.3, pull_compensation_mm: 0.2, fill_underlay: true } },
+  fin: { nom: 'Tissu fin, soie, voile', conseil: 'stabilisateur soluble ou fin',
+    satin_column: { zigzag_spacing_mm: 0.45, pull_compensation_mm: 0.1, center_walk_underlay: true, contour_underlay: false, zigzag_underlay: false },
+    fill_stitch: { row_spacing_mm: 0.35, pull_compensation_mm: 0.1, fill_underlay: false } },
+  jersey: { nom: 'Jersey, tee-shirt', conseil: 'stabilisateur à découper',
+    satin_column: { zigzag_spacing_mm: 0.4, pull_compensation_mm: 0.35, center_walk_underlay: true, contour_underlay: true, zigzag_underlay: true },
+    fill_stitch: { row_spacing_mm: 0.3, pull_compensation_mm: 0.35, fill_underlay: true } },
+  eponge: { nom: 'Sweat, polaire, éponge', conseil: 'à découper, avec un film soluble dessus',
+    satin_column: { zigzag_spacing_mm: 0.35, pull_compensation_mm: 0.3, center_walk_underlay: true, contour_underlay: true, zigzag_underlay: true },
+    fill_stitch: { row_spacing_mm: 0.25, pull_compensation_mm: 0.3, fill_underlay: true } },
+  jean: { nom: 'Jean, toile épaisse', conseil: 'stabilisateur à déchirer, épais',
+    satin_column: { zigzag_spacing_mm: 0.38, pull_compensation_mm: 0.2, center_walk_underlay: true, contour_underlay: true, zigzag_underlay: false },
+    fill_stitch: { row_spacing_mm: 0.28, pull_compensation_mm: 0.2, fill_underlay: true } },
+  cuir: { nom: 'Cuir, simili', conseil: 'stabilisateur à déchirer, peu de points',
+    satin_column: { zigzag_spacing_mm: 0.45, pull_compensation_mm: 0.1, center_walk_underlay: true, contour_underlay: false, zigzag_underlay: false },
+    fill_stitch: { row_spacing_mm: 0.4, pull_compensation_mm: 0.1, fill_underlay: false } },
+};
 // texte courbé : outil « Lettrage le long d'un chemin » d'Ink/Stitch (texte + tracé dessiné dans Inkscape)
 function texteCourbe(o) {
   const traces = S.etat.objets.filter((x) => x.balise === 'path' && x.types.includes('stroke'));
@@ -634,6 +762,7 @@ function rendreProps() {
     b.onclick = () => { S.texte = true; rendreTout(); };
     div.appendChild(bloc('Texte brodé', b));
     div.appendChild(texteCourbe(o));
+    div.appendChild(reglagesLettres(o));
     const a = document.createElement('div'); a.className = 'aide';
     a.innerHTML = 'Pour <b>déplacer, tourner ou agrandir</b> le texte : faites-le dans Inkscape, comme une forme (après ⌘⌥B).';
     div.appendChild(bloc(null, a));
@@ -1797,20 +1926,7 @@ async function rendreTexte() {
   }
   const o = S.etat.objets.find((x) => x.id === S.sel);
   const existant = o && typePrincipal(o) === 'lettrage' ? o : null;
-  if (existant && TX.pour !== existant.id) {
-    try {
-      const j = JSON.parse(existant.valeurs.lettering || '{}');
-      TX.texte = j.text ?? TX.texte; TX.echelle = j.scale ?? 100;
-      TX.police = (S.polices.find((p) => p.id === j.font) || {}).nom || TX.police;
-      TX.align = ['left', 'center', 'right'][j.text_align || 0] || 'left';
-      TX.lettres = j.letter_spacing || 0; TX.mots = j.word_spacing || 0; TX.lignes = j.line_height || 0;
-      TX.coupes = ['off', 'line', 'word', 'glyph'][j.trim_option || 0] || 'off';
-      TX.tri = ['off', 'all', 'line', 'word'][j.color_sort || 0] || 'off'; TX.symboles = !!j.use_trim_symbols;
-      TX.courbure = parseFloat(existant.arc || 0) || 0;
-      TX.trace = existant.trace || null; TX.position = existant.position || 'center';
-    } catch (e) { /* lettrage illisible : valeurs actuelles */ }
-    TX.pour = existant.id;
-  }
+  if (existant && TX.pour !== existant.id) chargerTexteDe(existant);
   if (!existant) TX.pour = null;
   if (!TX.police && S.polices.length) TX.police = S.polices[0].nom;
   const pol = S.polices.find((p) => p.nom === TX.police) || {};

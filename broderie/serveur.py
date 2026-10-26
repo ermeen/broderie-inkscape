@@ -204,6 +204,9 @@ class Session:
         if op[0] == "visible":
             M.montrer(doc, op[1], op[2])
             return
+        if op[0] == "lettres":
+            M.regler_lettres(doc, *op[1:])
+            return
         if op[0] == "fils":
             M.remplacer_couleurs(doc, op[1])
             return
@@ -232,7 +235,7 @@ class Session:
     # --- actions du panneau -------------------------------------------------
     def action(self, nom, d):
         r = self._action(nom, d)
-        if nom in ("params", "couleur", "ordre", "abandonner", "sync", "lettrage", "assembler", "marquer_a_jour", "cadre", "placer", "visible", "appliquer_fils", "bati", "figer"):
+        if nom in ("params", "couleur", "ordre", "abandonner", "sync", "lettrage", "assembler", "marquer_a_jour", "cadre", "placer", "visible", "appliquer_fils", "bati", "figer", "lettres"):
             self.sauver()
         return r
 
@@ -248,6 +251,9 @@ class Session:
             return {"version": self.version, "attente": len(self.attente), "tache": self.tache}
         if nom == "bobines":
             return self._bobines(d)
+        if nom == "lettres_resume":
+            with self.verrou:
+                return {"lettres": M.resume_lettres(self.document, d["id"]) if self.document is not None else None}
         if nom == "nuancier":
             chemin = M.palettes(E.ressources()).get(d.get("marque") or "")
             return {"fils": M.lire_palette(chemin) if chemin else []}
@@ -280,6 +286,13 @@ class Session:
                 return self.sync(d)
             if self.document is None:
                 raise ValueError("Aucun dessin : lancez Extensions › Broderie › Panneau de broderie dans Inkscape.")
+            if nom == "lettres":                       # réglages des lettres d'un texte (par type de forme)
+                lettre = d.get("lettre")
+                if not M.regler_lettres(self.document, d["id"], d["type"], d.get("valeurs") or {}, lettre):
+                    raise ValueError("Texte introuvable.")
+                self.attente.append(("lettres", d["id"], d["type"], d.get("valeurs") or {}, lettre))
+                self.version += 1
+                return {"etat": self.etat(), "lettres": M.resume_lettres(self.document, d["id"])}
             if nom == "params":
                 M.ecrire(M.par_id(self.document, d["id"]), d.get("valeurs", {}))
                 self.attente.append(("params", d["id"], d.get("valeurs", {})))
@@ -447,6 +460,8 @@ class Session:
         chemin = self._guide(doc, d)
         ancien = M.par_id(doc, d["remplacer"]) if d.get("remplacer") else None
         place = M.emprise(doc, [ancien.get("id")]) if ancien is not None else None
+        # réglages des lettres gardés sur l'ancien texte : réappliqués au nouveau (sauf « revenir à la police »)
+        gardes = M.reglages_lettres(ancien) if ancien is not None and not d.get("sans_reglages") else None
         if ancien is not None:
             ancien.getparent().remove(ancien)
         res, g = self._texte(doc, d)
@@ -457,6 +472,7 @@ class Session:
             g.set("transform", ("translate(%g,%g) %s" % (dx, dy, g.get("transform") or "")).strip())
         if chemin:                                           # la courbe guide ne se brode pas (œil fermé)
             M.montrer(res, chemin, False)
+        M.reappliquer_lettres(g, gardes)
         self.document = res
         self.ids = []                      # on garde tout le dessin dans la liste ; le panneau choisit le texte
         self.version += 1
