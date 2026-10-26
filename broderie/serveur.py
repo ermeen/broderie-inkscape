@@ -815,6 +815,11 @@ class Session:
         params = normaliser(cmd, d.get("params") or {})
         avant = etree.tostring(self.document.getroot())
         copie = _lire(avant)
+        if ext == "fill_to_satin":                     # une forme à la fois remplie et contourée : Ink/Stitch
+            for i in d.get("ids") or []:               # ouvre un avertissement (en anglais) ; le contour ne sert à rien ici
+                el = M.par_id(copie, i)
+                if el is not None and "fill_stitch" in M.types(el) and len(M.types(el)) > 1:
+                    M.changer_couleur(el, "stroke", "none")
         version = self.version
         self.tache = {"extension": ext, "nom": M.tr(cmd["nom"]), "fini": False, "debut": time.time()}
 

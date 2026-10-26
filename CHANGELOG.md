@@ -14,7 +14,7 @@ Le numéro de version suit le schéma `MAJEUR.MINEUR.CORRECTIF` :
 **Objets**
 - **Couleurs déjà dans le dessin** : sous la couleur de l'objet, une pastille par couleur utilisée (tous calques). Un clic donne exactement la même couleur à l'objet, ou à tous les objets choisis. Au survol : les objets qui l'utilisent, et le fil si une bobine est choisie.
 - **Mes réglages favoris** : enregistrer un jeu de réglages sous un nom, le réappliquer sur n'importe quel dessin.
-- **Remplissage en satin** : choisissez une forme remplie et ses traverses (petits traits qui la coupent d'un bord à l'autre, ⌘-clic) ; le bouton apparaît en premier dans les outils, options en français. Sans traverse, le panneau prévient au lieu de laisser Ink/Stitch ouvrir une fenêtre d'erreur en anglais. Les outils avec options agissent sur les objets choisis dans le panneau, et les formes créées par Ink/Stitch reçoivent un identifiant (réglables aussitôt).
+- **Remplissage en satin** : choisissez une forme remplie et ses traverses (petits traits qui la coupent d'un bord à l'autre, ⌘-clic) ; le bouton apparaît en premier dans les outils, options en français. Sans traverse, le panneau prévient au lieu de laisser Ink/Stitch ouvrir une fenêtre d'erreur en anglais. Une forme à la fois remplie et contourée est acceptée (le contour est ignoré, sans l'avertissement d'Ink/Stitch). Les outils avec options agissent sur les objets choisis dans le panneau, et les formes créées par Ink/Stitch reçoivent un identifiant (réglables aussitôt).
 - **Appliqué** (outil d'un remplissage) : placement, fixation et bordure satin, séparés par des arrêts machine.
 - **Découpe des longs points** et autres réglages vides : bouton **Activer** (plus de case à cocher) ; une fois activé, la flèche ↺ le désactive.
 
