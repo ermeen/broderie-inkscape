@@ -370,3 +370,10 @@ footer button { padding: 9px 16px; font-size: 13.5px; border-radius: 9px; }
 /* règle de l'aperçu */
 #apercu.mesure, #apercu.mesure svg { cursor: crosshair; }
 .mesure-panneau { pointer-events: none; }
+
+/* bouton « Tout » d'un calque : visible au survol de sa ligne */
+#liste li.calque { cursor: pointer; }
+#liste .tout-calque { flex: none; visibility: hidden; border: 1px solid var(--bord); background: var(--tuile); color: var(--texte); font-size: 10.5px;
+  text-transform: none; letter-spacing: 0; border-radius: 6px; padding: 1px 7px; margin-right: 6px; }
+#liste li.calque:hover .tout-calque { visibility: visible; }
+#liste .tout-calque:hover { border-color: var(--accent); }

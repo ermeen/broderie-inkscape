@@ -5,7 +5,12 @@ Le numéro de version suit le schéma `MAJEUR.MINEUR.CORRECTIF` :
 - **MINEUR** : nouvelle fonction ;
 - **CORRECTIF** : correction sans nouvelle fonction.
 
-## 1.6.1 — 26 octobre 2026
+## 1.6.2 — 26 octobre 2026
+
+- **Calques** : un clic n'importe où sur la ligne d'un calque (nom, triangle, espace autour) le **replie ou le déplie**, sans toucher à la sélection en cours. Un clic à côté du triangle n'efface donc plus ce qu'on avait choisi ailleurs.
+- Pour choisir tous les objets d'un calque : le petit bouton **« Tout »**, qui apparaît au survol de sa ligne (⌘-clic : les ajouter à la sélection). Le ⌘-clic et le Maj-clic sur les objets marchent comme avant.
+
+ — 26 octobre 2026
 
 - **Calques repliables** : on peut maintenant replier aussi le calque qui contient la sélection. Replié, son en-tête affiche une pastille bleue « 1 choisi » (ou « 2 choisis »…) à la place du nombre d'objets, et une barre bleue à gauche : on sait où se trouve l'objet en cours de réglage.
 - Nombre d'objets au singulier quand il n'y en a qu'un (« 1 objet »).

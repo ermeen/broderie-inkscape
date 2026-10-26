@@ -170,16 +170,18 @@ function rendreListe() {
       const compte = replie && choisisIci
         ? `<span class="choix-cache" title="La sélection est dans ce calque replié">${choisisIci} choisi${choisisIci > 1 ? 's' : ''}</span>`
         : `<span class="type">${c.objets.length} objet${c.objets.length > 1 ? 's' : ''}</span>`;
-      h.innerHTML = `<button class="replier" title="${replie ? 'Déplier ce calque' : 'Replier ce calque'}">${replie ? '▸' : '▾'}</button><span class="nom">${esc(c.nom)}</span>${compte}`
+      h.innerHTML = `<button class="replier" title="${replie ? 'Déplier ce calque' : 'Replier ce calque'}">${replie ? '▸' : '▾'}</button><span class="nom">${esc(c.nom)}</span>`
+        + `<button class="tout-calque" title="Choisir tous les objets de ce calque (⌘-clic : les ajouter à la sélection)">Tout</button>${compte}`
         + (c.objets[0].calque ? `<button class="oeil" title="${cm ? 'Calque masqué : non brodé. Cliquer pour l’afficher' : 'Masquer ce calque (il ne sera pas brodé)'}">${OEIL(!cm)}</button>` : '');
       if (cm) h.classList.add('masque');
       if (replie && choisisIci) h.classList.add('contient-choix');
       const bo = h.querySelector('.oeil');
       if (bo) bo.onclick = (e) => { e.stopPropagation(); basculerVisible(c.objets[0].calque, cm); };
       $('.replier', h).onclick = (e) => { e.stopPropagation(); replier(cle, !replie); };
-      h.title = 'Choisir tout le calque (⌘-clic : ajouter à la sélection)';
+      $('.tout-calque', h).onclick = (e) => { e.stopPropagation(); choisir(c.objets.map((o) => o.id), e.metaKey || e.ctrlKey); };
+      h.title = replie ? 'Déplier ce calque' : 'Replier ce calque';
       if (tous && S.choix.size > 1) h.classList.add('on');
-      h.onclick = (e) => choisir(c.objets.map((o) => o.id), e.metaKey || e.ctrlKey);
+      h.onclick = () => replier(cle, !replie);                 // la ligne replie ou déplie : la sélection n'est pas touchée
       if (c.objets[0].calque) glisser(h, c.objets[0].calque, true);
       ul.appendChild(h);
     }
@@ -214,8 +216,8 @@ function rendreListe() {
   }
   if (!S.etat.objets.length) ul.innerHTML = '<li class="muted small" style="cursor:default">Aucun objet. Dessinez une forme dans Inkscape, puis appuyez sur ⌘⌥B.</li>';
   const aide = $('#aideSelection');
-  if (aide) aide.textContent = S.choix.size > 1 ? `${S.choix.size} objets choisis` : '⌘-clic : plusieurs · ⇧-clic : une suite · clic sur un calque : tout le calque · glisser : changer l’ordre';
-  $('#carteListe .carte-titre span').title = '⌘-clic : plusieurs · ⇧-clic : une suite · clic sur un calque : tout le calque · ▸ / ▾ : replier ou déplier · glisser : changer l’ordre';
+  if (aide) aide.textContent = S.choix.size > 1 ? `${S.choix.size} objets choisis` : '⌘-clic : plusieurs · ⇧-clic : une suite · clic sur un calque : le replier · « Tout » : tout le calque · glisser : changer l’ordre';
+  $('#carteListe .carte-titre span').title = '⌘-clic : plusieurs · ⇧-clic : une suite · clic sur un calque : le replier · « Tout » : tout le calque · glisser : changer l’ordre';
 }
 
 function changerCouleur(o, valeur) {
