@@ -755,7 +755,7 @@ $('#poigneeListe').addEventListener('dblclick', () => {
 $('#bTexte').onclick = () => { S.texte = true; S.texteVu = null; TX.dims = null; const o = S.etat.objets.find((x) => x.id === S.sel); if (o && typePrincipal(o) !== 'lettrage') S.sel = null; TX.pour = null; rendreTout(); };
 
 // ---------------------------------------------------------------- aperçu des points (zoom net par viewBox)
-let vb0 = null, vb = null, apercuDemande = 0, apercuEnCours = false;
+let vb0 = null, vb = null, vbTout = null, apercuDemande = 0, apercuEnCours = false;
 // mode de rendu et couleur du tissu (retenus d'une fois sur l'autre)
 let MODE = 'points', TISSU = '#ffffff';
 const AFF = { sauts: true, penetrations: true, coupes: true, commandes: false, densite: false };
@@ -782,7 +782,7 @@ function barreRendu() {
     ['penetrations', 'npp', 'Pénétrations : points d\'entrée de l\'aiguille']], () => rafraichirApercu()));
   const outilsVue = document.createElement('span'); outilsVue.className = 'affichage';
   const tout = document.createElement('button'); tout.type = 'button'; tout.className = 'ico-rendu'; tout.title = 'Tout voir : recentrer le dessin (double-clic)';
-  tout.innerHTML = icone('voir_tout'); tout.onclick = (e) => { e.stopPropagation(); if (vb0) { vb = vb0.slice(); appliquerVue(); } };
+  tout.innerHTML = icone('voir_tout'); tout.onclick = (e) => { e.stopPropagation(); toutVoir(); };
   const regle = document.createElement('button'); regle.type = 'button'; regle.className = 'ico-rendu' + (MESURE ? ' on' : '');
   regle.title = 'Règle : tirez entre deux points pour mesurer en mm (elle s\'accroche aux points d\'aiguille proches)';
   regle.innerHTML = icone('mesure');
@@ -835,7 +835,7 @@ async function apercu() {
       } catch (e) { /* SVG pas encore mesurable : vue de la page */ }
     }
     if (S.vue === 'points' && SIM_AFF.cadre) v = dessinerCadreApercu(svg, plan, v, uMM);
-    vb0 = v; if (!garder) vb = v.slice();
+    vb0 = v; vbTout = cadrageAffiche(svg, plan); if (!garder) vb = v.slice();
     if (MODE !== 'points') habiller(svg, v); else { pointsAiguille(svg); superposerCommandes(svg); if (AFF.densite) carteDensite(svg); }
     zonesCliquables(svg);
     appliquerVue();
@@ -967,7 +967,28 @@ $('#apercu').addEventListener('wheel', (e) => {
   const p = versDessin(e), f = e.deltaY < 0 ? 1 / 1.2 : 1.2;
   vb = [p.x - (p.x - vb[0]) * f, p.y - (p.y - vb[1]) * f, vb[2] * f, vb[3] * f]; appliquerVue();
 }, { passive: false });
-$('#apercu').addEventListener('dblclick', () => { if (vb0) { vb = vb0.slice(); appliquerVue(); } });
+$('#apercu').addEventListener('dblclick', toutVoir);
+// « Tout voir » : cadre sur ce qui est brodé et affiché (calques masqués exclus), plus le cadre de la brodeuse
+// dans la Simulation ; pas sur toute la feuille d'Inkscape
+function toutVoir() { const v = vbTout || vb0; if (v) { vb = v.slice(); appliquerVue(); } }
+function cadrageAffiche(svg, plan) {
+  const boites = [];
+  const ajouter = (el) => {
+    try {
+      const b = el.getBBox(); if (!b.width && !b.height) return;
+      const m = svg.getCTM().inverse().multiply(el.getCTM());
+      const p0 = new DOMPoint(b.x, b.y).matrixTransform(m), p1 = new DOMPoint(b.x + b.width, b.y + b.height).matrixTransform(m);
+      boites.push([Math.min(p0.x, p1.x), Math.min(p0.y, p1.y), Math.max(p0.x, p1.x), Math.max(p0.y, p1.y)]);
+    } catch (e) { /* élément pas mesurable */ }
+  };
+  if (plan) ajouter(plan);
+  $$('.cadre-panneau rect', svg).forEach(ajouter);
+  if (!boites.length) return null;
+  const x0 = Math.min(...boites.map((b) => b[0])), y0 = Math.min(...boites.map((b) => b[1]));
+  const x1 = Math.max(...boites.map((b) => b[2])), y1 = Math.max(...boites.map((b) => b[3]));
+  const marge = 0.04 * Math.max(x1 - x0, y1 - y0, 1);
+  return [x0 - marge, y0 - marge, x1 - x0 + 2 * marge, y1 - y0 + 2 * marge];
+}
 $('#apercu').addEventListener('mousedown', (e) => { if (e.button === 1) e.preventDefault(); });   // pas de défilement auto
 // Règle : mesure en mm entre deux points de l'aperçu, accrochée aux piqûres de l'aiguille (sommets du plan de broderie)
 let MESURE = false;

@@ -5,7 +5,11 @@ Le numéro de version suit le schéma `MAJEUR.MINEUR.CORRECTIF` :
 - **MINEUR** : nouvelle fonction ;
 - **CORRECTIF** : correction sans nouvelle fonction.
 
-## 1.6.2 — 26 octobre 2026
+## 1.6.3 — 26 octobre 2026
+
+- **Tout voir** (bouton et double-clic dans l'aperçu) cadre seulement ce qui est brodé et affiché, pas toute la feuille d'Inkscape. Un calque masqué (œil fermé) n'est donc pas pris en compte. Dans la Simulation, le cadre de la brodeuse est compris dans le cadrage quand il est affiché. Vérifié : feuille 120 × 120 mm → cadrage sur le motif (80 × 91) ; calque Cœur masqué → cadrage sur la tige seule.
+
+ — 26 octobre 2026
 
 - **Calques** : un clic n'importe où sur la ligne d'un calque (nom, triangle, espace autour) le **replie ou le déplie**, sans toucher à la sélection en cours. Un clic à côté du triangle n'efface donc plus ce qu'on avait choisi ailleurs.
 - **Aperçu des Objets toujours en points** : plus de choix Points / Réaliste au-dessus de l'aperçu. Le rendu réaliste est seulement dans l'onglet Simulation.
