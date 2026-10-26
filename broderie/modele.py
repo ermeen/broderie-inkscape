@@ -1297,3 +1297,60 @@ def largeur_satin(svg, el):
     rails = sorted(subs, key=longueur, reverse=True)[:2]
     a, b = rails
     return max(min(math.dist(p, q) for q in b) for p in a) * mm
+
+
+# ---------------------------------------------------------------- broder avant / après un autre calque
+# Ink/Stitch brode dans l'ordre du dessin. Pour broder quelques objets d'un calque après (ou avant) un autre calque
+# sans mélanger les calques, on les met dans un calque « <nom> · après <calque> » placé juste après (ou avant) ce calque.
+# Leur position à l'écran ne change pas (transformations recalculées), leurs repères de départ et de fin suivent.
+def _calques(r):
+    return [g for g in r.iter("{%s}g" % SVG_NS) if g.get("{%s}groupmode" % INKSCAPE_NS) == "layer"]
+
+
+def broder_ailleurs(svg, ids, cible, apres=True, nouveau=None):
+    """Déplace les objets ids dans un calque « suite » de leur calque, placé après (ou avant) le calque cible.
+    nouveau : identifiant à donner au calque créé (pour rejouer la même opération dans Inkscape).
+    Renvoie l'identifiant du calque qui les reçoit, ou None."""
+    r = svg.getroot() if hasattr(svg, "getroot") else svg
+    c = par_id(r, cible)
+    els = [e for e in (par_id(r, i) for i in ids) if e is not None]
+    if c is None or not els:
+        return None
+    ix = _inkex()
+    origine = calque(els[0])
+    base = (origine[1] if origine[0] else "Objets").split(" · ")[0]          # « Citrouille · avant … » → Citrouille
+    nom = "%s · %s %s" % (base, "après" if apres else "avant", c.get("{%s}label" % INKSCAPE_NS) or cible)
+    # calque « suite » déjà juste à côté du calque cible (même nom) : on le réutilise
+    voisin = c.getnext() if apres else c.getprevious()
+    if voisin is not None and voisin.get("{%s}groupmode" % INKSCAPE_NS) == "layer" \
+            and (voisin.get("{%s}label" % INKSCAPE_NS) or "") == nom:
+        suite = voisin
+    else:
+        suite = etree.Element("{%s}g" % SVG_NS)
+        suite.set("{%s}groupmode" % INKSCAPE_NS, "layer")
+        suite.set("{%s}label" % INKSCAPE_NS, nom)
+        pris = {e.get("id") for e in r.iter() if isinstance(e.tag, str)}
+        i, n = nouveau or "calque_suite", 1
+        while i in pris:
+            n += 1
+            i = "%s%d" % (nouveau or "calque_suite", n)
+        suite.set("id", i)
+        (c.addnext if apres else c.addprevious)(suite)
+    hors = -_repere(suite)                              # repère du dessin → repère du calque « suite »
+    anciens = set()
+    for el in els:
+        attaches = [c2.getparent() for c2 in r.iter("{%s}path" % SVG_NS)    # repères départ / fin de l'objet
+                    if c2.get(_CON_FIN) == "#" + el.get("id") and (c2.getparent().get("{%s}label" % INKSCAPE_NS) or "").startswith("Ink/Stitch Command")]
+        for x in [el] + attaches:
+            t = hors @ _repere(x)                      # même place à l'écran une fois dans le nouveau calque
+            anciens.add(x.getparent())
+            x.getparent().remove(x)
+            if t == ix.transforms.Transform():
+                x.attrib.pop("transform", None)
+            else:
+                x.set("transform", str(t))
+            suite.append(x)
+    for g in anciens:                                  # un calque « · » créé ici et devenu vide disparaît
+        if g is not suite and (g.get("id") or "").startswith("calque_suite") and not any(isinstance(e.tag, str) for e in g):
+            g.getparent().remove(g)
+    return suite.get("id")

@@ -825,6 +825,31 @@ function blocApplique(o) {
   };
   return bloc('Appliqué', d);
 }
+// Ordre de broderie entre calques : Ink/Stitch brode dans l'ordre du dessin. « Broder juste après Étoiles » met les
+// objets choisis dans un calque « <leur calque> · après Étoiles » placé juste après Étoiles, sans mélanger les calques.
+function blocOrdreCalques(objs) {
+  const calques = [], vus = new Set();
+  for (const x of S.etat.objets) {
+    if (x.calque && x.calque !== 'broderie_bati_calque' && !vus.has(x.calque)) { vus.add(x.calque); calques.push([x.calque, x.calque_nom]); }
+  }
+  const leurs = new Set(objs.map((x) => x.calque));
+  const autres = calques.filter(([id]) => !leurs.has(id));
+  if (!autres.length) return null;
+  const sel = document.createElement('select'); sel.className = 'ordre-calques';
+  sel.innerHTML = `<option value="">Broder ${objs.length > 1 ? 'ces objets' : 'cet objet'}…</option>`
+    + autres.map(([id, nom]) => `<option value="v:${esc(id)}">juste avant « ${esc(nom)} »</option><option value="a:${esc(id)}">juste après « ${esc(nom)} »</option>`).join('');
+  sel.onchange = async () => {
+    const v = sel.value; sel.value = ''; if (!v) return;
+    try {
+      S.etat = await api('broder_ailleurs', { ids: objs.map((x) => x.id), cible: v.slice(2), apres: v[0] === 'a' });
+      S.simu = null; rendreTout(); apercuBientot();
+      message('Déplacés dans un calque à part (« · avant … » ou « · après … ») : leur place à l\'écran ne change pas, seul l\'ordre de broderie change. « Annuler » en bas pour revenir.');
+    } catch (e) { message(e.message, true); }
+  };
+  const a = document.createElement('p'); a.className = 'muted small';
+  a.textContent = 'Ink/Stitch brode dans l\'ordre des calques. Les objets vont dans un calque à part, nommé d\'après leur calque (« Citrouille · après Etoile 3 »), placé à l\'endroit choisi ; leur place à l\'écran ne change pas.';
+  return bloc('Ordre de broderie', sel, a);
+}
 // Départ et fin d'un remplissage : sinon Ink/Stitch choisit. « Placer », puis un clic dans l'aperçu :
 // le repère d'Ink/Stitch est posé là, et l'aiguille part (ou finit) au bord de la forme le plus proche.
 const POSITIONS = [['starting_point', 'Départ', 'depart'], ['ending_point', 'Fin', 'fin']];
@@ -980,6 +1005,7 @@ function rendreMulti(objs) {
   suivreCouleur($('input', coul), async (v) => { for (const x of objs) await changerCouleur(x, v); });
   div.appendChild(coul);
   div.appendChild(nuancierDessin(objs, async (v) => { for (const x of objs) await changerCouleur(x, v); }));
+  const oc = blocOrdreCalques(objs); if (oc) div.appendChild(oc);
   const el = S.schema.element;
   if (el) {
     const fin = ['trim_after', 'stop_after'].map((n) => el.params.find((p) => p.name === n)).filter(Boolean);
@@ -1026,6 +1052,7 @@ function rendreProps() {
   div.appendChild(coul);
   div.appendChild(nuancierDessin([o], (v) => changerCouleur(o, v)));
   if (o.types.includes('fill_stitch')) div.appendChild(blocPositions(o));
+  const oc = blocOrdreCalques([o]); if (oc) div.appendChild(oc);
   const el = S.schema.element;
   if (el) {
     const fin = ['trim_after', 'stop_after'].map((n) => el.params.find((p) => p.name === n)).filter(Boolean);

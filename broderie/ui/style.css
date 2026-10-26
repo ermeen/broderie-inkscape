@@ -444,3 +444,4 @@ button.info:hover { border-color: var(--accent); color: var(--accent); }
 .bulle-info { margin: 6px 0 4px; padding: 8px 10px; border-radius: 8px; background: var(--sel); color: var(--texte); font-size: 12px; line-height: 1.45;
   text-transform: none; letter-spacing: 0; font-weight: 400; }
 .bulle-info a { color: var(--accent); white-space: nowrap; }
+select.ordre-calques { width: 100%; }

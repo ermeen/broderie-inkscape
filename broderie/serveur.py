@@ -236,6 +236,9 @@ class Session:
         if op[0] == "detacher":
             M.retirer_commande(doc, op[1], op[2])
             return
+        if op[0] == "broder_ailleurs":                 # objets mis dans un calque « suite » avant / après un autre
+            M.broder_ailleurs(doc, op[1], op[2], op[3], op[4])
+            return
         if op[0] == "applique":
             M.creer_applique(doc, op[1], op[2])
             return
@@ -346,6 +349,15 @@ class Session:
                 return self.sync(d)
             if self.document is None:
                 raise ValueError("Aucun dessin : lancez Extensions › Broderie › Panneau de broderie dans Inkscape.")
+            if nom == "broder_ailleurs":               # broder des objets avant / après un autre calque
+                ids, apres = [i for i in d.get("ids") or [] if M.par_id(self.document, i) is not None], bool(d.get("apres", True))
+                nid = M.broder_ailleurs(self.document, ids, d["cible"], apres)
+                if not nid:
+                    raise ValueError("Calque ou objets introuvables : appuyez sur %s dans Inkscape." % S.RACCOURCI)
+                self.attente.append(("broder_ailleurs", ids, d["cible"], apres, nid))
+                self.version += 1
+                self.sauver()
+                return self.etat()
             if nom == "tout_le_dessin":                # liste limitée à la sélection d'Inkscape → tout le dessin
                 self.ids = []
                 self.version += 1
