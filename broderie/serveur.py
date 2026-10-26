@@ -459,9 +459,18 @@ class Session:
                     self.version += 1
                 return self.etat()
             if nom == "placer":                       # glisser-déposer dans la liste (objets et calques)
-                if M.placer(self.document, d["id"], d["cible"], bool(d.get("apres"))):
-                    self.attente.append(("placer", d["id"], d["cible"], bool(d.get("apres"))))
-                    self._suivre_bati()
+                # plusieurs objets : posés un à un dans un ordre qui garde leur ordre de couture
+                ordre = {e.get("id"): k for k, e in enumerate(self.document.getroot().iter()) if isinstance(e.tag, str)}
+                ids = sorted([i for i in (d.get("ids") or [d["id"]]) if i != d["cible"]], key=lambda i: ordre.get(i, 0))
+                cible, apres = d["cible"], bool(d.get("apres"))
+                dans = M.par_id(self.document, cible) is not None and \
+                    M.par_id(self.document, cible).get("{%s}groupmode" % M.INKSCAPE_NS) == "layer" and len(ids) and \
+                    M.par_id(self.document, ids[0]) is not None and M.par_id(self.document, ids[0]).get("{%s}groupmode" % M.INKSCAPE_NS) != "layer"
+                for i in (reversed(ids) if apres or dans else ids):
+                    if M.placer(self.document, i, cible, apres):
+                        self.attente.append(("placer", i, cible, apres))
+                self._suivre_bati()
+                self.version += 1
                 return self.etat()
             if nom == "contours":                     # contours de tous les objets : clic dans l'aperçu
                 return {"objets": [{"id": o["id"], "svg": M.contour_svg(self.document, o["id"])}

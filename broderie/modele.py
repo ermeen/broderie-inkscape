@@ -545,15 +545,20 @@ def placer(svg, i, cible, apres=False):
     if el is None or ci is None or el is ci or ci in el.iterancestors():
         return False
     est_calque = lambda x: x.get("{%s}groupmode" % INKSCAPE_NS) == "layer"
-    if est_calque(ci) and not est_calque(el):
-        el.getparent().remove(el)
-        ci.insert(0, el)
-        return True
+    avant = _repere(el)                                # place à l'écran, à garder dans le nouveau calque
+    ancien = el.getparent()
     el.getparent().remove(el)
-    if apres:
+    if est_calque(ci) and not est_calque(el):
+        ci.insert(0, el)
+    elif apres:
         ci.addnext(el)
     else:
         ci.addprevious(el)
+    if el.getparent() is not ancien:                   # calque d'arrivée décalé ou tourné autrement : on compense
+        el.attrib.pop("transform", None)
+        t = (-_repere(el)) @ avant
+        if t != _inkex().transforms.Transform():
+            el.set("transform", str(t))
     return True
 
 

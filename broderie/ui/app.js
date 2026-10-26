@@ -123,25 +123,39 @@ async function basculerVisible(id, visible) {
 let glisse = null;
 function glisser(li, id, calque) {
   li.draggable = true;
+  // objet lâché sur l'en-tête d'un calque : bord du haut = entre deux calques (un calque à lui, « · avant … »),
+  // le reste = dans le calque
+  const zone = (e) => {
+    if (!(calque && glisse && !glisse.calque)) return e.clientY > li.getBoundingClientRect().top + li.getBoundingClientRect().height / 2 ? 'apres' : 'avant';
+    const r = li.getBoundingClientRect();
+    return e.clientY < r.top + r.height * 0.4 ? 'entre' : 'dans';
+  };
   li.addEventListener('dragstart', (e) => { glisse = { id, calque }; e.dataTransfer.effectAllowed = 'move'; e.dataTransfer.setData('text/plain', id); li.classList.add('glisse'); });
-  li.addEventListener('dragend', () => { li.classList.remove('glisse'); $$('#liste .avant, #liste .apres, #liste .dans').forEach((x) => x.classList.remove('avant', 'apres', 'dans')); });
+  li.addEventListener('dragend', () => { li.classList.remove('glisse'); $$('#liste .avant, #liste .apres, #liste .dans, #liste .entre').forEach((x) => x.classList.remove('avant', 'apres', 'dans', 'entre')); });
   li.addEventListener('dragover', (e) => {
     if (!glisse || glisse.id === id) return;
     if (glisse.calque && !calque) return;                       // un calque se dépose sur un autre calque
     e.preventDefault();
-    const r = li.getBoundingClientRect(), bas = e.clientY > r.top + r.height / 2;
-    li.classList.toggle('dans', calque && !glisse.calque);
-    li.classList.toggle('apres', !(calque && !glisse.calque) && bas);
-    li.classList.toggle('avant', !(calque && !glisse.calque) && !bas);
+    const z = zone(e);
+    for (const k of ['avant', 'apres', 'dans', 'entre']) li.classList.toggle(k, k === z);
   });
-  li.addEventListener('dragleave', () => li.classList.remove('avant', 'apres', 'dans'));
+  li.addEventListener('dragleave', () => li.classList.remove('avant', 'apres', 'dans', 'entre'));
   li.addEventListener('drop', async (e) => {
     e.preventDefault();
-    const g = glisse; glisse = null;
+    const z = zone(e), g = glisse; glisse = null;
+    li.classList.remove('avant', 'apres', 'dans', 'entre');
     if (!g || g.id === id) return;
-    const r = li.getBoundingClientRect(), apres = e.clientY > r.top + r.height / 2 && !(calque && !g.calque);
-    try { S.etat = await api('placer', { id: g.id, cible: id, apres }); rendreTout(); apercuBientot(); }
-    catch (x) { message(x.message, true); }
+    try {
+      if (z === 'entre') {                                     // plusieurs objets choisis : ils suivent celui qu'on glisse
+        const ids = S.choix.has(g.id) && S.choix.size > 1 ? [...S.choix] : [g.id];
+        S.etat = await api('broder_ailleurs', { ids, cible: id, apres: false });
+        message('Placé entre deux calques, dans un calque à lui : sa place à l\'écran ne change pas, seul l\'ordre de broderie change.');
+      } else {                                                  // plusieurs objets choisis : tous suivent
+        const ids = !g.calque && S.choix.has(g.id) && S.choix.size > 1 ? [...S.choix] : [g.id];
+        S.etat = await api('placer', { id: g.id, ids, cible: id, apres: z === 'apres' });
+      }
+      S.simu = null; rendreTout(); apercuBientot();
+    } catch (x) { message(x.message, true); }
   });
 }
 
