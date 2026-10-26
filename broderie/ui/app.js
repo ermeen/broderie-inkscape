@@ -309,14 +309,17 @@ function reglage(o, p, nomSimple) {
     const [mi, ma, pas, def] = BORNES[p.name];
     // réglage vide dans Ink/Stitch (découpe des longs points, angle d'un clone…) : désactivé ou automatique.
     // On ne montre pas une valeur qui ne serait pas appliquée : curseur grisé et case « Activer ».
+    // Vide : bouton « Activer ». Activé : la flèche ↺ le désactive (retour à « non »).
     const vide = !modifie && (p.default === null || p.default === undefined || p.default === '');
     const etatVide = VIDE[p.name] || 'auto';
     const n = parseFloat(v ?? def);
+    const razVide = (p.default === null || p.default === undefined || p.default === '')
+      ? `<button class="raz" title="Désactiver (revenir à « ${VIDE[p.name] || 'auto'} »)">↺</button>` : raz;
     d.innerHTML = `<div class="haut"><label title="${aide}">${lib}</label><span class="val">${vide
-      ? `<label class="activer" title="Appliquer la valeur proposée (${n} ${esc(p.unite || '')})"><input type="checkbox"> Activer</label>` : raz}<input type="number" step="${pas}" value="${vide ? '' : n}" placeholder="${etatVide}">${unite}</span></div>
+      ? `<button type="button" class="activer" title="Appliquer la valeur proposée (${n} ${esc(p.unite || '')})">Activer</button>` : razVide}<input type="number" step="${pas}" value="${vide ? '' : n}" placeholder="${etatVide}">${unite}</span></div>
       <input type="range" min="${mi}" max="${ma}" step="${pas}" value="${n}">`;
     const num = $('input[type=number]', d), cur = $('input[type=range]', d);
-    if (vide) { d.classList.add('inactif'); $('.activer input', d).onchange = () => envoyer(o, { [p.name]: n }); }
+    if (vide) { d.classList.add('inactif'); $('.activer', d).onclick = () => envoyer(o, { [p.name]: n }); }
     cur.oninput = () => { num.value = cur.value; };
     cur.onchange = () => envoyer(o, { [p.name]: cur.value });
     num.onchange = () => envoyer(o, { [p.name]: num.value });
