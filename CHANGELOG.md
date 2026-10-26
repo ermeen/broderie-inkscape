@@ -8,6 +8,7 @@ Le numéro de version suit le schéma `MAJEUR.MINEUR.CORRECTIF` :
 ## 1.6.2 — 26 octobre 2026
 
 - **Calques** : un clic n'importe où sur la ligne d'un calque (nom, triangle, espace autour) le **replie ou le déplie**, sans toucher à la sélection en cours. Un clic à côté du triangle n'efface donc plus ce qu'on avait choisi ailleurs.
+- **Aperçu des Objets toujours en points** : plus de choix Points / Réaliste au-dessus de l'aperçu. Le rendu réaliste est seulement dans l'onglet Simulation.
 - **Simulation : deux modes, Animation et Réaliste.** Le mode Points fixe est retiré : la **vue en points** de l'Animation montre la même chose, avec la lecture en plus. La carte de densité reste dans l'aperçu des Objets.
 - Barre de la simulation : **Vue en points · Tout voir · Suivre l'aiguille · Règle**, côte à côte. La **règle** de la simulation mesure en mm d'une piqûre à l'autre, sans déplacer la vue. Vérifié : 2,76 mm, 4,00 mm et 9,01 mm, exactement les valeurs calculées.
 - Pour choisir tous les objets d'un calque : le petit bouton **« Tout »**, qui apparaît au survol de sa ligne (⌘-clic : les ajouter à la sélection). Le ⌘-clic et le Maj-clic sur les objets marchent comme avant.

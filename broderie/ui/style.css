@@ -170,7 +170,8 @@ dialog { border: 1px solid var(--bord); border-radius: 12px; background: var(--p
 .barre-rendu input[type=color] { width: 20px; height: 18px; border: none; padding: 0; background: none; cursor: pointer; }
 #apercu.vide .barre-rendu { position: absolute; }
 .affichage { display: inline-flex; gap: 3px; flex-wrap: wrap; }
-.barre-rendu .affichage { padding: 0 5px; margin-left: 3px; border-left: 1px solid rgba(255,255,255,.2); }
+.barre-rendu .affichage { padding: 0 5px; }
+.barre-rendu .affichage + .affichage { margin-left: 3px; border-left: 1px solid rgba(255,255,255,.2); }
 .barre-rendu .ico-rendu { width: 34px; height: 30px; padding: 0; display: inline-flex; align-items: center; justify-content: center;
   border-radius: 7px; color: rgba(255,255,255,.72); background: rgba(255,255,255,.08); border: 1px solid rgba(255,255,255,.22);
   transition: background .12s, color .12s; }

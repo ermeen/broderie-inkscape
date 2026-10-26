@@ -770,15 +770,11 @@ function interrupteursAffichage(liste, apres) {
   }
   return d;
 }
-try { MODE = localStorage.getItem('broderie.mode') || 'points'; if (MODE !== 'points') MODE = 'realiste'; TISSU = localStorage.getItem('broderie.tissu') || '#ffffff'; } catch (e) { /* sans stockage */ }
+// l'aperçu des Objets est toujours en points ; le rendu réaliste est dans l'onglet Simulation
+try { TISSU = localStorage.getItem('broderie.tissu') || '#ffffff'; } catch (e) { /* sans stockage */ }
 const rafraichirApercu = () => (S.texte ? apercuTexte() : apercu());
 function barreRendu() {
   const d = document.createElement('div'); d.className = 'barre-rendu';
-  for (const [k, l, t] of [['points', 'Points', 'Les points et leur trajet'], ['realiste', 'Réaliste', 'Rendu photo du fil (image haute définition)']]) {
-    const b = document.createElement('button'); b.textContent = l; b.title = t; if (k === MODE) b.className = 'on';
-    b.onclick = (e) => { e.stopPropagation(); MODE = k; try { localStorage.setItem('broderie.mode', k); } catch (x) { /* rien */ } rafraichirApercu(); };
-    d.appendChild(b);
-  }
   if (MODE === 'points') d.appendChild(interrupteursAffichage([
     ['sauts', 'jump', 'Sauts : déplacements du fil sans broder (pointillés et grenouille)'],
     ['coupes', 'trim', 'Coupes, arrêts machine et changements de couleur'],
@@ -2054,7 +2050,6 @@ function adapterTouches(raccourci) {
   // lien direct vers un onglet : …/#points, #apercu, #export, #texte
   const [h, arg] = decodeURIComponent(location.hash.slice(1)).split('/');
   if (arg && h === 'objets') choisir([arg]);
-  if (arg === 'realiste' && h === 'objets') MODE = 'realiste';
   if (h === 'apercu' || (h === 'points' && arg)) S.simMode = arg === 'points' ? 'animation' : MODES_SIMU.includes(arg) ? arg : 'realiste';   // ancien onglet Aperçu
   if (h === 'texte') { changerVue('objets'); S.texte = true; rendreTout(); }
   else changerVue(h === 'apercu' ? 'points' : ['points', 'export'].includes(h) ? h : 'objets');

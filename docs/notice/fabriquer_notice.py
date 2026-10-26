@@ -327,7 +327,7 @@ c += [Chapitre(4, "Onglet Objets", "Régler la broderie de chaque forme"),
       p("Lire l'aperçu", "h2"),
       *puces("<b>Points</b> : les points d'aiguille, les sauts (pointillés et grenouille), les coupes, les arrêts et les "
              "changements de couleur. Les boutons de la barre les affichent ou les masquent : grenouille (sauts), ciseaux (coupes et arrêts), carreaux (<b>densité</b> : rouge = trop serré, risque de casse ; jaune = limite) et aiguille (pénétrations).",
-             "<b>Réaliste</b> : le fil sur votre tissu (choisissez sa couleur). Molette : zoom · glisser ou bouton du "
+             "Le rendu <b>réaliste</b> est dans l'onglet Simulation. Molette : zoom · glisser ou bouton du "
              "milieu : déplacer · <b>Tout voir</b> : recentrer. La <b>règle</b> mesure en mm d'une piqûre à l'autre."),
       PageBreak()]
 
