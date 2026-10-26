@@ -328,7 +328,7 @@ c += [Chapitre(4, "Onglet Objets", "Régler la broderie de chaque forme"),
       *puces("<b>Points</b> : les points d'aiguille, les sauts (pointillés et grenouille), les coupes, les arrêts et les "
              "changements de couleur. Les boutons de la barre les affichent ou les masquent : grenouille (sauts), ciseaux (coupes et arrêts), carreaux (<b>densité</b> : rouge = trop serré, risque de casse ; jaune = limite) et aiguille (pénétrations).",
              "<b>Réaliste</b> : le fil sur votre tissu (choisissez sa couleur). Molette : zoom · glisser ou bouton du "
-             "milieu : déplacer · double-clic : tout voir."),
+             "milieu : déplacer · <b>Tout voir</b> : recentrer. La <b>règle</b> mesure en mm d'une piqûre à l'autre."),
       PageBreak()]
 
 # ---------------------------------------------------------------- 5-6. satin et texte
@@ -358,7 +358,8 @@ c += [Chapitre(5, "Colonnes satin", "Le point brillant des bordures et des lettr
 c += [Chapitre(7, "Onglet Simulation", "Regarder la machine broder, dans son cadre"),
       capture("simulation", 120, "Animation des points dans le cadre schématisé (pointillés gris), avec le bâti (orange) ; "
                                  "à droite le cadre, le bâti et les statistiques."),
-      *puces("<b>Animation</b> : la machine brode point par point (sauts, coupes, changements de couleur, mire). "
+      *puces("<b>Animation</b> : la machine brode point par point ; <b>vue en points</b>, <b>suivre l'aiguille</b> et "
+             "<b>tout voir</b> en boutons. "
              "<b>Points</b> : tous les points d'un coup (sauts, coupes, densité, pénétrations). <b>Réaliste</b> : le fil sur le "
              "tissu. Molette : zoom · glisser : déplacer · double-clic : tout voir.",
              "<b>Cadre</b> : choisissez votre cadre (ou ajoutez-le). Il est dessiné autour du motif, centré comme la machine le "

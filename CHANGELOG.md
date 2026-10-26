@@ -9,6 +9,9 @@ Le numéro de version suit le schéma `MAJEUR.MINEUR.CORRECTIF` :
 
 - **Calques repliables** : on peut maintenant replier aussi le calque qui contient la sélection. Replié, son en-tête affiche une pastille bleue « 1 choisi » (ou « 2 choisis »…) à la place du nombre d'objets, et une barre bleue à gauche : on sait où se trouve l'objet en cours de réglage.
 - Nombre d'objets au singulier quand il n'y en a qu'un (« 1 objet »).
+- **Zoom** : l'aperçu des Objets et la Simulation gardent chacun leur zoom ; passer de l'un à l'autre ne dézoome plus.
+- **Simulation (Animation)** : trois boutons en plus. **Vue en points** dessine le fil fin et chaque piqûre de l'aiguille, la lecture restant possible. **Suivre l'aiguille** garde la vue zoomée et centrée sur l'aiguille pendant la lecture. **Tout voir** recentre le dessin.
+- **Aperçu des Objets** : bouton **Tout voir** (recentrer le dessin) et **Règle**. On tire un trait entre deux points, la distance s'affiche en mm, et la règle s'accroche à la piqûre d'aiguille la plus proche pour mesurer d'un point à l'autre. Vérifié : 4,00 mm entre deux piqûres d'un remplissage, 9,00 mm pour un point de satin, exactement les valeurs calculées.
 
  — 26 octobre 2026
 

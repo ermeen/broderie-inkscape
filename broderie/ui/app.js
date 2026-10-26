@@ -689,8 +689,13 @@ function rendreAttente() {
 }
 
 // ---------------------------------------------------------------- vues
+// zoom de l'aperçu gardé séparément pour les Objets et la Simulation : passer de l'un à l'autre ne dézoome plus
+const ZOOMS = {};
+const cleZoom = () => (S.vue === 'points' ? 'simulation' : 'objets');
 function changerVue(v) {
+  ZOOMS[cleZoom()] = [vb, vb0];
   S.vue = v; message('');
+  [vb, vb0] = ZOOMS[cleZoom()] || [null, null];
   $$('#vues button').forEach((b) => b.classList.toggle('on', b.dataset.vue === v));
   for (const k of ['objets', 'points', 'export']) $('#v-' + k).hidden = k !== v;
   if (v !== 'points') { arreterSimulation(); restaurerMode(); }
@@ -714,9 +719,9 @@ function modeSimulation(m) {
   if (rendu) {
     arreterSimulation();
     if (modeObjets === null) modeObjets = MODE;
-    MODE = m; vb = vb0 = null;
+    MODE = m;
     $('#emplApercu').appendChild($('#apercu')); apercu();
-  } else { restaurerMode(); chargerSimulation(); }
+  } else { restaurerMode(); chargerSimulation(); dessinerSimulation(); }
 }
 $$('#simMode button').forEach((b) => { b.onclick = () => modeSimulation(b.dataset.mode); });
 $$('#vues button').forEach((b) => { b.onclick = () => changerVue(b.dataset.vue); });
@@ -777,6 +782,16 @@ function barreRendu() {
     ['coupes', 'trim', 'Coupes, arrêts machine et changements de couleur'],
     ['densite', 'densite', 'Densité : rouge = trop dense, jaune = limite, vert = correct'],
     ['penetrations', 'npp', 'Pénétrations : points d\'entrée de l\'aiguille']], () => rafraichirApercu()));
+  const outilsVue = document.createElement('span'); outilsVue.className = 'affichage';
+  const tout = document.createElement('button'); tout.type = 'button'; tout.className = 'ico-rendu'; tout.title = 'Tout voir : recentrer le dessin (double-clic)';
+  tout.innerHTML = icone('voir_tout'); tout.onclick = (e) => { e.stopPropagation(); if (vb0) { vb = vb0.slice(); appliquerVue(); } };
+  const regle = document.createElement('button'); regle.type = 'button'; regle.className = 'ico-rendu' + (MESURE ? ' on' : '');
+  regle.title = 'Règle : tirez entre deux points pour mesurer en mm (elle s\'accroche aux points d\'aiguille proches)';
+  regle.innerHTML = icone('mesure');
+  regle.onclick = (e) => { e.stopPropagation(); MESURE = !MESURE; regle.classList.toggle('on', MESURE); $('#apercu').classList.toggle('mesure', MESURE);
+    if (!MESURE) $$('#apercu .mesure-panneau').forEach((x) => x.remove());
+    message(MESURE ? 'Règle : tirez d\'un point à un autre dans l\'aperçu. Elle s\'accroche aux points d\'aiguille proches.' : ''); };
+  outilsVue.append(tout, regle); d.appendChild(outilsVue);
   const c = document.createElement('label'); c.title = 'Couleur du tissu';
   c.innerHTML = `Tissu <input type="color" value="${TISSU}">`;
   $('input', c).oninput = (e) => { TISSU = e.target.value; $('#apercu').style.background = TISSU; majTissu(); try { localStorage.setItem('broderie.tissu', TISSU); } catch (x) { /* rien */ } };
@@ -805,6 +820,7 @@ async function apercu() {
     svg.removeAttribute('width'); svg.removeAttribute('height');
     let v = (svg.getAttribute('viewBox') || '0 0 100 100').split(/[ ,]+/).map(Number);
     const uMM = lw ? v[2] / (parseFloat(lw[1]) * MM[lw[2] || '']) : 1;     // unités du dessin par mm
+    svg.dataset.uMm = uMM;
     // vue de départ : la page et tout le motif (un texte posé hors de la page reste visible)
     const plan = [...svg.children].find((g) => g.tagName === 'g' || g.tagName === 'image');   // réaliste : une image
     if (plan) {
@@ -955,8 +971,48 @@ $('#apercu').addEventListener('wheel', (e) => {
 }, { passive: false });
 $('#apercu').addEventListener('dblclick', () => { if (vb0) { vb = vb0.slice(); appliquerVue(); } });
 $('#apercu').addEventListener('mousedown', (e) => { if (e.button === 1) e.preventDefault(); });   // pas de défilement auto
+// Règle : mesure en mm entre deux points de l'aperçu, accrochée aux piqûres de l'aiguille (sommets du plan de broderie)
+let MESURE = false;
+function sommetsApercu(svg) {
+  if (svg._sommets) return svg._sommets;
+  const out = [];
+  for (const p of svg.querySelectorAll('#__inkstitch_stitch_plan__ path')) {
+    const n = (p.getAttribute('d') || '').match(/-?[\d.]+(?:e-?\d+)?/gi) || [];
+    let m; try { m = svg.getCTM().inverse().multiply(p.getCTM()); } catch (e) { continue; }
+    for (let i = 0; i + 1 < n.length; i += 2) { const q = new DOMPoint(+n[i], +n[i + 1]).matrixTransform(m); out.push([q.x, q.y]); }
+  }
+  return (svg._sommets = out);
+}
+function accroche(svg, x, y, seuil) {                       // point d'aiguille le plus proche (sinon le point visé)
+  let best = null, d2 = seuil * seuil;
+  for (const [a, b] of sommetsApercu(svg)) { const d = (a - x) ** 2 + (b - y) ** 2; if (d < d2) { d2 = d; best = [a, b]; } }
+  return best ? { x: best[0], y: best[1], accroche: true } : { x, y, accroche: false };
+}
 $('#apercu').addEventListener('pointerdown', (e) => {
-  if (!vb || e.target.closest('.barre-rendu')) return;
+  if (!MESURE || e.button !== 0 || e.target.closest('.barre-rendu')) return;
+  const svg = $('#apercu > svg'); if (!svg) return;
+  e.stopImmediatePropagation(); e.preventDefault();
+  const NS = 'http://www.w3.org/2000/svg', ctm = svg.getScreenCTM(), unPx = 1 / ctm.a;       // unités du dessin par pixel écran
+  const ver = (ev) => { const q = new DOMPoint(ev.clientX, ev.clientY).matrixTransform(ctm.inverse()); return accroche(svg, q.x, q.y, 10 * unPx); };
+  const a = ver(e), u = parseFloat(svg.dataset.uMm) || 1;
+  $$('.mesure-panneau', svg).forEach((x) => x.remove());
+  const g = document.createElementNS(NS, 'g'); g.setAttribute('class', 'mesure-panneau'); svg.appendChild(g);
+  const trace = (b) => {
+    const dmm = Math.hypot(b.x - a.x, b.y - a.y) / u;
+    const rond = (p) => `<circle cx="${p.x}" cy="${p.y}" r="${4 * unPx}" fill="${p.accroche ? '#2f80ed' : '#fff'}" stroke="#2f80ed" stroke-width="${1.5 * unPx}"/>`;
+    const t = `${dmm.toFixed(2).replace('.', ',')} mm`, fs = 13 * unPx, mx = (a.x + b.x) / 2, my = (a.y + b.y) / 2 - 10 * unPx;
+    g.innerHTML = `<line x1="${a.x}" y1="${a.y}" x2="${b.x}" y2="${b.y}" stroke="#2f80ed" stroke-width="${1.5 * unPx}"/>${rond(a)}${rond(b)}
+      <rect x="${mx - t.length * fs * 0.32}" y="${my - fs * 0.95}" width="${t.length * fs * 0.64}" height="${fs * 1.35}" rx="${4 * unPx}" fill="#2f80ed"/>
+      <text x="${mx}" y="${my}" font-size="${fs}" fill="#fff" text-anchor="middle" font-family="-apple-system, Segoe UI, sans-serif">${t}</text>`;
+    message(`Mesure : ${t}` + (a.accroche && b.accroche ? ' (d\'une piqûre à l\'autre)' : ''));
+  };
+  trace(a);
+  const mv = (ev) => trace(ver(ev));
+  const up = () => { document.removeEventListener('pointermove', mv); document.removeEventListener('pointerup', up); };
+  document.addEventListener('pointermove', mv); document.addEventListener('pointerup', up);
+}, true);
+$('#apercu').addEventListener('pointerdown', (e) => {
+  if (!vb || MESURE && e.button === 0 || e.target.closest('.barre-rendu')) return;     // règle active : c'est elle qui mesure
   const p0 = versDessin(e), v0 = vb.slice();
   let bouge = e.button === 1;                                 // bouton du milieu : toujours déplacer
   const mv = (ev) => {
@@ -1264,7 +1320,7 @@ $('#bCadreCentrer').onclick = async () => {
 // mêmes affichages et mêmes raccourcis clavier que son simulateur, avec ses icônes.
 const SIM = { pts: null, fils: [], i: 0, lecture: false, raf: 0, sens: 1, niveau: 5, dernier: 0, reste: 0,
   vue: { k: 1, x: 0, y: 0 }, cmds: [], couleurs: [], page: null };
-const SIM_AFF = { npp: false, sauts: true, coupes: true, arrets: true, couleurs: true, mire: true, page: false, info: false, cadre: true, fond: '#ffffff' };
+const SIM_AFF = { npp: false, sauts: true, coupes: true, arrets: true, couleurs: true, mire: true, page: false, info: false, cadre: true, suivre: false, enpoints: false, fond: '#ffffff' };
 const SIM_PREF = { epaisseur: 0.3, npp: 0.5, mireRayon: 12, mireEpaisseur: 2, mireCouleur: '#e74c3c', adapter: true };
 try {
   Object.assign(SIM_AFF, JSON.parse(localStorage.getItem('broderie.simAff') || '{}'));
@@ -1294,6 +1350,10 @@ const SF = {
   pause: `<rect x="6.5" y="5" width="3.6" height="14" rx="1.2" ${F}/><rect x="13.9" y="5" width="3.6" height="14" rx="1.2" ${F}/>`,
   forward_stitch: `<path d="M9.5 6l6 6-6 6"/>`,
   fleche: `<path d="M5 12h14M14 7l5 5-5 5"/>`,
+  vue_points: `<circle cx="5" cy="17" r="1.6" ${F}/><circle cx="10" cy="11" r="1.6" ${F}/><circle cx="15" cy="15" r="1.6" ${F}/><circle cx="19.5" cy="7" r="1.6" ${F}/><path d="M5 17l5-6 5 4 4.5-8" stroke-width="1"/>`,
+  voir_tout: `<path d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5"/><rect x="9" y="9" width="6" height="6" rx="1"/>`,
+  aiguille: `<circle cx="12" cy="12" r="2.2" ${F}/><circle cx="12" cy="12" r="6.5"/><path d="M12 2.5v3M12 18.5v3M2.5 12h3M18.5 12h3"/>`,
+  mesure: `<path d="M3.5 16.5 16.5 3.5l4 4-13 13z"/><path d="M7 13l1.8 1.8M9.5 10.5l2.5 2.5M12 8l1.8 1.8M14.5 5.5l2.5 2.5"/>`,
   cadre: `<rect x="3" y="3" width="18" height="18" rx="4"/><rect x="7.5" y="7.5" width="9" height="9" rx="1.5" stroke-dasharray="2 1.6"/>`,
   forward_command: `<path d="M18 5.5v13"/><path d="M6 6.5l8.5 5.5L6 17.5z" ${F}/>`,
   direction: `<path d="M4 8.5h15M15.5 5l3.5 3.5-3.5 3.5M20 15.5H5M8.5 12 5 15.5 8.5 19"/>`,
@@ -1344,6 +1404,10 @@ function dessinerSimulation() {
   g.fillStyle = SIM_AFF.fond; g.fillRect(0, 0, cv.width, cv.height);
   if (!SIM.pts || !SIM.pts.length) return;
   const { k, ox, oy } = cadreSimulation(cv);
+  if (SIM_AFF.suivre) {                               // suivre l'aiguille : elle reste au centre de la vue
+    const p = SIM.pts[Math.max(0, Math.min(SIM.i, SIM.pts.length) - 1)];
+    if (p) { SIM.vue.x = cv.width / 2 - SIM.vue.k * (ox + p[0] * k); SIM.vue.y = cv.height / 2 - SIM.vue.k * (oy + p[1] * k); }
+  }
   g.setTransform(SIM.vue.k, 0, 0, SIM.vue.k, SIM.vue.x, SIM.vue.y);
   const px = 1 / SIM.vue.k;                          // un pixel écran
   if (SIM_AFF.page && SIM.page) {
@@ -1363,7 +1427,8 @@ function dessinerSimulation() {
   }
   const fin = Math.min(SIM.i, SIM.pts.length);
   // fil brodé, couleur par couleur
-  g.lineWidth = Math.max(dpr * px * 0.6, SIM_PREF.epaisseur * 10 * k); g.lineCap = 'round'; g.lineJoin = 'round';
+  const modePoints = SIM_AFF.enpoints;               // vue en points : fil fin et chaque piqûre de l'aiguille
+  g.lineWidth = modePoints ? dpr * px : Math.max(dpr * px * 0.6, SIM_PREF.epaisseur * 10 * k); g.lineCap = 'round'; g.lineJoin = 'round';
   let fil = 0, prec = null, saut = false;
   const sauts = [], marques = [], trous = [];
   g.strokeStyle = SIM.fils[0] || '#000'; g.beginPath();
@@ -1375,7 +1440,7 @@ function dessinerSimulation() {
         else { g.moveTo(prec[0], prec[1]); g.lineTo(X(x), Y(y)); }
       }
       prec = [X(x), Y(y)]; saut = false;
-      if (SIM_AFF.npp) trous.push(X(x), Y(y));
+      if (SIM_AFF.npp || modePoints) trous.push(X(x), Y(y));
       continue;
     }
     if (c === 'COLOR_CHANGE') {
@@ -1399,7 +1464,7 @@ function dessinerSimulation() {
   }
   if (trous.length) {                                  // pénétrations de l'aiguille
     g.fillStyle = 'rgba(0,0,0,.75)';
-    const r = Math.max(SIM_PREF.npp * 10 * k / 2, 1.2 * dpr * px);
+    const r = modePoints ? 1.8 * dpr * px : Math.max(SIM_PREF.npp * 10 * k / 2, 1.2 * dpr * px);
     for (let j = 0; j < trous.length; j += 2) { g.beginPath(); g.arc(trous[j], trous[j + 1], r, 0, 7); g.fill(); }
   }
   const montre = { jump: SIM_AFF.sauts, trim: SIM_AFF.coupes, stop: SIM_AFF.arrets, color_change: SIM_AFF.couleurs };
@@ -1513,7 +1578,7 @@ const ACTIONS_SIMU = {
   slower: ['Plus lent (↓)', () => { SIM.niveau = Math.max(1, SIM.niveau - 1); dessinerSimulation(); }],
   faster: ['Plus rapide (↑)', () => { SIM.niveau = Math.min(15, SIM.niveau + 1); dessinerSimulation(); }],
 };
-const VUES_SIMU = [['cadre', 'cadre', 'Cadre de la brodeuse'], ['npp', 'npp', 'Pénétrations de l\'aiguille (O)'], ['sauts', 'jump', 'Sauts'], ['coupes', 'trim', 'Coupes'],
+const VUES_SIMU = [['enpoints', 'vue_points', 'Vue en points : fil fin et chaque piqûre de l\'aiguille'], ['suivre', 'aiguille', 'Suivre l\'aiguille : la vue reste centrée sur elle'], ['cadre', 'cadre', 'Cadre de la brodeuse'], ['npp', 'npp', 'Pénétrations de l\'aiguille (O)'], ['sauts', 'jump', 'Sauts'], ['coupes', 'trim', 'Coupes'],
   ['arrets', 'stop', 'Arrêts'], ['couleurs', 'color_change', 'Changements de couleur'], ['mire', 'cursor', 'Mire sur l\'aiguille'],
   ['page', 'page', 'Afficher la page'], ['info', 'info', 'Informations sur le motif']];
 function construireBarresSimu() {
@@ -1522,11 +1587,18 @@ function construireBarresSimu() {
     const b = document.createElement('button'); b.className = 'ico-btn'; b.dataset.action = k; b.title = titre;
     b.innerHTML = icone(k); b.onclick = f; c.appendChild(b);
   }
+  const tout = document.createElement('button'); tout.className = 'ico-btn'; tout.title = 'Tout voir : recentrer le dessin (double-clic sur la vue)';
+  tout.innerHTML = icone('voir_tout'); tout.onclick = () => { SIM_AFF.suivre = false; memoriser(); SIM.vue = { k: 1, x: 0, y: 0 }; construireBarresSimu(); dessinerSimulation(); };
+  c.appendChild(tout);
   const v = $('#simuVues'); v.innerHTML = '';
   for (const [k, ic, titre] of VUES_SIMU) {
     const b = document.createElement('button'); b.className = 'ico-btn bascule' + (SIM_AFF[k] ? ' on' : ''); b.title = titre;
     b.innerHTML = icone(ic);
-    b.onclick = () => { SIM_AFF[k] = !SIM_AFF[k]; b.classList.toggle('on', SIM_AFF[k]); memoriser(); dessinerPiste(); rendreInfoSimu(); dessinerSimulation(); };
+    b.onclick = () => {
+      SIM_AFF[k] = !SIM_AFF[k]; b.classList.toggle('on', SIM_AFF[k]); memoriser();
+      if (k === 'suivre' && SIM_AFF.suivre && SIM.vue.k < 2) SIM.vue.k = 4;     // suivre de près
+      dessinerPiste(); rendreInfoSimu(); dessinerSimulation();
+    };
     v.appendChild(b);
   }
   const fond = document.createElement('label'); fond.className = 'ico-btn'; fond.title = 'Couleur du fond';
@@ -1590,7 +1662,7 @@ $('#simuCanvas').addEventListener('pointerdown', (e) => {
   const up = () => { document.removeEventListener('pointermove', mv); document.removeEventListener('pointerup', up); };
   document.addEventListener('pointermove', mv); document.addEventListener('pointerup', up);
 });
-$('#simuCanvas').addEventListener('dblclick', () => { SIM.vue = { k: 1, x: 0, y: 0 }; dessinerSimulation(); });
+$('#simuCanvas').addEventListener('dblclick', () => { SIM_AFF.suivre = false; memoriser(); SIM.vue = { k: 1, x: 0, y: 0 }; construireBarresSimu(); dessinerSimulation(); });
 
 // ---------------------------------------------------------------- texte brodé (sans fenêtre Ink/Stitch)
 // Aperçu avant d'ajouter : Ink/Stitch fabrique le texte sur un dessin vide (≈ 10 s, il recharge la police)
