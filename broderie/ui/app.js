@@ -340,7 +340,7 @@ function reglage(o, p, nomSimple) {
     if (p.inverse) on = !on;
     d.innerHTML = `<label title="${aide}">${lib}</label><input type="checkbox" ${on ? 'checked' : ''}>`;
     $('input', d).onchange = (e) => envoyer(o, { [p.name]: p.inverse ? !e.target.checked : e.target.checked });
-    return avecConseil(d, o, p.name);
+    return avecConseil(d, o, p);
   }
   d.className = 'reglage' + (modifie ? ' modifie' : '');
   const unite = p.unite ? `<span class="unite">${esc(p.unite.replace(/\(.*\)/, '').trim())}</span>` : '';
@@ -385,7 +385,7 @@ function reglage(o, p, nomSimple) {
     $('input', d).onchange = (e) => envoyer(o, { [p.name]: e.target.value });
   }
   const raz0 = $('.raz', d); if (raz0) raz0.onclick = () => envoyer(o, { [p.name]: null });   // absent si le réglage est vide
-  return avecConseil(d, o, p.name);
+  return avecConseil(d, o, p);
 }
 
 // ---------------------------------------------------------------- conseils (ⓘ) : bonne pratique en deux phrases,
@@ -402,6 +402,15 @@ const CONSEILS = {
   'fill_stitch.max_stitch_length_mm': ['Longueur des points dans un rang : 3 à 4 mm. Plus court pour les petites zones ; plus long, c\'est plus brillant mais moins solide.', DOC_REMP + '#paramètres'],
   'stroke.running_stitch_length_mm': ['2 à 2,5 mm en général ; 1,5 mm dans les courbes serrées et les petits détails ; plus long pour un bâti.', DOC_TRAIT + '#paramétres'],
   'stroke.repeats': ['Nombre de passages sur le tracé. 2 ou 3 pour un trait plus visible (voir aussi le point Triple).', DOC_TRAIT + '#paramétres'],
+  'fill_stitch.fill': ['Décochez pour ne pas broder l\'intérieur de cette forme : seul son contour (s\'il en a un) sera brodé.', DOC_REMP],
+  contour_strategy: ['Façon de parcourir la forme : « Intérieur » suit les contours de proche en proche ; « Simple spirale » et « Double spirale » partent du bord vers le centre. Essayez-les dans l\'aperçu.', DOC_REMP + '#méthodes'],
+  join_style: ['Forme des angles du remplissage contour : pointus (onglet) ou arrondis. Arrondi est plus doux sur les formes organiques.', DOC_REMP + '#méthodes'],
+  avoid_self_crossing: ['Empêche le remplissage contour de passer sur lui-même : plus propre, un peu plus long à calculer.', DOC_REMP + '#méthodes'],
+  clockwise: ['Sens de rotation du remplissage contour ou spirale. Sans effet sur la solidité, seulement sur l\'aspect des reflets.', DOC_REMP + '#méthodes'],
+  meander_angle: ['Tourne le motif du méandre. Un angle différent entre deux zones voisines les distingue.', DOC_REMP + '#méthodes'],
+  cross_stitch_method: ['Façon de broder chaque croix (simple, double, avec ou sans retour). Voyez l\'effet dans l\'aperçu en points.', DOC_REMP + '#méthodes'],
+  contour_underlay_stitch_length_mm: ['Longueur des points de la sous-couche de contour : 2,5 à 3 mm. Plus court dans les courbes serrées.', DOC_SATIN + '#sous-couche-de-contour'],
+  center_walk_underlay_stitch_length_mm: ['Longueur des points de la sous-couche centrale : 2,5 à 3 mm. Plus court pour une colonne très courbe.', DOC_SATIN + '#sous-couche-centrale'],
   trim_after: ['La machine coupe le fil après cet objet (si elle sait couper) : utile avant un long saut. Sinon, il faudra couper ce fil à la main.', DOC + 'commands/'],
   stop_after: ['La machine s\'arrête après cet objet : pour poser le tissu d\'un appliqué, couper un surplus ou vérifier.', DOC + 'commands/'],
 };
@@ -409,6 +418,7 @@ const CONSEILS_BLOC = {
   'Sous-couche': ['Elle fixe le tissu avant le remplissage : indispensable sur la maille et les grandes zones, inutile sur les petits éléments.', DOC_REMP + '#underlay'],
   'Sous-couches (plusieurs possibles)': ['Centre : colonnes fines (moins de 2 mm). Contour : de 2 à 5 mm, bords nets. Contour + Zigzag : satins larges ou tissus épais.', DOC_SATIN + '#sous-couche-centrale'],
   'Points courts dans les courbes': ['Dans une courbe serrée, les points s\'entassent côté intérieur : Ink/Stitch y raccourcit un point sur deux. Les valeurs par défaut conviennent presque toujours.', DOC_SATIN + '#paramètres'],
+  'Appliqué': ['Brodez sur un stabilisateur. Au 1er arrêt, posez le tissu sur la ligne de placement ; au 2e, découpez le surplus au ras de la fixation (ciseaux à appliqué) ; la bordure satin recouvre le bord. Bordure de 3 à 4 mm en général.', 'https://inkstitch.org/fr/tutorials/applique/'],
   'Départ et fin de l’aiguille': ['Facultatif : sans repère, Ink/Stitch part au plus près de l\'aiguille. Placez la fin près de l\'objet suivant pour raccourcir le saut.', DOC_REMP + '#définir-les-points-de-départ-et-darrivée'],
 };
 function boutonConseil(c) {
@@ -425,8 +435,14 @@ function boutonConseil(c) {
   return b;
 }
 document.addEventListener('pointerdown', (e) => { if (!e.target.closest('.bulle-info, button.info')) $$('.bulle-info').forEach((x) => x.remove()); });
-function avecConseil(d, o, nom) {
-  const c = CONSEILS[typePrincipal(o) + '.' + nom] || CONSEILS[nom];
+// tous les réglages ont leur ⓘ : notre conseil s'il y en a un, sinon la description d'Ink/Stitch (en français)
+function docPour(o, p) {
+  if ((S.schema.element?.params || []).some((q) => q.name === p.name)) return DOC + 'params/';
+  return { satin_column: DOC_SATIN + '#paramètres', fill_stitch: DOC_REMP + '#paramètres', stroke: DOC_TRAIT + '#paramétres' }[typePrincipal(o)] || DOC + 'params/';
+}
+function avecConseil(d, o, p) {
+  const nom = p.name;
+  const c = CONSEILS[typePrincipal(o) + '.' + nom] || CONSEILS[nom] || (p.aide ? [p.aide.charAt(0).toUpperCase() + p.aide.slice(1), docPour(o, p)] : null);
   const lab = c && $('label', d);
   if (lab) lab.appendChild(boutonConseil(c));             // dans le libellé : reste collé au nom du réglage
   return d;
@@ -560,19 +576,6 @@ function outils(o) {
   };
   const d = document.createElement('div'); d.className = 'outils';
   principaux.forEach((e) => d.appendChild(bouton(e)));
-  if (o.types.includes('fill_stitch') && !o.ids) {        // assistant appliqué (forme remplie)
-    const ap = document.createElement('button'); ap.textContent = 'Appliqué…';
-    ap.title = 'Transforme la forme en appliqué : placement (arrêt pour poser le tissu), fixation (arrêt pour découper), bordure satin';
-    ap.onclick = async () => {
-      const l = prompt('Largeur de la bordure satin (mm) :', '3'); if (l === null) return;
-      try {
-        const r = await api('applique', { id: o.id, largeur: parseFloat(String(l).replace(',', '.')) || 3 });
-        S.etat = r.etat; S.sel = `applique_${o.id}_bordure`; S.choix = new Set(); rendreTout(); apercuBientot();
-        message('Appliqué créé : 1 placement (arrêt, posez le tissu) · 2 fixation (arrêt, découpez le tissu) · 3 bordure satin. La forme d\'origine est masquée.');
-      } catch (e) { message(e.message, true); }
-    };
-    d.appendChild(ap);
-  }
   const blocO = bloc('Outils', d);
   if (autres.length) {
     const det = document.createElement('details'); det.className = 'theme';
@@ -807,6 +810,21 @@ function boutonsCopie(o) {
   }
   return d;
 }
+// Appliqué (forme remplie) : Ink/Stitch n'a pas d'outil, seulement une méthode à suivre à la main ; ici, un clic
+// crée les trois étapes à partir de la forme : placement, fixation, bordure satin, séparées par des arrêts machine
+function blocApplique(o) {
+  const d = document.createElement('div');
+  d.innerHTML = `<p class="muted small">Un tissu cousu sur le support : 1 ligne de placement (arrêt : posez le tissu) · 2 fixation (arrêt : découpez le surplus) · 3 bordure satin. La forme d'origine est gardée, masquée.</p>
+    <div class="ligne-tissu"><span class="small">Bordure satin de</span><input type="number" value="3" min="1" max="8" step="0.5" style="width:56px"><span class="small">mm</span><button type="button" class="petit">Créer l'appliqué</button></div>`;
+  $('button', d).onclick = async () => {
+    try {
+      const r = await api('applique', { id: o.id, largeur: parseFloat($('input', d).value) || 3 });
+      S.etat = r.etat; S.sel = `applique_${o.id}_bordure`; S.choix = new Set(); rendreTout(); apercuBientot();
+      message('Appliqué créé : 1 placement (arrêt, posez le tissu) · 2 fixation (arrêt, découpez le tissu) · 3 bordure satin. La forme d\'origine est masquée.');
+    } catch (e) { message(e.message, true); }
+  };
+  return bloc('Appliqué', d);
+}
 // Départ et fin d'un remplissage : sinon Ink/Stitch choisit. « Placer », puis un clic dans l'aperçu :
 // le repère d'Ink/Stitch est posé là, et l'aiguille part (ou finit) au bord de la forme le plus proche.
 const POSITIONS = [['starting_point', 'Départ', 'depart'], ['ending_point', 'Fin', 'fin']];
@@ -1014,6 +1032,7 @@ function rendreProps() {
     div.appendChild(bloc('Après cet objet', ...fin.map((p) => reglage(o, p, p.name === 'trim_after' ? 'Couper le fil' : 'Arrêter la machine'))));
   }
   if (o.balise === 'path' && (o.types.includes('satin_column') || o.types.includes('stroke'))) div.appendChild(railsEtTraverses(o));
+  if (o.types.includes('fill_stitch')) div.appendChild(blocApplique(o));
   const ou = outils(o); if (ou) div.appendChild(ou);
   div.appendChild(plusDeReglages(o, [...typs, ...(o.types.includes('clone') ? ['clone'] : []), 'element'], montres));
 }

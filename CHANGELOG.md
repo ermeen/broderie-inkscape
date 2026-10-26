@@ -13,6 +13,8 @@ Le numéro de version suit le schéma `MAJEUR.MINEUR.CORRECTIF` :
 
 **Objets**
 - **Couleurs déjà dans le dessin** : sous la couleur de l'objet, une pastille par couleur utilisée (tous calques). Un clic donne exactement la même couleur à l'objet, ou à tous les objets choisis. Au survol : les objets qui l'utilisent, et le fil si une bobine est choisie.
+- **ⓘ sur tous les réglages**, y compris « Plus de réglages » : notre conseil pour les principaux, sinon la description d'Ink/Stitch en français, avec le lien vers sa documentation.
+- **Appliqué** : son propre bloc dans la fiche d'une forme remplie (avant, un bouton perdu parmi les outils), avec la largeur de la bordure et un ⓘ qui explique les deux arrêts et renvoie au tutoriel d'Ink/Stitch.
 - **Conseils ⓘ** à côté des réglages importants (densité, compensation, découpe, sous-couches, points courts, angle, longueur de point, coupe, arrêt…) : la bonne pratique en deux phrases et le lien vers la page de la documentation d'Ink/Stitch en français.
 - **Satin** : compensation en % de la largeur et **Points courts dans les courbes** remontés en haut de la fiche. **Vérifier avant d'exporter** signale un satin de plus de 8 mm de large (« Découper à 7 mm »).
 - **Bouton Synchroniser** : plus de « ✓ Synchronisé » vert trompeur (le panneau ne voit pas ce qu'on fait dans Inkscape). Il est orange quand des réglages attendent, discret sinon, et bleu quand on revient d'Inkscape : « De retour d'Inkscape ? Synchronisez pour reprendre vos changements. »
