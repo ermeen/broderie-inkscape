@@ -103,6 +103,7 @@ const ICO_TYPE = { fill_stitch: 'tatami_fill', satin_column: 'satin_column', str
 S.choix = new Set();
 const choisis = () => S.etat.objets.filter((o) => S.choix.has(o.id));
 function choisir(ids, ajouter = false) {
+  S.aucun = false;                                  // « Tout désélectionner » : plus rien de choisi jusqu'au prochain clic
   if (!ajouter) S.choix = new Set();
   ids.forEach((i) => S.choix.add(i));
   S.sel = ids[ids.length - 1] || null;
@@ -216,11 +217,23 @@ function rendreListe() {
     }
   }
   if (!S.etat.objets.length) ul.innerHTML = '<li class="muted small" style="cursor:default">Aucun objet. Dessinez une forme dans Inkscape, puis appuyez sur ⌘⌥B.</li>';
+  boutonDeselection();
   const aide = $('#aideSelection');
   if (aide) aide.textContent = S.choix.size > 1 ? `${S.choix.size} objets choisis` : '⌘-clic : plusieurs · ⇧-clic : une suite · clic sur un calque : le replier · « Tout » : tout le calque · glisser : changer l’ordre';
   $('#carteListe .carte-titre span').title = '⌘-clic : plusieurs · ⇧-clic : une suite · clic sur un calque : le replier · « Tout » : tout le calque · glisser : changer l’ordre';
 }
 
+// « Tout désélectionner » dans l'en-tête de la liste, seulement quand quelque chose est choisi (Échap fait pareil)
+function toutDeselectionner() { S.choix = new Set(); S.sel = null; S.aucun = true; S.texte = false; S.placer = null; modePlacement(); rendreTout(); }
+function boutonDeselection() {
+  let b = $('#bDeselect');
+  if (!S.choix.size) { if (b) b.remove(); return; }
+  if (!b) {
+    b = document.createElement('button'); b.id = 'bDeselect'; b.type = 'button'; b.className = 'petit';
+    b.textContent = 'Tout désélectionner'; b.title = 'Ne plus rien choisir (Échap)'; b.onclick = toutDeselectionner;
+    $('#bTexte').before(b);
+  }
+}
 // Liste limitée aux objets sélectionnés dans Inkscape au moment du ⌘⌥B : on le dit, et on peut revenir à tout le dessin
 function bandeauSelection() {
   let b = $('#bandeauSelection');
@@ -955,7 +968,7 @@ function rendreTout() {
   const existants = new Set(S.etat.objets.map((o) => o.id));
   S.choix = new Set([...S.choix].filter((i) => existants.has(i)));
   if (S.sel && !existants.has(S.sel)) S.sel = null;
-  if (!S.sel && S.etat.objets.length) S.sel = (S.etat.objets.find((o) => S.etat.selection.includes(o.id)) || S.etat.objets[0]).id;
+  if (!S.sel && !S.aucun && S.etat.objets.length) S.sel = (S.etat.objets.find((o) => S.etat.selection.includes(o.id)) || S.etat.objets[0]).id;
   rendreListe(); if (!S.choixCouleur) rendreProps(); rendreAttente(); rendreAncien(); afficherSelection();   // sélecteur de couleur ouvert : fiche intacte
   $('#props').hidden = S.texte; $('#texte').hidden = !S.texte;
   if (S.texte) rendreTexte();
@@ -1351,7 +1364,7 @@ $('#apercu').addEventListener('pointerdown', (e) => {
     if (bouge || e.button !== 0) return;
     const cible = document.elementsFromPoint(ev.clientX, ev.clientY).map((x) => x.closest && x.closest('[data-objet]')).find(Boolean);
     if (cible) choisir([cible.dataset.objet], ev.metaKey || ev.ctrlKey);
-    else if (!(ev.metaKey || ev.ctrlKey)) { S.choix = new Set(); rendreTout(); }
+    else if (!(ev.metaKey || ev.ctrlKey)) toutDeselectionner();       // clic dans le vide
   };
   document.addEventListener('pointermove', mv); document.addEventListener('pointerup', up);
 });
@@ -2139,6 +2152,7 @@ $('#sPos').oninput = (e) => allerA(+e.target.value);
 window.addEventListener('resize', () => { if (S.vue === 'points') { dessinerPiste(); dessinerSimulation(); } });
 document.addEventListener('keydown', (e) => {
   if (e.key === 'Escape' && S.placer) { S.placer = null; modePlacement(); rendreProps(); message('Placement annulé.'); return; }
+  if (e.key === 'Escape' && !/input|textarea|select/i.test(e.target.tagName) && !$('dialog[open]') && S.choix.size) { toutDeselectionner(); return; }
   if (S.vue !== 'points' || /input|textarea|select/i.test(e.target.tagName)) return;
   const touches = { p: 'play', P: 'play', r: 'restart', R: 'restart', ArrowUp: 'faster', ArrowDown: 'slower', '+': 'forward_stitch',
     '=': 'forward_stitch', '-': 'backward_stitch', PageUp: 'forward_command', PageDown: 'backward_command' };
