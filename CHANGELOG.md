@@ -5,6 +5,28 @@ Le numéro de version suit le schéma `MAJEUR.MINEUR.CORRECTIF` :
 - **MINEUR** : nouvelle fonction ;
 - **CORRECTIF** : correction sans nouvelle fonction.
 
+## 1.7.0 — 26 octobre 2026
+
+**Texte brodé**
+- **Réglages des lettres** (texte choisi dans la liste) : densité, sous-couche, compensation… pour tout le texte, par type de forme (satin, remplissage, trait), ou pour **une seule lettre**. Ils sont **gardés quand on modifie le texte** (mot, police, taille, courbure). « Revenir aux réglages de la police » les efface.
+- Préréglages **selon le tissu** (coton, tissu fin, jersey, éponge, jean, cuir) et alertes de lisibilité (lettres trop petites, satin trop dense sur des petites lettres, taille hors de la plage de la police).
+
+**Objets**
+- **Couleurs déjà dans le dessin** : sous la couleur de l'objet, une pastille par couleur utilisée (tous calques). Un clic donne exactement la même couleur à l'objet, ou à tous les objets choisis. Au survol : les objets qui l'utilisent, et le fil si une bobine est choisie.
+- **Mes réglages favoris** : enregistrer un jeu de réglages sous un nom, le réappliquer sur n'importe quel dessin.
+- **Appliqué** (outil d'un remplissage) : placement, fixation et bordure satin, séparés par des arrêts machine.
+- **Découpe des longs points** et autres réglages vides : bouton **Activer** (plus de case à cocher) ; une fois activé, la flèche ↺ le désactive.
+
+**Simulation**
+- **Point suivant / précédent** : un clic avance ou recule d'un point ; **appui maintenu**, les points défilent en continu (de plus en plus vite) et s'arrêtent au relâchement.
+- **Position du motif** dans le cadre : centré (comme la machine le fait) ou selon sa place sur la feuille (origine Ink/Stitch au centre de la feuille).
+
+**Export**
+- **Vérifier avant d'exporter** : le dépistage d'Ink/Stitch traduit (satin mal formé, bordure qui se croise…), sauts longs sans coupe, densité excessive, objets minuscules, motif hors du cadre. **Montrer** et **Corriger** pour chaque point.
+- **Préparer la broderie** : adapter tout le dessin au tissu ; **regrouper les couleurs** (le gain en changements de fil est affiché avant) ; couper les sauts plus longs qu'un seuil.
+- **Fiche machine** en français : aperçu, fils et bobines dans l'ordre, longueur de fil par couleur, cadre, bâti, durée ; à imprimer ou enregistrer en PDF.
+- **Ouvrir un fichier machine** (.pes, .dst…) : converti par Ink/Stitch en dessin, enregistré à côté sans rien écraser, ouvert dans Inkscape, avec ses statistiques.
+
 ## 1.6.3 — 26 octobre 2026
 
 - **Tout voir** (bouton et double-clic dans l'aperçu) cadre seulement ce qui est brodé et affiché, pas toute la feuille d'Inkscape. Un calque masqué (œil fermé) n'est donc pas pris en compte. Dans la Simulation, le cadre de la brodeuse est compris dans le cadrage quand il est affiché. Vérifié : feuille 120 × 120 mm → cadrage sur le motif (80 × 91) ; calque Cœur masqué → cadrage sur la tige seule.

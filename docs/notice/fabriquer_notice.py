@@ -304,7 +304,7 @@ c += [Chapitre(3, "Le geste à retenir", "Un raccourci relie Inkscape et le pann
 
 # ---------------------------------------------------------------- 4. objets
 c += [Chapitre(4, "Onglet Objets", "Régler la broderie de chaque forme"),
-      capture("objets", 88, "L'aperçu des points à gauche ; les calques, les objets et leurs réglages à droite."),
+      capture("objets", 72, "L'aperçu des points à gauche ; les calques, les objets et leurs réglages à droite."),
       p("Choisir", "h2"),
       *puces(touche("clic") + " un objet · " + touche("Cmd") + " " + touche("clic") + " en ajouter ou en retirer · "
              + touche("Maj") + " " + touche("clic") + " toute une suite.",
@@ -320,9 +320,10 @@ c += [Chapitre(4, "Onglet Objets", "Régler la broderie de chaque forme"),
              "<b>Paramètres</b> essentiels en curseurs, tous les autres dans <b>Plus de réglages</b> ; <b>sous-couche</b> en tuiles ; <b>couper le fil</b> et "
              "<b>arrêter la machine</b> après l'objet.",
              "<b>Copier les réglages</b> puis <b>Coller</b> sur une autre forme, ou sur toutes celles du même type. "
-             "La petite flèche circulaire remet un réglage à sa valeur par défaut.",
+             "La flèche circulaire remet la valeur par défaut. <b>Mes réglages favoris</b> : un jeu de réglages gardé sous un nom.",
+             "<b>Couleurs déjà dans le dessin</b> : pastilles sous la couleur, un clic donne exactement la même.",
              "<b>Outils</b> selon le type d'objet (agencement automatique des satins, remplissage en satin, contour, "
-             "redwork…) ; <b>Plus d'outils</b> pour les autres, dont <b>Figer en points</b> : les vrais points de l'aiguille "
+             "redwork…), <b>Appliqué</b> (placement, fixation, bordure satin) ; <b>Plus d'outils</b> pour les autres, dont <b>Figer en points</b> : les vrais points de l'aiguille "
              "deviennent un tracé à retoucher nœud par nœud (dentelle FSL)."),
       p("Lire l'aperçu", "h2"),
       *puces("<b>Points</b> : les points d'aiguille, les sauts (pointillés et grenouille), les coupes, les arrêts et les "
@@ -333,7 +334,7 @@ c += [Chapitre(4, "Onglet Objets", "Régler la broderie de chaque forme"),
 
 # ---------------------------------------------------------------- 5-6. satin et texte
 c += [Chapitre(5, "Colonnes satin", "Le point brillant des bordures et des lettres"),
-      capture("satin", 100, "Une colonne satin : type Satin, Point E, Point S ou Zigzag, densité, sous-couches."),
+      capture("satin", 84, "Une colonne satin : type Satin, Point E, Point S ou Zigzag, densité, sous-couches."),
       p("La plus simple", "h2"),
       p("Dans Inkscape, tracez un trait (outil Plume) avec l'<b>épaisseur</b> voulue : elle devient la largeur du satin. "
         "Dans le panneau, choisissez la tuile <b>Satin</b>."),
@@ -349,7 +350,9 @@ c += [Chapitre(5, "Colonnes satin", "Le point brillant des bordures et des lettr
              "un cercle, pour les écussons) ou <b>Sur une courbe</b> : dessinez une courbe libre dans Inkscape (Bézier, "
              "spirale, cercle), synchronisez, choisissez-la et le placement (début, centre, toute la courbe). "
              "La courbe est ensuite retirée de la broderie.",
-             "<b>Ajouter au dessin</b>, puis <b>Synchroniser</b>. Le texte se déplace et se tourne dans Inkscape."),
+             "<b>Ajouter au dessin</b>, puis <b>Synchroniser</b>. Le texte se déplace et se tourne dans Inkscape.",
+             "<b>Réglages des lettres</b> (texte choisi dans la liste) : densité, sous-couche… pour tout le texte ou "
+             "une seule lettre, préréglages <b>selon le tissu</b> ; ils sont gardés quand on modifie le texte."),
       astuce("Une police de votre Mac ? Tapez le texte dans Inkscape puis <i>Chemin › Objet en chemin</i> : les lettres "
              "deviennent des formes, à régler en remplissage ou en satin."),
       PageBreak()]
@@ -363,7 +366,8 @@ c += [Chapitre(7, "Onglet Simulation", "Regarder la machine broder, dans son cad
              "<b>Réaliste</b> : le fil sur le tissu. Molette : zoom · glisser : déplacer. La carte de densité est dans l'aperçu des Objets.",
              "<b>Cadre</b> : choisissez votre cadre (ou ajoutez-le). Il est dessiné autour du motif, centré comme la machine le "
              "brodera ; le panneau dit si le motif tient. Choisir un cadre donne sa taille à la <b>feuille d'Inkscape</b> à la "
-             "prochaine synchronisation ; <b>Centrer le motif dans le cadre</b> centre aussi le motif.",
+             "prochaine synchronisation ; <b>Centrer le motif dans le cadre</b> centre aussi le motif. <b>Position du motif</b> : "
+             "centré (comme la machine) ou selon sa place sur la feuille.",
              "<b>Bâti</b> : cochez la case pour faufiler le tissu au stabilisateur autour du motif, en premier. Trois curseurs : "
              "<b>écart</b> avec le motif, <b>longueur de point</b>, <b>arrondi</b> des angles. Si le bâti sort du cadre, le "
              "panneau le signale : réduisez l'écart, c'est à vous de vérifier que tout rentre."),
@@ -373,6 +377,7 @@ c += [Chapitre(7, "Onglet Simulation", "Regarder la machine broder, dans son cad
                 "plus rapide / plus lent · sens de l'animation"],
                [touche("+") + " " + touche("−") + " " + touche("page haut") + " " + touche("page bas"),
                 "un point · une commande (saut, coupe, couleur)"],
+               ["boutons point suivant / précédent", "un clic : un point ; appui maintenu : défile, s'arrête au relâchement"],
                [touche("O"), "pénétrations de l'aiguille"]], [70, 100]),
       PageBreak()]
 
@@ -384,7 +389,11 @@ c += [Chapitre(8, "Onglet Export", "Les bobines, le fichier pour la machine"),
              "<b>Bobines</b> : choisissez la marque de vos fils ; pour chaque couleur, le panneau propose la bobine la plus "
              "proche (<b>Changer</b> pour en prendre une autre). <b>Prendre les couleurs exactes des fils</b> : Ink/Stitch "
              "reconnaît alors marque, numéro et nom (liste des fils, fichiers .vp3 et .inf ; un .pes ou un .dst ne garde que la couleur).",
-             "<b>Fiche PDF pour la machine</b> : la fiche d'Ink/Stitch à imprimer (aperçu, fils, ordre des couleurs)."),
+             "<b>Vérifier avant d'exporter</b> : formes que la machine brodera mal, sauts sans coupe, densité, objets "
+             "minuscules, cadre ; <b>Montrer</b> et <b>Corriger</b> pour chacun. <b>Préparer la broderie</b> : adapter tout le "
+             "dessin au tissu, regrouper les couleurs (moins de changements de fil), couper les sauts longs.",
+             "<b>Fiche machine</b> en français (aperçu, fils dans l'ordre, longueur de fil, cadre, durée) à imprimer ou "
+             "en PDF. <b>Ouvrir un fichier machine</b> (.pes, .dst…) : converti en dessin, enregistré à côté, sans rien écraser."),
       PageBreak()]
 
 # ---------------------------------------------------------------- 10. astuces
