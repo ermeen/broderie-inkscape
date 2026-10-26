@@ -304,10 +304,16 @@ def icone(nom):
     return f if r and f.startswith(os.path.join(r, "icons")) and f.endswith(".png") and os.path.exists(f) else None
 
 
-def densite(document, ids=None):
+SEUILS_DENSITE = ("num-neighbors-red", "density-radius-red", "num-neighbors-yellow", "density-radius-yellow")
+
+
+def densite(document, ids=None, seuils=None):
     """Carte de densité d'Ink/Stitch (points rouges : trop dense, jaunes : limite, verts : correct),
-    calculée sur une copie : on n'en garde que le calque de repères, à superposer à l'aperçu."""
-    code, out, err = executer(document, "density_map", ids, {"layer-visibility": "0"}, delai=120)
+    calculée sur une copie : on n'en garde que le calque de repères, à superposer à l'aperçu.
+    seuils : nombre de points voisins et rayon (mm) pour le rouge et le jaune (sinon ceux d'Ink/Stitch)."""
+    params = {"layer-visibility": "0"}
+    params.update({k: str(v) for k, v in (seuils or {}).items() if k in SEUILS_DENSITE and v not in (None, "")})
+    code, out, err = executer(document, "density_map", ids, params, delai=120)
     doc = document_modifie(out)
     if doc is None:
         return None, err

@@ -91,6 +91,9 @@
       <div class="ligne-tissu"><button id="bPrOrdre" class="petit">Regrouper les couleurs…</button><span id="prOrdreInfo" class="muted small"></span></div>
       <label class="etiquette">Coupes</label>
       <div class="ligne-tissu"><span class="small">Couper après chaque saut de plus de</span><input type="number" id="prSeuil" value="5" min="1" step="1" style="width:56px"><span class="small">mm</span><button id="bPrCoupes" class="petit">Couper</button></div>
+      <label class="etiquette">Liaisons</label>
+      <div class="ligne-tissu"><span class="small">Relier les sauts de moins de</span><input type="number" id="prLiaison" value="3" min="1" step="1" style="width:56px"><span class="small">mm</span><button id="bPrLiaison" class="petit" title="Outil « Saut en trait » d'Ink/Stitch : entre deux formes de même couleur, un point droit remplace le saut (moins de coupes et de nœuds)">Relier</button></div>
+      <p class="muted small">Entre formes de même couleur, un point droit remplace le saut : moins de coupes et de nœuds. Il reste visible s'il n'est pas recouvert ensuite.</p>
       <p class="muted small">Tout reste modifiable, et « Annuler » en bas oublie ce qui n'est pas encore envoyé à Inkscape.</p>
     </div>
     <div class="carte">

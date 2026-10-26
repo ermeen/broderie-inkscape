@@ -709,6 +709,7 @@ function boutonsCopie(o) {
   };
   d.appendChild(b);
   d.appendChild(menuFavoris(o));
+  const sem = menuSemblables(o); if (sem) d.appendChild(sem);
   if (S.copie && S.copie.type === typePrincipal(o)) {      // coller seulement entre formes du même type
     const memes = S.etat.objets.filter((x) => typePrincipal(x) === S.copie.type);
     if (S.copie.de !== o.nom) {
@@ -724,6 +725,71 @@ function boutonsCopie(o) {
     }
   }
   return d;
+}
+// Départ et fin d'un remplissage : sinon Ink/Stitch choisit. « Placer », puis un clic dans l'aperçu :
+// le repère d'Ink/Stitch est posé là, et l'aiguille part (ou finit) au bord de la forme le plus proche.
+const POSITIONS = [['starting_point', 'Départ', 'depart'], ['ending_point', 'Fin', 'fin']];
+function blocPositions(o) {
+  const pl = (S.etat.placees || {})[o.id] || {};
+  const d = document.createElement('div'); d.className = 'positions';
+  for (const [quoi, lib, cl] of POSITIONS) {
+    const enCours = S.placer && S.placer.id === o.id && S.placer.quoi === quoi;
+    const l = document.createElement('div'); l.className = 'ligne-position' + (enCours ? ' en-cours' : '');
+    l.innerHTML = `<span class="repere ${cl}"></span><span class="lib">${lib}</span>
+      <span class="etat muted small">${enCours ? 'cliquez dans l’aperçu…' : pl[quoi] ? 'placé' : 'automatique'}</span>`;
+    const b = document.createElement('button'); b.type = 'button'; b.className = 'petit' + (enCours ? ' on' : '');
+    b.textContent = enCours ? 'Annuler' : pl[quoi] ? 'Déplacer' : 'Placer';
+    b.onclick = () => { S.placer = enCours ? null : { id: o.id, quoi, lib }; modePlacement(); rendreProps(); };
+    l.appendChild(b);
+    if (pl[quoi]) {
+      const x = document.createElement('button'); x.type = 'button'; x.className = 'raz'; x.textContent = '↺';
+      x.title = 'Retirer : Ink/Stitch choisit de nouveau'; x.onclick = () => poserPosition(o.id, quoi, { retirer: true });
+      l.appendChild(x);
+    }
+    d.appendChild(l);
+  }
+  const a = document.createElement('p'); a.className = 'muted small';
+  a.textContent = 'Sans repère, Ink/Stitch choisit. « Placer », puis cliquez dans l’aperçu près du bord de la forme : utile pour finir près de l’objet suivant (moins de saut).';
+  return bloc('Départ et fin de l’aiguille', d, a);
+}
+function modePlacement() {
+  $('#apercu').classList.toggle('placement', !!S.placer);
+  if (S.placer) message(`${S.placer.lib} : cliquez dans l’aperçu à l’endroit voulu (Échap : annuler).`);
+}
+async function poserPosition(id, quoi, extra) {
+  try {
+    S.etat = await api('position', { id, quoi, ...extra }, extra.retirer ? false : 'Ink/Stitch pose le repère…');
+    S.simu = null; rendreTout(); apercuBientot();
+    message(extra.retirer ? 'Repère retiré : Ink/Stitch choisit.' : 'Repère posé : l’aperçu montre le nouveau trajet. Il se déplace aussi dans Inkscape (symbole relié à la forme).');
+  } catch (e) { message(e.message, true); }
+}
+// « Choisir les semblables » : tous les objets brodés du même point (au choix : avec les mêmes réglages),
+// pour les régler ensemble ou les glisser ensemble dans la liste
+function pointDe(o) {
+  const t = typePrincipal(o), T = TYPES[t];
+  if (!T) return t;
+  if (t === 'stroke') {
+    const m = valeur(o, parNom('stroke', 'stroke_method')) ?? 'running_stitch';
+    return t + ':' + (m === 'running_stitch' && String(o.valeurs.bean_stitch_repeats || '0').trim() === '1' ? 'triple' : m);
+  }
+  return t + ':' + (valeur(o, parNom(t, T.param)) ?? T.choix[0][0]);
+}
+const sigReglages = (o) => JSON.stringify(Object.entries(o.valeurs).filter(([k]) => !NON_COPIES.has(k)).sort());
+function menuSemblables(o) {
+  const memePoint = S.etat.objets.filter((x) => pointDe(x) === pointDe(o));
+  if (memePoint.length < 2) return null;
+  const memes = memePoint.filter((x) => sigReglages(x) === sigReglages(o));
+  const [t, k] = pointDe(o).split(':'), T = TYPES[t];
+  const nom = (T && ([...T.choix, ['triple', 'Triple']].find((c) => c[0] === k) || [])[1]) || NOM_TYPE[t] || t;
+  const sel = document.createElement('select'); sel.className = 'favoris';
+  sel.innerHTML = `<option value="">◎ Choisir les semblables…</option><option value="point">Même point (${esc(nom)}) : ${memePoint.length} objets</option>`
+    + (memes.length > 1 && memes.length < memePoint.length ? `<option value="reglages">Même point et mêmes réglages : ${memes.length} objets</option>` : '');
+  sel.onchange = () => {
+    const liste = sel.value === 'reglages' ? memes : memePoint; sel.value = '';
+    choisir([...liste.filter((x) => x.id !== o.id).map((x) => x.id), o.id]);
+    message(`${liste.length} objets choisis : les réglages s'appliquent à tous ; glissez-les ensemble dans la liste pour les broder à la suite.`);
+  };
+  return sel;
 }
 // Réglages favoris : « mon satin bordure », « tatami jersey »… enregistrés une fois, réappliqués d'un clic,
 // dans n'importe quel dessin (même type de forme)
@@ -860,6 +926,7 @@ function rendreProps() {
   }
   div.appendChild(coul);
   div.appendChild(nuancierDessin([o], (v) => changerCouleur(o, v)));
+  if (o.types.includes('fill_stitch')) div.appendChild(blocPositions(o));
   const el = S.schema.element;
   if (el) {
     const fin = ['trim_after', 'stop_after'].map((n) => el.params.find((p) => p.name === n)).filter(Boolean);
@@ -1024,6 +1091,7 @@ async function apercu() {
     const garder = vb && vb0;
     a.className = ''; a.innerHTML = r.svg; a.style.background = TISSU;
     a.appendChild(barreRendu());
+    if (MODE === 'points' && AFF.densite) a.appendChild(legendeDensite());
     const svg = $('svg', a);
     const MM = { mm: 1, cm: 10, in: 25.4, pt: 25.4 / 72, px: 25.4 / 96, '': 25.4 / 96 };   // largeur de la page en mm
     const lw = /^([\d.]+)\s*(mm|cm|in|pt|px)?$/.exec(svg.getAttribute('width') || '');
@@ -1248,7 +1316,14 @@ $('#apercu').addEventListener('pointerdown', (e) => {
   document.addEventListener('pointermove', mv); document.addEventListener('pointerup', up);
 }, true);
 $('#apercu').addEventListener('pointerdown', (e) => {
-  if (!vb || MESURE && e.button === 0 || e.target.closest('.barre-rendu')) return;     // règle active : c'est elle qui mesure
+  if (S.placer && vb && e.button === 0 && !e.target.closest('.barre-rendu, .legende-densite')) {   // départ / fin à placer
+    e.preventDefault();
+    const p = versDessin(e), { id, quoi } = S.placer;
+    S.placer = null; modePlacement();
+    poserPosition(id, quoi, { x: p.x, y: p.y });
+    return;
+  }
+  if (!vb || MESURE && e.button === 0 || e.target.closest('.barre-rendu, .legende-densite')) return;     // règle active : c'est elle qui mesure
   const p0 = versDessin(e), v0 = vb.slice();
   let bouge = e.button === 1;                                 // bouton du milieu : toujours déplacer
   const mv = (ev) => {
@@ -1267,9 +1342,30 @@ $('#apercu').addEventListener('pointerdown', (e) => {
   document.addEventListener('pointermove', mv); document.addEventListener('pointerup', up);
 });
 // carte de densité d'Ink/Stitch par-dessus l'aperçu (calculée sur une copie du dessin)
+// seuils de la carte de densité (ceux d'Ink/Stitch par défaut), retenus d'un dessin à l'autre
+const DENS0 = { 'num-neighbors-red': 6, 'density-radius-red': 0.5, 'num-neighbors-yellow': 3, 'density-radius-yellow': 0.5 };
+const DENS = { ...DENS0 };
+try { Object.assign(DENS, JSON.parse(localStorage.getItem('broderie.densite') || '{}')); } catch (e) { /* défaut */ }
+function legendeDensite() {
+  const d = document.createElement('div'); d.className = 'legende-densite';
+  const ligne = (cl, lib, n, r) => `<div class="ld"><i class="${cl}"></i><span class="ld-lib">${lib}</span>${n
+    ? `<input type="number" data-k="${n}" min="1" max="99" step="1" value="${DENS[n]}"><span>points dans</span><input type="number" data-k="${r}" min="0.1" max="5" step="0.1" value="${DENS[r]}"><span>mm</span>` : ''}</div>`;
+  d.innerHTML = `<div class="ld-titre">Carte de densité<button type="button" class="raz" title="Seuils d'Ink/Stitch">↺</button></div>`
+    + ligne('rouge', 'Trop dense', 'num-neighbors-red', 'density-radius-red') + ligne('jaune', 'Limite', 'num-neighbors-yellow', 'density-radius-yellow')
+    + ligne('vert', 'Correct');
+  let minut = null;
+  const recalculer = () => {
+    try { localStorage.setItem('broderie.densite', JSON.stringify(DENS)); } catch (e) { /* rien */ }
+    clearTimeout(minut); minut = setTimeout(() => { const svg = $('#apercu > svg'); if (svg) carteDensite(svg); }, 500);
+  };
+  $$('input', d).forEach((i) => { i.onchange = () => { const v = parseFloat(i.value); if (v > 0) { DENS[i.dataset.k] = v; recalculer(); } }; });
+  $('.raz', d).onclick = () => { Object.assign(DENS, DENS0); $$('input', d).forEach((i) => { i.value = DENS[i.dataset.k]; }); recalculer(); };
+  ['pointerdown', 'dblclick', 'wheel'].forEach((t) => d.addEventListener(t, (e) => e.stopPropagation()));
+  return d;
+}
 async function carteDensite(svg) {
   let r;
-  try { r = await api('densite', { ids: S.etat.selection }); } catch (e) { message(e.message, true); return; }
+  try { r = await api('densite', { ids: S.etat.selection, seuils: DENS }); } catch (e) { message(e.message, true); return; }
   if (!r.svg || !svg.isConnected) { if (r.erreur) message(r.erreur, true); return; }
   const doc = new DOMParser().parseFromString(`<svg xmlns="http://www.w3.org/2000/svg">${r.svg}</svg>`, 'image/svg+xml');
   $$('.densite-panneau', svg).forEach((x) => x.remove());
@@ -1325,6 +1421,7 @@ async function afficherSelection(force = false) {
   if (!force && selAffichee === cle && $('.selection-panneau', svg)) return;
   selAffichee = cle;
   $$('.selection-panneau', svg).forEach((g) => g.remove());
+  reperesPositions(svg, ids);
   for (const id of ids.slice(0, 60)) {
     try {
       const r = await api('contour', { id });
@@ -1333,6 +1430,22 @@ async function afficherSelection(force = false) {
       $('#apercu > svg').appendChild(document.importNode(doc.documentElement, true));
     } catch (e) { /* contour indisponible : l'aperçu reste utilisable */ }
   }
+}
+
+// repères de départ (▶ vert) et de fin (■ rouge) des objets choisis
+function reperesPositions(svg, ids) {
+  const NS = 'http://www.w3.org/2000/svg', u = +svg.dataset.uMm || 1, r = 1.8 * u;
+  const g = document.createElementNS(NS, 'g'); g.setAttribute('class', 'selection-panneau reperes-panneau');
+  for (const id of ids) {
+    for (const [quoi, [x, y]] of Object.entries((S.etat.placees || {})[id] || {})) {
+      const dep = quoi === 'starting_point';
+      g.insertAdjacentHTML('beforeend', `<g transform="translate(${x},${y})"><title>${dep ? 'Départ' : 'Fin'}</title>
+        <circle r="${r}" fill="${dep ? '#2fa84f' : '#d64545'}" stroke="#fff" stroke-width="${0.35 * u}"/>
+        ${dep ? `<path d="M${-0.55 * r},${-0.65 * r}L${0.75 * r},0L${-0.55 * r},${0.65 * r}z" fill="#fff"/>`
+              : `<rect x="${-0.5 * r}" y="${-0.5 * r}" width="${r}" height="${r}" rx="${0.12 * r}" fill="#fff"/>`}</g>`);
+    }
+  }
+  if (g.childNodes.length) svg.appendChild(g);
 }
 
 let minuterie = null;
@@ -1480,6 +1593,14 @@ $('#bPrOrdre').onclick = async () => {
     const r2 = await api('optimiser', { appliquer: true });
     S.etat = r2.etat; S.simu = null; rendreTout(); rendreExport(); i.textContent = '✓ ' + gain;
   } catch (e) { i.textContent = ''; message(e.message, true); }
+};
+$('#bPrLiaison').onclick = async () => {
+  try {
+    const r = await api('relier_sauts', { max: +$('#prLiaison').value || 3 }, 'Ink/Stitch relie les sauts…');
+    S.etat = r.etat; S.simu = null; rendreTout(); rendreExport();
+    message(r.n ? `${r.n} saut(s) relié(s) par un point droit (nouveaux traits dans la liste, à masquer ou supprimer si l'un se voit).`
+      : 'Aucun saut court à relier entre deux formes de même couleur.');
+  } catch (e) { message(e.message, true); }
 };
 $('#bPrCoupes').onclick = async () => {
   try {
@@ -2002,6 +2123,7 @@ $('#poigneeSimu').addEventListener('dblclick', () => {
 $('#sPos').oninput = (e) => allerA(+e.target.value);
 window.addEventListener('resize', () => { if (S.vue === 'points') { dessinerPiste(); dessinerSimulation(); } });
 document.addEventListener('keydown', (e) => {
+  if (e.key === 'Escape' && S.placer) { S.placer = null; modePlacement(); rendreProps(); message('Placement annulé.'); return; }
   if (S.vue !== 'points' || /input|textarea|select/i.test(e.target.tagName)) return;
   const touches = { p: 'play', P: 'play', r: 'restart', R: 'restart', ArrowUp: 'faster', ArrowDown: 'slower', '+': 'forward_stitch',
     '=': 'forward_stitch', '-': 'backward_stitch', PageUp: 'forward_command', PageDown: 'backward_command' };

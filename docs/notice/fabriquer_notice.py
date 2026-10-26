@@ -304,7 +304,7 @@ c += [Chapitre(3, "Le geste à retenir", "Un raccourci relie Inkscape et le pann
 
 # ---------------------------------------------------------------- 4. objets
 c += [Chapitre(4, "Onglet Objets", "Régler la broderie de chaque forme"),
-      capture("objets", 72, "L'aperçu des points à gauche ; les calques, les objets et leurs réglages à droite."),
+      capture("objets", 64, "L'aperçu des points à gauche ; les calques, les objets et leurs réglages à droite."),
       p("Choisir", "h2"),
       *puces(touche("clic") + " un objet · " + touche("Cmd") + " " + touche("clic") + " en ajouter ou en retirer · "
              + touche("Maj") + " " + touche("clic") + " toute une suite.",
@@ -312,8 +312,8 @@ c += [Chapitre(4, "Onglet Objets", "Régler la broderie de chaque forme"),
              "ses objets ; un <b>clic dans l'aperçu</b> choisit l'objet sous la souris. La <b>punaise</b> garde la liste en haut.",
              "<b>Glissez</b> un objet ou un calque dans la liste pour changer l'ordre de couture. L'<b>œil</b> masque "
              "un objet ou un calque : il n'est plus brodé, mais reste dans la liste.",
-             "Plusieurs objets : les réglages s'appliquent à tous ; <b>≠</b> signale une valeur différente d'un objet "
-             "à l'autre. Les objets choisis sont entourés de pointillés bleus dans l'aperçu."),
+             "Plusieurs objets : les réglages s'appliquent à tous ; <b>≠</b> signale une valeur différente. "
+             "<b>Choisir les semblables</b> : tous les objets du même point (et mêmes réglages) d'un coup."),
       p("Régler", "h2"),
       *puces("<b>Type de point</b> en tuiles : Tatami, Contour, Spirale, Méandre… pour un remplissage ; Point droit, "
              "Triple, Ripple, Zigzag, Satin pour un trait.",
@@ -321,14 +321,15 @@ c += [Chapitre(4, "Onglet Objets", "Régler la broderie de chaque forme"),
              "<b>arrêter la machine</b> après l'objet.",
              "<b>Copier les réglages</b> puis <b>Coller</b> sur une autre forme, ou sur toutes celles du même type. "
              "La flèche circulaire remet la valeur par défaut. <b>Mes réglages favoris</b> : un jeu de réglages gardé sous un nom.",
-             "<b>Couleurs déjà dans le dessin</b> : pastilles sous la couleur, un clic donne exactement la même.",
+             "<b>Couleurs déjà dans le dessin</b> : pastilles sous la couleur, un clic donne exactement la même. "
+             "<b>Départ et fin</b> d'un remplissage : « Placer », puis un clic dans l'aperçu.",
              "<b>Outils</b> selon le type d'objet (agencement automatique des satins, remplissage en satin, contour, "
              "redwork…), <b>Appliqué</b> (placement, fixation, bordure satin) ; <b>Plus d'outils</b> pour les autres, dont <b>Figer en points</b> : les vrais points de l'aiguille "
              "deviennent un tracé à retoucher nœud par nœud (dentelle FSL). <b>Remplissage en satin</b> : choisissez la forme "
              "et des traverses qui la coupent (" + touche("Cmd") + " " + touche("clic") + ")."),
       p("Lire l'aperçu", "h2"),
       *puces("<b>Points</b> : les points d'aiguille, les sauts (pointillés et grenouille), les coupes, les arrêts et les "
-             "changements de couleur. Les boutons de la barre les affichent ou les masquent : grenouille (sauts), ciseaux (coupes et arrêts), carreaux (<b>densité</b> : rouge = trop serré, risque de casse ; jaune = limite) et aiguille (pénétrations).",
+             "changements de couleur. Les boutons de la barre les affichent ou les masquent : grenouille (sauts), ciseaux (coupes et arrêts), carreaux (<b>densité</b> : rouge = trop serré, jaune = limite ; seuils réglables dans la légende) et aiguille (pénétrations).",
              "Le rendu <b>réaliste</b> est dans l'onglet Simulation. Molette : zoom · glisser ou bouton du "
              "milieu : déplacer · <b>Tout voir</b> : recentrer. La <b>règle</b> mesure en mm d'une piqûre à l'autre."),
       PageBreak()]
@@ -392,7 +393,7 @@ c += [Chapitre(8, "Onglet Export", "Les bobines, le fichier pour la machine"),
              "reconnaît alors marque, numéro et nom (liste des fils, fichiers .vp3 et .inf ; un .pes ou un .dst ne garde que la couleur).",
              "<b>Vérifier avant d'exporter</b> : formes que la machine brodera mal, sauts sans coupe, densité, objets "
              "minuscules, cadre ; <b>Montrer</b> et <b>Corriger</b> pour chacun. <b>Préparer la broderie</b> : adapter tout le "
-             "dessin au tissu, regrouper les couleurs (moins de changements de fil), couper les sauts longs.",
+             "dessin au tissu, regrouper les couleurs (moins de changements de fil), couper les sauts longs ou relier les courts par un point droit.",
              "<b>Fiche machine</b> en français (aperçu, fils dans l'ordre, longueur de fil, cadre, durée) à imprimer ou "
              "en PDF. <b>Ouvrir un fichier machine</b> (.pes, .dst…) : converti en dessin, enregistré à côté, sans rien écraser."),
       PageBreak()]

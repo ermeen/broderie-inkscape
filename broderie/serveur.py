@@ -172,7 +172,7 @@ class Session:
                 "reserve": {k: len(v) for k, v in self.reserve.items()},
                 "version_panneau": VERSION_PANNEAU, "raccourci": S.RACCOURCI, "mac": S.MAC,
                 "ancien": E.ancien(self.document), "bati": M.reglages_bati(self.document),
-                "origine": M.origine_active(self.document),
+                "origine": M.origine_active(self.document), "placees": M.commandes_placees(self.document),
                 "moteur": {"chemin": E.binaire(), "version": E.version()},
                 "commandes": cmds, "formats": sorties, "journal": self.journal[-20:]}
 
@@ -228,6 +228,12 @@ class Session:
             return
         if op[0] == "origine":
             M.placer_origine(doc, op[1], op[2])
+            return
+        if op[0] == "attacher":                        # départ / fin d'un remplissage : groupe tel que posé dans le panneau
+            M.poser_commande(doc, *op[1:])
+            return
+        if op[0] == "detacher":
+            M.retirer_commande(doc, op[1], op[2])
             return
         if op[0] == "applique":
             M.creer_applique(doc, op[1], op[2])
@@ -294,6 +300,10 @@ class Session:
             return self._verifier(d)
         if nom == "origine":                           # motif centré (défaut) ou placé comme sur la feuille
             return self._origine(d)
+        if nom == "position":                          # point de départ / de fin d'un remplissage
+            return self._position(d)
+        if nom == "relier_sauts":                      # sauts courts → points droits (Ink/Stitch « Saut en trait »)
+            return self._relier_sauts(d)
         if nom == "ouvrir_machine":                    # fichier de broderie → dessin Inkscape, ouvert dans Inkscape
             return self._ouvrir_machine(d)
         if nom == "optimiser":
@@ -314,7 +324,7 @@ class Session:
                     raise ValueError("Aucun dessin : appuyez sur ⌘⌥B dans Inkscape.")
                 copie = _lire(etree.tostring(self.document.getroot()))
             if nom == "densite":
-                svg, err = E.densite(copie, d.get("ids") or None)
+                svg, err = E.densite(copie, d.get("ids") or None, d.get("seuils"))
                 return {"svg": svg, "erreur": None if svg else _message(err)}
             if nom == "apercu":
                 svg, err = E.apercu(copie, d.get("ids") or None, d.get("mode") or "points", d.get("options") or {})
@@ -641,6 +651,71 @@ class Session:
             self.version += 1
             self.sauver()
             return self.etat()
+
+    def _position(self, d):
+        """Pose, déplace ou retire le point de départ ou de fin d'un remplissage. Le symbole vient d'Ink/Stitch
+        (commande « Attacher des commandes ») ; il est ensuite placé là où l'utilisateur a cliqué."""
+        i, quoi = d["id"], d["quoi"]
+        if quoi not in M.POSITIONS:
+            raise ValueError("Commande inconnue.")
+        with self.verrou:
+            if self.document is None or M.par_id(self.document, i) is None:
+                raise ValueError("Objet introuvable : appuyez sur %s dans Inkscape." % S.RACCOURCI)
+            if d.get("retirer"):
+                if M.retirer_commande(self.document, i, quoi):
+                    self.attente.append(("detacher", i, quoi))
+                    self.version += 1
+                    self.sauver()
+                return self.etat()
+            existe = M.groupe_commande(self.document, i, quoi)[0] is not None
+            copie = None if existe else _lire(etree.tostring(self.document.getroot()))
+        if copie is not None:
+            code, out, err = E.executer(copie, "object_commands", [i], {quoi: "true"}, delai=120)
+            res = E.document_modifie(out)
+            groupe, sym = M.groupe_commande(res, i, quoi) if res is not None else (None, None)
+            if not groupe:
+                raise ValueError(_message(err) or "Ink/Stitch n'a pas pu attacher la commande.")
+        with self.verrou:
+            if copie is not None and not M.poser_commande(self.document, i, quoi, groupe, sym):
+                raise ValueError("Objet introuvable.")
+            if d.get("x") is not None and d.get("y") is not None:
+                M.deplacer_commande(self.document, i, quoi, d["x"], d["y"])
+            groupe, sym = M.groupe_commande(self.document, i, quoi)
+            self.attente.append(("attacher", i, quoi, groupe, sym))
+            self.version += 1
+            self.sauver()
+            return self.etat()
+
+    def _relier_sauts(self, d):
+        """Remplace les sauts plus courts que « max » mm entre objets de même couleur par une ligne de points droits,
+        comme les chemins de liaison dessinés à la main. Les coupes et arrêts voulus sont respectés."""
+        with self.verrou:
+            if self.document is None:
+                raise ValueError("Aucun dessin : appuyez sur %s dans Inkscape." % S.RACCOURCI)
+            avant = etree.tostring(self.document.getroot())
+            copie, n0 = _lire(avant), len(M.objets(self.document))
+            version = self.version
+        code, out, err = E.executer(copie, "jump_to_stroke", None, {
+            "minimum-jump-length": "0", "maximum-jump-length": str(float(d.get("max") or 3)),
+            "exclude-trim": "true", "exclude-stop": "true", "exclude-force-lock-stitch": "true"}, delai=300)
+        doc = E.document_modifie(out)
+        with self.verrou:
+            if version != self.version or etree.tostring(self.document.getroot()) != avant:
+                raise ValueError("Le dessin a changé pendant le calcul : relancez.")
+            n = len(M.objets(doc)) - n0 if doc is not None else 0
+            if n <= 0:
+                return {"n": 0, "etat": self.etat(), "message": _message(err)}
+            for el in M.objets(doc):                  # les liaisons créées par Ink/Stitch n'ont pas d'id
+                if not el.get("id"):
+                    el.set("{%s}label" % M.INKSCAPE_NS, "Liaison")
+            M.completer_ids(doc)
+            self.document = doc
+            self.ids = []
+            self.version += 1
+            self.attente.append(("commande", "jump_to_stroke"))
+            self.sauver()
+            self.log("%d saut(s) relié(s) par des points droits" % n)
+            return {"n": n, "etat": self.etat()}
 
     def _ouvrir_machine(self, d):
         chemin = d.get("chemin") or ""

@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape" width="100mm" height="60mm" viewBox="0 0 100 60">
+  <g id="calque1" inkscape:groupmode="layer" inkscape:label="Pois">
+    <circle id="pois1" inkscape:label="Pois 1" cx="15" cy="30" r="6" style="fill:#c0392b"/>
+    <circle id="pois2" inkscape:label="Pois 2" cx="35" cy="30" r="6" style="fill:#c0392b"/>
+    <circle id="pois3" inkscape:label="Pois 3" cx="80" cy="30" r="6" style="fill:#c0392b"/>
+  </g>
+</svg>

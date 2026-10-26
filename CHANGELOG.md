@@ -13,6 +13,10 @@ Le numéro de version suit le schéma `MAJEUR.MINEUR.CORRECTIF` :
 
 **Objets**
 - **Couleurs déjà dans le dessin** : sous la couleur de l'objet, une pastille par couleur utilisée (tous calques). Un clic donne exactement la même couleur à l'objet, ou à tous les objets choisis. Au survol : les objets qui l'utilisent, et le fil si une bobine est choisie.
+- **Choisir les semblables** (à côté des favoris) : tous les objets du même point (ex. tous les points droits triples), ou du même point et des mêmes réglages, choisis d'un coup pour les régler ou les glisser ensemble.
+- **Départ et fin de l'aiguille** (remplissages) : « Placer », puis un clic dans l'aperçu ; le repère d'Ink/Stitch y est posé (▶ vert, ■ rouge dans l'aperçu, symbole relié à la forme dans Inkscape) et l'aiguille part ou finit au bord le plus proche. ↺ le retire. Vérifié : premier et dernier point exactement aux endroits cliqués.
+- **Carte de densité** : légende en bas de l'aperçu avec les seuils réglables (nombre de points dans un rayon en mm, pour le rouge et le jaune), retenus d'un dessin à l'autre ; ↺ revient à ceux d'Ink/Stitch.
+- Les symboles et connecteurs des commandes d'Ink/Stitch (origine, départ, fin…) n'apparaissent plus comme des objets dans la liste.
 - **Mes réglages favoris** : enregistrer un jeu de réglages sous un nom, le réappliquer sur n'importe quel dessin.
 - **Remplissage en satin** : choisissez une forme remplie et ses traverses (petits traits qui la coupent d'un bord à l'autre, ⌘-clic) ; le bouton apparaît en premier dans les outils, options en français. Sans traverse, le panneau prévient au lieu de laisser Ink/Stitch ouvrir une fenêtre d'erreur en anglais. Une forme à la fois remplie et contourée est acceptée (le contour est ignoré, sans l'avertissement d'Ink/Stitch). Les outils avec options agissent sur les objets choisis dans le panneau, et les formes créées par Ink/Stitch reçoivent un identifiant (réglables aussitôt).
 - **Appliqué** (outil d'un remplissage) : placement, fixation et bordure satin, séparés par des arrêts machine.
@@ -26,6 +30,7 @@ Le numéro de version suit le schéma `MAJEUR.MINEUR.CORRECTIF` :
 **Export**
 - **Vérifier avant d'exporter** : le dépistage d'Ink/Stitch traduit (satin mal formé, bordure qui se croise…), sauts longs sans coupe, densité excessive, objets minuscules, motif hors du cadre. **Montrer** et **Corriger** pour chaque point.
 - **Préparer la broderie** : adapter tout le dessin au tissu ; **regrouper les couleurs** (le gain en changements de fil est affiché avant) ; couper les sauts plus longs qu'un seuil.
+- **Relier les sauts courts** (Préparer) : entre deux formes de même couleur, un point droit « Liaison » remplace les sauts de moins de N mm (outil « Saut en trait » d'Ink/Stitch) : moins de coupes et de nœuds ; coupes et arrêts voulus respectés.
 - **Fiche machine** en français : aperçu, fils et bobines dans l'ordre, longueur de fil par couleur, cadre, bâti, durée ; à imprimer ou enregistrer en PDF.
 - **Ouvrir un fichier machine** (.pes, .dst…) : converti par Ink/Stitch en dessin, enregistré à côté sans rien écraser, ouvert dans Inkscape, avec ses statistiques.
 

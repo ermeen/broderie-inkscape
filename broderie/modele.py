@@ -104,7 +104,8 @@ def _cache(el, masques=False):
     while el is not None and isinstance(el.tag, str):
         if el.get("id") == PLAN or local(el) in ("defs", "metadata", "symbol", "clipPath", "mask", "marker"):
             return True
-        if (not masques and _style(el).get("display") == "none") or el.get(f"{{{INKSTITCH_NS}}}connector-type"):
+        if (not masques and _style(el).get("display") == "none") or el.get(f"{{{INKSTITCH_NS}}}connector-type") \
+                or el.get(f"{{{INKSCAPE_NS}}}connector-type"):        # connecteur d'une commande d'Ink/Stitch
             return True
         el = el.getparent()
     return False
@@ -189,6 +190,8 @@ def objets(svg, ids=None, masques=False):
             continue
         if ids and el.get("id") not in ids:
             continue
+        if nom == "use" and (el.get("{%s}href" % XLINK_NS) or el.get("href") or "").startswith("#inkstitch_"):
+            continue                                   # symbole d'une commande d'Ink/Stitch (départ, origine…)
         t = types(el)
         if t:
             out.append(el)
@@ -1141,4 +1144,116 @@ def placer_origine(svg, actif, symbole=None):
     u.set("{%s}href" % XLINK, "#" + ORIGINE)
     u.set("x", "%g" % (vb[0] + vb[2] / 2))
     u.set("y", "%g" % (vb[1] + vb[3] / 2))
+    return True
+
+
+# ---------------------------------------------------------------- départ et fin d'un remplissage
+# Commandes d'Ink/Stitch attachées à un objet : un groupe « Ink/Stitch Command » placé juste après l'objet, avec
+# un symbole (use) et un connecteur qui le relie à l'objet. Ink/Stitch prend la position du symbole, ramenée
+# sur le bord de la forme : déplacer le symbole, c'est choisir où l'aiguille commence ou finit.
+POSITIONS = ("starting_point", "ending_point")
+_CON_DEBUT, _CON_FIN = "{%s}connection-start" % INKSCAPE_NS, "{%s}connection-end" % INKSCAPE_NS
+
+
+def _commande_placee(racine, i, quoi):
+    """(connecteur, symbole) de la commande quoi attachée à l'objet i, ou None."""
+    for c in racine.iter("{%s}path" % SVG_NS):
+        if c.get(_CON_FIN) != "#" + i:
+            continue
+        u = par_id(racine, (c.get(_CON_DEBUT) or "").lstrip("#"))
+        if u is not None and (u.get("{%s}href" % XLINK_NS) or u.get("href") or "") == "#inkstitch_" + quoi:
+            return c, u
+    return None
+
+
+def _repere(el):
+    """Transformation du repère de el (ses groupes et calques) vers celui du dessin."""
+    ix = _inkex()
+    t = ix.transforms.Transform()
+    for a in reversed(list(el.iterancestors())):
+        if a.get("transform"):
+            t = t @ ix.transforms.Transform(a.get("transform"))
+    return t @ ix.transforms.Transform(el.get("transform") or "")
+
+
+def commandes_placees(svg):
+    """{id d'objet : {quoi : [x, y]}} : départs et fins posés, dans le repère du dessin."""
+    r = svg.getroot() if hasattr(svg, "getroot") else svg
+    out = {}
+    for c in r.iter("{%s}path" % SVG_NS):
+        fin, debut = c.get(_CON_FIN), c.get(_CON_DEBUT)
+        if not (fin and debut):
+            continue
+        u = par_id(r, debut.lstrip("#"))
+        h = (u.get("{%s}href" % XLINK_NS) or u.get("href") or "") if u is not None else ""
+        quoi = h[len("#inkstitch_"):] if h.startswith("#inkstitch_") else None
+        if quoi in POSITIONS:
+            x, y = _repere(u).apply_to_point((float(u.get("x") or 0), float(u.get("y") or 0)))
+            out.setdefault(fin.lstrip("#"), {})[quoi] = [round(x, 3), round(y, 3)]
+    return out
+
+
+def retirer_commande(svg, i, quoi):
+    r = svg.getroot() if hasattr(svg, "getroot") else svg
+    t = _commande_placee(r, i, quoi)
+    if t is None:
+        return False
+    c, u = t
+    g = c.getparent()
+    if local(g) == "g" and (g.get("{%s}label" % INKSCAPE_NS) or "").startswith("Ink/Stitch Command"):
+        g.getparent().remove(g)
+    else:
+        for x in (c, u):
+            if x.getparent() is not None:
+                x.getparent().remove(x)
+    return True
+
+
+def deplacer_commande(svg, i, quoi, x, y):
+    """Place le symbole (et l'extrémité du connecteur) au point (x, y) du dessin."""
+    r = svg.getroot() if hasattr(svg, "getroot") else svg
+    t = _commande_placee(r, i, quoi)
+    if t is None:
+        return False
+    c, u = t
+    lx, ly = (-_repere(u)).apply_to_point((float(x), float(y)))
+    u.set("x", "%g" % lx)
+    u.set("y", "%g" % ly)
+    cx, cy = (-_repere(c)).apply_to_point((float(x), float(y)))
+    ix = _inkex()
+    try:                                               # le connecteur part du symbole ; Inkscape le redessine
+        p = ix.paths.Path(c.get("d") or "").to_absolute()
+        fin = list(p.end_points)[-1]
+        c.set("d", "M %g,%g L %g,%g" % (cx, cy, fin.x, fin.y))
+    except Exception:
+        pass
+    return True
+
+
+def groupe_commande(svg, i, quoi):
+    """Le groupe de la commande (texte) et les symboles qu'il utilise, pour le rejouer dans Inkscape."""
+    r = svg.getroot() if hasattr(svg, "getroot") else svg
+    t = _commande_placee(r, i, quoi)
+    if t is None:
+        return None, None
+    g = t[0].getparent()
+    s = r.xpath("//*[@id='inkstitch_%s']" % quoi)
+    return etree.tostring(g, encoding="unicode"), (etree.tostring(s[0], encoding="unicode") if s else None)
+
+
+def poser_commande(svg, i, quoi, groupe, symbole):
+    """Remplace la commande quoi de l'objet i par groupe (texte), juste après l'objet ; ajoute le symbole."""
+    r = svg.getroot() if hasattr(svg, "getroot") else svg
+    el = par_id(r, i)
+    if el is None:
+        return False
+    retirer_commande(r, i, quoi)
+    if symbole and not r.xpath("//*[@id='inkstitch_%s']" % quoi):
+        defs = r.find("{%s}defs" % SVG_NS)
+        if defs is None:
+            defs = etree.SubElement(r, "{%s}defs" % SVG_NS)
+            r.insert(0, defs)
+        defs.append(etree.fromstring(symbole))
+    g = etree.fromstring(groupe)
+    el.addnext(g)
     return True
