@@ -361,3 +361,8 @@ footer button { padding: 9px 16px; font-size: 13.5px; border-radius: 9px; }
 #poigneeListe::after { content: ""; position: absolute; left: 50%; top: 3px; width: 36px; height: 4px; margin-left: -18px;
   border-radius: 2px; background: var(--bord); }
 #poigneeListe:hover::after { background: var(--accent); }
+
+/* calque replié qui contient la sélection : barre et pastille bleues */
+#liste li.calque.contient-choix { box-shadow: inset 3px 0 0 var(--accent); color: var(--texte); }
+#liste .choix-cache { flex: none; font-size: 10.5px; text-transform: none; letter-spacing: 0; color: #fff; background: var(--accent);
+  border-radius: 9px; padding: 1px 8px; }

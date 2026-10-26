@@ -42,7 +42,7 @@ Requires Inkscape 1.4 and Ink/Stitch 3. Tested with Inkscape 1.4.2 and Ink/Stitc
 3. Quit and restart Inkscape.
 4. Press **Cmd+Option+B**.
 
-A full illustrated guide (in French) is included: [docs/Notice-Broderie-1.6.0.pdf](docs/Notice-Broderie-1.6.0.pdf).
+A full illustrated guide (in French) is included: [docs/Notice-Broderie-1.6.1.pdf](docs/Notice-Broderie-1.6.1.pdf).
 
 **Windows (test version):** double-click `Installer sous Windows.bat`, restart Inkscape, then press **Ctrl+Alt+B**. Test guide (in French): [TESTER-WINDOWS.md](TESTER-WINDOWS.md).
 

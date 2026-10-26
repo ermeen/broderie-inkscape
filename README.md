@@ -36,7 +36,7 @@ Il faut Inkscape 1.4 et Ink/Stitch 3, testés avec Inkscape 1.4.2 et Ink/Stitch 
 3. Quittez puis relancez Inkscape.
 4. Appuyez sur **Cmd+Option+B**.
 
-Mode d'emploi complet et astuces de réglages : [docs/Notice-Broderie-1.6.0.pdf](docs/Notice-Broderie-1.6.0.pdf).
+Mode d'emploi complet et astuces de réglages : [docs/Notice-Broderie-1.6.1.pdf](docs/Notice-Broderie-1.6.1.pdf).
 
 **Windows (version d'essai)** : double-cliquez sur `Installer sous Windows.bat`, relancez Inkscape, puis **Ctrl+Alt+B**. Guide de test : [TESTER-WINDOWS.md](TESTER-WINDOWS.md).
 

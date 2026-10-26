@@ -161,14 +161,19 @@ function rendreListe() {
   const plusieursCalques = calques.size > 1;
   let dernier = null;
   for (const [cle, c] of calques) {
-    const replie = REPLIES.has(cle) && !c.objets.some((o) => o.id === S.sel);   // l'objet choisi reste visible
+    const replie = REPLIES.has(cle);
+    const choisisIci = c.objets.filter((o) => S.choix.has(o.id)).length;     // sélection cachée dans un calque replié
     if (plusieursCalques || calques.size === 1 && c.objets.length > 1) {
       const h = document.createElement('li'); h.className = 'calque';
       const tous = c.objets.every((o) => S.choix.has(o.id));
       const cm = c.objets[0].calque_masque;
-      h.innerHTML = `<button class="replier" title="${replie ? 'Déplier ce calque' : 'Replier ce calque'}">${replie ? '▸' : '▾'}</button><span class="nom">${esc(c.nom)}</span><span class="type">${c.objets.length} objet(s)</span>`
+      const compte = replie && choisisIci
+        ? `<span class="choix-cache" title="La sélection est dans ce calque replié">${choisisIci} choisi${choisisIci > 1 ? 's' : ''}</span>`
+        : `<span class="type">${c.objets.length} objet${c.objets.length > 1 ? 's' : ''}</span>`;
+      h.innerHTML = `<button class="replier" title="${replie ? 'Déplier ce calque' : 'Replier ce calque'}">${replie ? '▸' : '▾'}</button><span class="nom">${esc(c.nom)}</span>${compte}`
         + (c.objets[0].calque ? `<button class="oeil" title="${cm ? 'Calque masqué : non brodé. Cliquer pour l’afficher' : 'Masquer ce calque (il ne sera pas brodé)'}">${OEIL(!cm)}</button>` : '');
       if (cm) h.classList.add('masque');
+      if (replie && choisisIci) h.classList.add('contient-choix');
       const bo = h.querySelector('.oeil');
       if (bo) bo.onclick = (e) => { e.stopPropagation(); basculerVisible(c.objets[0].calque, cm); };
       $('.replier', h).onclick = (e) => { e.stopPropagation(); replier(cle, !replie); };

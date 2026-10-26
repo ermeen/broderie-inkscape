@@ -5,7 +5,12 @@ Le numéro de version suit le schéma `MAJEUR.MINEUR.CORRECTIF` :
 - **MINEUR** : nouvelle fonction ;
 - **CORRECTIF** : correction sans nouvelle fonction.
 
-## 1.6.0 — 26 octobre 2026
+## 1.6.1 — 26 octobre 2026
+
+- **Calques repliables** : on peut maintenant replier aussi le calque qui contient la sélection. Replié, son en-tête affiche une pastille bleue « 1 choisi » (ou « 2 choisis »…) à la place du nombre d'objets, et une barre bleue à gauche : on sait où se trouve l'objet en cours de réglage.
+- Nombre d'objets au singulier quand il n'y en a qu'un (« 1 objet »).
+
+ — 26 octobre 2026
 
 **Onglet Objets**
 - **Punaise** sur la carte « Calques et objets » : épinglée (par défaut), la colonne a deux zones séparées. La liste reste en place, et seuls les réglages en dessous défilent à la molette, sans rien qui passe derrière la liste. On passe ainsi d'un objet ou d'un calque à l'autre sans remonter. Un clic sur la punaise la libère.
