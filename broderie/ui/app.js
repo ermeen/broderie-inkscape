@@ -2259,6 +2259,17 @@ $('#bEnvoyer').onclick = async () => {
   }
 };
 $('#bFichePdf').onclick = () => commande('print');
+// ouvrir un fichier de broderie (.pes, .dst…) : converti par Ink/Stitch et ouvert dans Inkscape
+$('#bOuvrirMachine').onclick = async () => {
+  try {
+    const c = await api('choisir', { mode: 'file' }, 'Choisissez le fichier de broderie.');
+    if (!c.chemin) return;
+    const r = await api('ouvrir_machine', { chemin: c.chemin }, 'Ink/Stitch lit le fichier…');
+    const i = r.infos || {};
+    message(`${r.ouvert ? 'Ouvert dans Inkscape' : 'Enregistré'} : ${r.svg.split(/[\\/]/).pop()} · ${(i.points || 0).toLocaleString('fr')} points, `
+      + `${i.fils || 0} fil(s), ${i.largeur || 0} × ${i.hauteur || 0} mm. Dans Inkscape, appuyez sur ⌘⌥B pour l'avoir dans le panneau.`);
+  } catch (e) { message(e.message, true); }
+};
 // Fiche machine en français : à imprimer ou à enregistrer en PDF (Fichier › Imprimer › PDF).
 // Fils dans l'ordre de couture avec leur bobine, longueur de fil par couleur (somme des points), cadre, bâti, durée.
 $('#bFiche').onclick = async () => {

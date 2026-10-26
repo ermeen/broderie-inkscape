@@ -107,3 +107,22 @@ def choisir(mode):
         return None
     r = p.stdout.strip().rstrip("|")
     return r.replace("|", ",") if r else None
+
+
+def ouvrir_dans_inkscape(chemin):
+    """Ouvre un dessin dans Inkscape (déjà lancé ou non)."""
+    try:
+        if MAC:
+            subprocess.Popen(["/usr/bin/open", "-a", "Inkscape", chemin], **sans_fenetre())
+        elif WINDOWS:
+            b = _inkscape_installe()
+            exe = os.path.join(b, "inkscape.exe") if b else None
+            if exe and os.path.exists(exe):
+                subprocess.Popen([exe, chemin], **detache())
+            else:
+                os.startfile(chemin)                      # programme associé aux .svg
+        else:
+            subprocess.Popen(["inkscape", chemin], **detache())
+        return True
+    except OSError:
+        return False

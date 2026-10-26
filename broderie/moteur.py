@@ -195,6 +195,18 @@ def apercu(document, ids=None, mode="points", options=None):
     return re.sub(r'\s[\w.-]+:href=', ' href=', etree.tostring(svg, encoding="unicode")), err
 
 
+def importer(chemin):
+    """Fichier de broderie (.pes, .dst, .jef…) → dessin Inkscape en points manuels (import d'Ink/Stitch)."""
+    b = binaire()
+    if not b:
+        return None, "Ink/Stitch est introuvable."
+    try:
+        p = subprocess.run([b, "--extension=input", chemin], env=_env(), capture_output=True, timeout=180, **S.sans_fenetre())
+    except subprocess.TimeoutExpired:
+        return None, "Ink/Stitch n'a pas répondu à temps."
+    return document_modifie(p.stdout), p.stderr.decode("utf-8", "replace")
+
+
 def exporter(document, fmt, ids=None):
     code, out, err = executer(document, "output", ids, {"format": fmt})
     return (out if code == 0 and out else None), err

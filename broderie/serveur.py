@@ -280,6 +280,8 @@ class Session:
             return self._bobines(d)
         if nom == "verifier":
             return self._verifier(d)
+        if nom == "ouvrir_machine":                    # fichier de broderie → dessin Inkscape, ouvert dans Inkscape
+            return self._ouvrir_machine(d)
         if nom == "optimiser":
             return self._optimiser(d)
         if nom == "couper_sauts":
@@ -599,6 +601,30 @@ class Session:
                 self.version += 1
                 self.sauver()
             return {"coupes": len(idents), "etat": self.etat()}
+
+    def _ouvrir_machine(self, d):
+        chemin = d.get("chemin") or ""
+        if not os.path.isfile(chemin):
+            raise ValueError("Fichier introuvable.")
+        doc, err = E.importer(chemin)
+        if doc is None:
+            raise ValueError(_message(err) or "Ink/Stitch ne sait pas lire ce fichier.")
+        base = os.path.splitext(chemin)[0]
+        sortie, n = base + ".svg", 1
+        while os.path.exists(sortie):                  # jamais d'écrasement
+            n += 1
+            sortie = "%s (%d).svg" % (base, n)
+        doc.write(sortie, encoding="utf-8", xml_declaration=True)
+        r, err = E.points(doc)
+        infos = {}
+        if r and r["points"]:
+            st = [p for p in r["points"] if p[2] == "STITCH"]
+            xs, ys = [p[0] for p in st] or [0], [p[1] for p in st] or [0]
+            infos = {"points": len(st), "fils": len(r["fils"]), "largeur": round((max(xs) - min(xs)) / 10, 1),
+                     "hauteur": round((max(ys) - min(ys)) / 10, 1)}
+        ouvert = False if os.environ.get("BRODERIE_SANS_NAVIGATEUR") else S.ouvrir_dans_inkscape(sortie)   # essais : rien n'est ouvert
+        self.log("Fichier machine ouvert : %s" % os.path.basename(sortie))
+        return {"svg": sortie, "ouvert": ouvert, "infos": infos}
 
     def _verifier(self, d):
         """Vérifier avant d'exporter : dépistage d'Ink/Stitch (traduit), sauts longs sans coupe, zones trop denses,
