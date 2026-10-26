@@ -8,7 +8,8 @@ Le numéro de version suit le schéma `MAJEUR.MINEUR.CORRECTIF` :
 ## 1.6.0 — 26 octobre 2026
 
 **Onglet Objets**
-- **Punaise** sur la carte « Calques et objets » : épinglée (par défaut), la liste reste en haut et seuls les réglages en dessous défilent à la molette. On passe ainsi d'un objet ou d'un calque à l'autre sans remonter. Un clic sur la punaise la libère.
+- **Punaise** sur la carte « Calques et objets » : épinglée (par défaut), la colonne a deux zones séparées. La liste reste en place, et seuls les réglages en dessous défilent à la molette, sans rien qui passe derrière la liste. On passe ainsi d'un objet ou d'un calque à l'autre sans remonter. Un clic sur la punaise la libère.
+- **Hauteur de la liste réglable** : une poignée sous la liste se tire vers le bas ou le haut (double-clic : hauteur par défaut). La hauteur est retenue.
 - **Calques repliables** : un clic sur ▸ / ▾ replie ou déplie un calque. Le calque de l'objet choisi reste déplié, et le choix est retenu.
 
 **Correction : réglages vides dans Ink/Stitch**

@@ -343,16 +343,21 @@ footer button { padding: 9px 16px; font-size: 13.5px; border-radius: 9px; }
 .ico-epingle svg { width: 16px; height: 16px; transform: rotate(35deg); transition: transform .15s; }
 .ico-epingle.on { background: var(--sel); border-color: var(--accent); color: var(--texte); }
 .ico-epingle.on svg { transform: none; }
-#carteListe.epingle { position: sticky; top: 0; z-index: 3; flex: none; box-shadow: 0 6px 14px rgba(0,0,0,.28); }
 #liste { overscroll-behavior: contain; }
-/* épinglée, la carte ne prend jamais plus de la moitié de la colonne : sa liste défile alors à l'intérieur */
-#carteListe.epingle { max-height: 50%; display: flex; flex-direction: column; }
-#carteListe.epingle #liste { flex: 1 1 auto; min-height: 56px; max-height: none; }
-#carteListe.epingle #aideSelection { flex: none; }
 
 /* calques repliables (▸ / ▾) */
 #liste li.calque .replier { border: none; background: none; padding: 0 6px 0 0; color: var(--texte); font-size: 15px; line-height: 1; width: 20px; cursor: pointer; }
 #liste li.calque .replier:hover { color: var(--texte); }
-/* carte épinglée : pas de dépassement sur les réglages ; l'aide reste au survol */
-#carteListe.epingle { overflow: hidden; }
-#carteListe.epingle #aideSelection { display: none; }
+
+/* colonne de droite des Objets : la liste, puis les réglages. Épinglée, la colonne a deux zones séparées :
+   la liste reste en place (rien ne passe derrière), seuls les réglages défilent */
+.defile-reglages { display: flex; flex-direction: column; gap: 10px; }
+#v-objets .defile.epinglee { overflow: hidden; }
+#v-objets .defile.epinglee #carteListe { flex: none; }
+#v-objets .defile.epinglee .defile-reglages { flex: 1; min-height: 0; overflow: auto; overscroll-behavior: contain; }
+#v-objets .defile.epinglee #aideSelection { display: none; }        /* l'aide reste au survol du titre */
+#liste { height: var(--hauteur-liste, auto); max-height: var(--hauteur-liste, 210px); }
+#poigneeListe { height: 10px; margin: 4px -12px -10px; cursor: ns-resize; position: relative; }
+#poigneeListe::after { content: ""; position: absolute; left: 50%; top: 3px; width: 36px; height: 4px; margin-left: -18px;
+  border-radius: 2px; background: var(--bord); }
+#poigneeListe:hover::after { background: var(--accent); }

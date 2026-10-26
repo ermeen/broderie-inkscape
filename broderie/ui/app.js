@@ -717,11 +717,28 @@ $$('#vues button').forEach((b) => { b.onclick = () => changerVue(b.dataset.vue);
 // punaise : la carte « Calques et objets » reste en haut, seuls les réglages en dessous défilent
 function epingler(oui) {
   $('#carteListe').classList.toggle('epingle', oui); $('#bEpingle').classList.toggle('on', oui);
+  $('#v-objets .defile').classList.toggle('epinglee', oui);        // deux zones : la liste fixe, les réglages qui défilent
   $('#bEpingle').title = oui ? 'Désépingler : la liste défile avec les réglages' : 'Épingler : la liste reste en haut, seuls les réglages défilent';
   try { localStorage.setItem('broderie.epingle', oui ? '1' : '0'); } catch (e) { /* rien */ }
 }
 try { epingler(localStorage.getItem('broderie.epingle') !== '0'); } catch (e) { epingler(true); }
 $('#bEpingle').onclick = () => epingler(!$('#carteListe').classList.contains('epingle'));
+// poignée sous la liste : sa hauteur se règle à la souris (retenue d'une fois sur l'autre)
+try { const h = localStorage.getItem('broderie.hauteurListe'); if (h) document.documentElement.style.setProperty('--hauteur-liste', h + 'px'); } catch (e) { /* rien */ }
+$('#poigneeListe').addEventListener('pointerdown', (e) => {
+  e.preventDefault();
+  const l = $('#liste'), h0 = l.getBoundingClientRect().height, y0 = e.clientY;
+  const hMax = Math.max(80, $('#v-objets .defile').clientHeight * 0.8 - 90);
+  let h = h0;
+  const mv = (ev) => { h = Math.max(60, Math.min(hMax, h0 + ev.clientY - y0)); document.documentElement.style.setProperty('--hauteur-liste', h + 'px'); };
+  const up = () => { document.removeEventListener('pointermove', mv); document.removeEventListener('pointerup', up);
+    try { localStorage.setItem('broderie.hauteurListe', Math.round(h)); } catch (x) { /* rien */ } };
+  document.addEventListener('pointermove', mv); document.addEventListener('pointerup', up);
+});
+$('#poigneeListe').addEventListener('dblclick', () => {
+  document.documentElement.style.removeProperty('--hauteur-liste');
+  try { localStorage.removeItem('broderie.hauteurListe'); } catch (e) { /* rien */ }
+});
 $('#bTexte').onclick = () => { S.texte = true; S.texteVu = null; TX.dims = null; const o = S.etat.objets.find((x) => x.id === S.sel); if (o && typePrincipal(o) !== 'lettrage') S.sel = null; TX.pour = null; rendreTout(); };
 
 // ---------------------------------------------------------------- aperçu des points (zoom net par viewBox)
