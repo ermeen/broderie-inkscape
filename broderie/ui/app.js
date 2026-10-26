@@ -467,11 +467,13 @@ const OUTILS = {
 function outils(o) {
   const types = [...o.types.filter((t) => OUTILS[t]), 'tous'];
   const principaux = [...new Set(types.flatMap((t) => OUTILS[t][0]))].filter(cmdPar);
+  // une forme remplie + des traits (ses traverses) choisis ensemble : Remplissage en satin en premier
+  if (o.multi && o.typesTous.includes('fill_stitch') && o.typesTous.includes('stroke') && cmdPar('fill_to_satin')) principaux.unshift('fill_to_satin');
   const autres = [...new Set(types.flatMap((t) => OUTILS[t][1]))].filter((e) => cmdPar(e) && !principaux.includes(e));
   const bouton = (e) => {
     const c = cmdPar(e);
     const b = document.createElement('button'); b.textContent = c.nom_fr + (c.fenetre ? '…' : ''); b.title = c.menu_fr + (c.fenetre ? ' · ouvre une fenêtre d’Ink/Stitch' : '');
-    b.onclick = () => (c.params.length && !c.fenetre ? (S.cmd = c, rendreCommandes(), formCommande(c), $('#dlgCmd').showModal())
+    b.onclick = () => (c.params.length && !c.fenetre ? (S.cmd = c, rendreCommandes(), formCommande(c, o.ids || [o.id]), $('#dlgCmd').showModal())
       : commande(e, {}, o.ids || [o.id]));
     return b;
   };
@@ -783,7 +785,7 @@ function objetCommun(objs) {
   const balise = objs.every((o) => o.balise === objs[0].balise) ? objs[0].balise : 'path';
   return { ids: objs.map((o) => o.id), id: objs[0].id, nom: `${objs.length} objets`, types, valeurs, mixte, balise,
     sous_chemins: Math.min(...objs.map((o) => o.sous_chemins || 1)), couleur: objs[0].couleur, contour: objs[0].contour,
-    remplissage: objs[0].remplissage, multi: true };
+    remplissage: objs[0].remplissage, multi: true, typesTous: [...new Set(objs.flatMap((o) => o.types))] };
 }
 function rendreMulti(objs) {
   const div = $('#props');
@@ -2221,6 +2223,13 @@ async function rendreTexte() {
 const cmdPar = (ext) => (S.etat.commandes || []).find((c) => c.extension === ext);
 async function commande(ext, params = {}, ids = null) {
   const c = cmdPar(ext);
+  if (ext === 'fill_to_satin') {          // sans traverse, Ink/Stitch ouvre une fenêtre d'erreur (en anglais)
+    const objs = (ids || S.etat.selection || []).map((i) => S.etat.objets.find((o) => o.id === i)).filter(Boolean);
+    if (!objs.some((o) => o.types.includes('fill_stitch')) || !objs.some((o) => o.types.includes('stroke') && !o.types.includes('fill_stitch'))) {
+      message('Remplissage en satin : choisissez la forme remplie ET ses traverses (petits traits qui la coupent d\'un bord à l\'autre, ⌘-clic dans la liste).', true);
+      return;
+    }
+  }
   try {
     const r = await api('commande', { extension: ext, params, ids: ids || S.etat.selection });
     S.tache = { extension: ext, nom: c ? c.nom_fr : ext, fini: false };
@@ -2259,7 +2268,7 @@ function couleurHex(v) {
   const n = /^\d+$/.test(String(v)) ? Number(v) : parseInt(String(v).replace(/^0x|#/i, '').slice(0, 6).padEnd(8, 'f'), 16);
   return '#' + (Math.floor(n / 256) & 0xffffff).toString(16).padStart(6, '0');
 }
-function formCommande(c) {
+function formCommande(c, ids = null) {     // ids : objets choisis dans le panneau (sinon la sélection d'Inkscape)
   const f = $('#cmdForm');
   f.innerHTML = `<h3>${esc(c.nom_fr)}</h3><p class="muted small">${esc(c.menu_fr)}${c.fenetre ? ' · ouvre une fenêtre d\'Ink/Stitch' : ''}</p>`;
   if (c.dans_inkscape) { f.innerHTML += '<p>Cette commande agit sur la sélection d\'Inkscape : utilisez le menu Extensions › Ink/Stitch d\'Inkscape.</p>'; return; }
@@ -2300,7 +2309,7 @@ function formCommande(c) {
     f.appendChild(d);
   }
   const b = document.createElement('button'); b.type = 'button'; b.className = 'principal'; b.textContent = c.fenetre ? 'Ouvrir' : 'Exécuter';
-  b.onclick = () => { $('#dlgCmd').close(); commande(c.extension, vals); };
+  b.onclick = () => { $('#dlgCmd').close(); commande(c.extension, vals, ids); };
   f.appendChild(b);
 }
 

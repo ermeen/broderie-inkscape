@@ -110,6 +110,25 @@ def _cache(el, masques=False):
     return False
 
 
+def completer_ids(svg):
+    """Donne un id aux formes qui n'en ont pas (créées par une commande Ink/Stitch, ex. Remplissage en satin) :
+    sans id, le panneau ne peut ni les choisir ni les régler."""
+    racine = svg.getroot() if hasattr(svg, "getroot") else svg
+    pris = {el.get("id") for el in racine.iter() if isinstance(el.tag, str) and el.get("id")}
+    n = 0
+    for el in racine.iter():
+        if not isinstance(el.tag, str) or el.get("id") or local(el) not in (
+                "path", "rect", "circle", "ellipse", "polygon", "polyline", "line", "g", "use", "text"):
+            continue
+        while True:
+            n += 1
+            i = "%s%d" % (local(el), n)
+            if i not in pris:
+                break
+        el.set("id", i)
+        pris.add(i)
+
+
 def masque(el):
     """Masqué dans Inkscape (lui ou un de ses calques) : Ink/Stitch ne le brode pas."""
     while el is not None and isinstance(el.tag, str):

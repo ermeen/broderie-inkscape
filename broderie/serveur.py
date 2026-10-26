@@ -815,6 +815,7 @@ class Session:
                     if modifie and (self.version != version or etree.tostring(self.document.getroot()) != avant):
                         res = {"modifie": False, "erreur": "Le dessin a changé pendant la commande : relancez-la."}
                     elif modifie:
+                        M.completer_ids(doc)
                         self.document = doc
                         self.ids = []                  # objets créés ou remplacés : on montre tout le dessin
                         self.version += 1

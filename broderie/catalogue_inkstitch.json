@@ -1078,7 +1078,7 @@
      "appearance": "combo"
     }
    ],
-   "fenetre": true,
+   "fenetre": false,
    "dans_inkscape": false,
    "essai": null
   },
