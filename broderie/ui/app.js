@@ -694,21 +694,22 @@ function changerVue(v) {
   if (v === 'points') { rendreCadres(); rendreBati(); rendreStats('#stats').then(verifierCadre); modeSimulation(S.simMode); }
   if (v === 'export') rendreExport();
 }
-// Simulation : « Animation » (le simulateur) ou « Réaliste » (le rendu d'Ink/Stitch), sur la même page blanche,
+// Simulation : « Animation » (le simulateur), « Points » ou « Réaliste » (les rendus d'Ink/Stitch), sur la même page blanche,
 // avec le cadre schématisé ; le mode de l'aperçu des Objets est retrouvé en sortant
 S.simMode = 'animation';
-try { S.simMode = localStorage.getItem('broderie.simMode') === 'realiste' ? 'realiste' : 'animation'; } catch (e) { /* défaut */ }
+const MODES_SIMU = ['animation', 'points', 'realiste'];
+try { const m = localStorage.getItem('broderie.simMode'); if (MODES_SIMU.includes(m)) S.simMode = m; } catch (e) { /* défaut */ }
 let modeObjets = null;
 function restaurerMode() { if (modeObjets !== null) { MODE = modeObjets; modeObjets = null; } }
 function modeSimulation(m) {
   S.simMode = m; try { localStorage.setItem('broderie.simMode', m); } catch (e) { /* rien */ }
   $$('#simMode button').forEach((b) => b.classList.toggle('on', b.dataset.mode === m));
-  const reel = m === 'realiste';
-  $('#simu').hidden = reel; $('#emplApercu').hidden = !reel;
-  if (reel) {
+  const rendu = m !== 'animation';                       // Points et Réaliste : le rendu d'Ink/Stitch, comme l'aperçu
+  $('#simu').hidden = rendu; $('#emplApercu').hidden = !rendu;
+  if (rendu) {
     arreterSimulation();
     if (modeObjets === null) modeObjets = MODE;
-    MODE = 'realiste'; vb = vb0 = null;
+    MODE = m; vb = vb0 = null;
     $('#emplApercu').appendChild($('#apercu')); apercu();
   } else { restaurerMode(); chargerSimulation(); }
 }
@@ -1042,7 +1043,7 @@ function apercuBientot() {
   clearTimeout(minuterie);
   minuterie = setTimeout(() => {
     S.simu = null;
-    if (S.vue === 'points') { if (S.simMode === 'realiste') apercu(); else chargerSimulation(); rendreStats('#stats').then(verifierCadre); }
+    if (S.vue === 'points') { if (S.simMode !== 'animation') apercu(); else chargerSimulation(); rendreStats('#stats').then(verifierCadre); }
     else if (S.vue === 'objets') { if (S.texte) apercuTexteBientot(); else apercu(); }
     else if (S.vue === 'export') rendreExport();
   }, 400);
@@ -1213,13 +1214,13 @@ async function envoyerBati() {
     const c = cadreChoisi();
     S.etat = await api('bati', { ...BATI, cadre_largeur: c ? c.largeur : null, cadre_hauteur: c ? c.hauteur : null });
     S.simu = null; rendreAttente(); rendreBati();
-    if (S.simMode === 'realiste') apercu(); else chargerSimulation();
+    if (S.simMode !== 'animation') apercu(); else chargerSimulation();
     rendreStats('#stats').then(verifierCadre);
     message(BATI.actif ? 'Bâti placé autour du motif : Synchroniser pour l\'envoyer à Inkscape.' : 'Bâti retiré : Synchroniser pour l\'enlever d\'Inkscape.');
   } catch (e) { message(e.message, true); BATI.actif = false; rendreBati(); }
 }
 // le cadre change : on le redessine dans la simulation
-function redessinerCadre() { if (S.vue === 'points') { if (S.simMode === 'realiste') apercu(); else dessinerSimulation(); } }
+function redessinerCadre() { if (S.vue === 'points') { if (S.simMode !== 'animation') apercu(); else dessinerSimulation(); } }
 $('#bCadreAjout').onclick = async () => {
   const l = +$('#ncL').value, h = +$('#ncH').value;
   if (!(l > 0 && h > 0)) { message('Indiquez la largeur et la hauteur du cadre en millimètres.', true); return; }
@@ -1933,7 +1934,7 @@ function adapterTouches(raccourci) {
   const [h, arg] = decodeURIComponent(location.hash.slice(1)).split('/');
   if (arg && h === 'objets') choisir([arg]);
   if (arg === 'realiste' && h === 'objets') MODE = 'realiste';
-  if (h === 'apercu' || (h === 'points' && arg)) S.simMode = arg === 'animation' ? 'animation' : 'realiste';   // ancien onglet Aperçu
+  if (h === 'apercu' || (h === 'points' && arg)) S.simMode = MODES_SIMU.includes(arg) ? arg : 'realiste';   // ancien onglet Aperçu
   if (h === 'texte') { changerVue('objets'); S.texte = true; rendreTout(); }
   else changerVue(h === 'apercu' ? 'points' : ['points', 'export'].includes(h) ? h : 'objets');
 })();

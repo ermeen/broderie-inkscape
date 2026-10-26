@@ -359,7 +359,8 @@ c += [Chapitre(7, "Onglet Simulation", "Regarder la machine broder, dans son cad
       capture("simulation", 120, "Animation des points dans le cadre schématisé (pointillés gris), avec le bâti (orange) ; "
                                  "à droite le cadre, le bâti et les statistiques."),
       *puces("<b>Animation</b> : la machine brode point par point (sauts, coupes, changements de couleur, mire). "
-             "<b>Réaliste</b> : le rendu du fil sur le tissu. Molette : zoom · glisser : déplacer · double-clic : tout voir.",
+             "<b>Points</b> : tous les points d'un coup (sauts, coupes, densité, pénétrations). <b>Réaliste</b> : le fil sur le "
+             "tissu. Molette : zoom · glisser : déplacer · double-clic : tout voir.",
              "<b>Cadre</b> : choisissez votre cadre (ou ajoutez-le). Il est dessiné autour du motif, centré comme la machine le "
              "brodera ; le panneau dit si le motif tient. Choisir un cadre donne sa taille à la <b>feuille d'Inkscape</b> à la "
              "prochaine synchronisation ; <b>Centrer le motif dans le cadre</b> centre aussi le motif.",

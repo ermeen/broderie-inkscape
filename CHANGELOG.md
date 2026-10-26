@@ -12,6 +12,8 @@ Le numéro de version suit le schéma `MAJEUR.MINEUR.CORRECTIF` :
 - **Hauteur de la liste réglable** : une poignée sous la liste se tire vers le bas ou le haut (double-clic : hauteur par défaut). La hauteur est retenue.
 - **Calques repliables** : un clic sur ▸ / ▾ replie ou déplie un calque. Le calque de l'objet choisi reste déplié, et le choix est retenu.
 
+**Simulation** : troisième mode **Points**, entre Animation et Réaliste. Il montre tous les points d'un coup, comme l'aperçu des Objets (sauts, coupes, densité, pénétrations), dans le cadre, avec le zoom.
+
 **Correction : réglages vides dans Ink/Stitch**
 - Certains réglages n'ont pas de valeur par défaut dans Ink/Stitch (vide = désactivé ou automatique). Le panneau affichait pourtant une valeur qu'il n'appliquait pas. Exemple : la découpe des longs points d'une colonne satin affichait 3 mm, alors qu'aucune découpe n'était faite tant qu'on ne bougeait pas le curseur.
 - Ces réglages apparaissent maintenant grisés, marqués « non » ou « auto », avec une case **Activer** qui applique vraiment la valeur proposée. Concernés : découpe des longs points (satin et trait), angle d'un clone, écart minimal d'un trait ondulé.
