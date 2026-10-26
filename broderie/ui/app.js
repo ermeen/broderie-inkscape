@@ -151,6 +151,7 @@ function replier(cle, oui) {
 }
 function rendreListe() {
   const ul = $('#liste'); ul.innerHTML = '';
+  bandeauSelection();
   if (!S.choix.size && S.sel) S.choix.add(S.sel);
   const calques = new Map();
   for (const o of S.etat.objets) {
@@ -218,6 +219,19 @@ function rendreListe() {
   const aide = $('#aideSelection');
   if (aide) aide.textContent = S.choix.size > 1 ? `${S.choix.size} objets choisis` : '⌘-clic : plusieurs · ⇧-clic : une suite · clic sur un calque : le replier · « Tout » : tout le calque · glisser : changer l’ordre';
   $('#carteListe .carte-titre span').title = '⌘-clic : plusieurs · ⇧-clic : une suite · clic sur un calque : le replier · « Tout » : tout le calque · glisser : changer l’ordre';
+}
+
+// Liste limitée aux objets sélectionnés dans Inkscape au moment du ⌘⌥B : on le dit, et on peut revenir à tout le dessin
+function bandeauSelection() {
+  let b = $('#bandeauSelection');
+  const n = S.etat.objets.length, total = S.etat.total || n;
+  if (!(S.etat.selection || []).length || total <= n) { if (b) b.remove(); return; }
+  if (!b) { b = document.createElement('div'); b.id = 'bandeauSelection'; $('#liste').before(b); }
+  b.innerHTML = `<span>Sélection d’Inkscape : <b>${n}</b> objet${n > 1 ? 's' : ''} sur ${total}</span><button type="button" class="petit">Tout le dessin</button>`;
+  b.title = 'Au ⌘⌥B, des objets étaient sélectionnés dans Inkscape : la liste, l’aperçu et l’export se limitent à eux.';
+  $('button', b).onclick = async () => {
+    try { S.etat = await api('tout_le_dessin'); S.simu = null; rendreTout(); apercuBientot(); } catch (e) { message(e.message, true); }
+  };
 }
 
 function changerCouleur(o, valeur) {
@@ -741,15 +755,15 @@ function blocPositions(o) {
     b.textContent = enCours ? 'Annuler' : pl[quoi] ? 'Déplacer' : 'Placer';
     b.onclick = () => { S.placer = enCours ? null : { id: o.id, quoi, lib }; modePlacement(); rendreProps(); };
     l.appendChild(b);
-    if (pl[quoi]) {
-      const x = document.createElement('button'); x.type = 'button'; x.className = 'raz'; x.textContent = '↺';
-      x.title = 'Retirer : Ink/Stitch choisit de nouveau'; x.onclick = () => poserPosition(o.id, quoi, { retirer: true });
+    if (pl[quoi] && !enCours) {
+      const x = document.createElement('button'); x.type = 'button'; x.className = 'petit'; x.textContent = 'Automatique';
+      x.title = 'Retirer le repère : Ink/Stitch choisit de nouveau'; x.onclick = () => poserPosition(o.id, quoi, { retirer: true });
       l.appendChild(x);
     }
     d.appendChild(l);
   }
   const a = document.createElement('p'); a.className = 'muted small';
-  a.textContent = 'Sans repère, Ink/Stitch choisit. « Placer », puis cliquez dans l’aperçu près du bord de la forme : utile pour finir près de l’objet suivant (moins de saut).';
+  a.textContent = 'Facultatif : en automatique, Ink/Stitch choisit lui-même (il part au plus près de l’aiguille). « Placer » pour imposer un endroit, par exemple finir près de l’objet suivant ; « Automatique » pour revenir.';
   return bloc('Départ et fin de l’aiguille', d, a);
 }
 function modePlacement() {
@@ -1180,7 +1194,7 @@ async function superposerCommandes(svg) {
   let d;
   try { d = await donneesPoints(); } catch (e) { return; }
   if (!svg.isConnected || !d.points.length) return;
-  const plan = [...svg.children].find((g) => g.tagName === 'g' && !g.classList.contains('selection-panneau'));
+  const plan = [...svg.children].find((g) => g.tagName === 'g' && !g.classList.contains('selection-panneau') && !g.classList.contains('reperes-panneau'));
   if (!plan) return;
   const b = plan.getBBox(), m = plan.getCTM && svg.getCTM ? svg.getCTM().inverse().multiply(plan.getCTM()) : null;
   const coin = (x, y) => (m ? new DOMPoint(x, y).matrixTransform(m) : { x, y });
@@ -1420,7 +1434,7 @@ async function afficherSelection(force = false) {
   const cle = ids.join(',') + '|' + S.etat.version + '|' + S.etat.attente;
   if (!force && selAffichee === cle && $('.selection-panneau', svg)) return;
   selAffichee = cle;
-  $$('.selection-panneau', svg).forEach((g) => g.remove());
+  $$('.selection-panneau, .reperes-panneau', svg).forEach((g) => g.remove());
   reperesPositions(svg, ids);
   for (const id of ids.slice(0, 60)) {
     try {
@@ -1430,12 +1444,13 @@ async function afficherSelection(force = false) {
       $('#apercu > svg').appendChild(document.importNode(doc.documentElement, true));
     } catch (e) { /* contour indisponible : l'aperçu reste utilisable */ }
   }
+  const rp = $('#apercu > svg .reperes-panneau'); if (rp) rp.parentNode.appendChild(rp);     // repères par-dessus les contours
 }
 
 // repères de départ (▶ vert) et de fin (■ rouge) des objets choisis
 function reperesPositions(svg, ids) {
   const NS = 'http://www.w3.org/2000/svg', u = +svg.dataset.uMm || 1, r = 1.8 * u;
-  const g = document.createElementNS(NS, 'g'); g.setAttribute('class', 'selection-panneau reperes-panneau');
+  const g = document.createElementNS(NS, 'g'); g.setAttribute('class', 'reperes-panneau');
   for (const id of ids) {
     for (const [quoi, [x, y]] of Object.entries((S.etat.placees || {})[id] || {})) {
       const dep = quoi === 'starting_point';

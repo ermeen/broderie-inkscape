@@ -167,7 +167,8 @@ class Session:
             objs = M.objets(self.document, masques=True)
         cmds = M.commandes()
         sorties = sorted({c["format"] for c in M.CATALOGUE["commandes"] if c["type"] == "output" and c["format"]})
-        return {"objets": [M.decrire(o) for o in objs], "selection": self.ids, "nom": self.nom,
+        total = len(M.objets(self.document, masques=True)) if self.ids else len(objs)
+        return {"objets": [M.decrire(o) for o in objs], "selection": self.ids, "nom": self.nom, "total": total,
                 "attente": len(self.attente), "version": self.version,
                 "reserve": {k: len(v) for k, v in self.reserve.items()},
                 "version_panneau": VERSION_PANNEAU, "raccourci": S.RACCOURCI, "mac": S.MAC,
@@ -345,6 +346,10 @@ class Session:
                 return self.sync(d)
             if self.document is None:
                 raise ValueError("Aucun dessin : lancez Extensions › Broderie › Panneau de broderie dans Inkscape.")
+            if nom == "tout_le_dessin":                # liste limitée à la sélection d'Inkscape → tout le dessin
+                self.ids = []
+                self.version += 1
+                return self.etat()
             if nom == "applique":                      # assistant appliqué : placement, fixation, bordure satin
                 ident = M.creer_applique(self.document, d["id"], float(d.get("largeur") or 3))
                 if not ident:

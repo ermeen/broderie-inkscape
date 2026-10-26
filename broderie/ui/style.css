@@ -421,3 +421,7 @@ footer button { padding: 9px 16px; font-size: 13.5px; border-radius: 9px; }
 .legende-densite i.rouge { background: #ff2a2a; } .legende-densite i.jaune { background: #ffe100; } .legende-densite i.vert { background: #1fa64a; }
 .legende-densite input { width: 42px; padding: 1px 3px; font-size: 11px; background: rgba(255,255,255,.1); color: #fff; border: 1px solid rgba(255,255,255,.25); border-radius: 5px; }
 .legende-densite .raz { color: #fff; }
+
+/* liste limitée à la sélection d'Inkscape */
+#bandeauSelection { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin: 0 0 6px; padding: 6px 9px;
+  border-radius: 8px; background: var(--sel); font-size: 12px; }
