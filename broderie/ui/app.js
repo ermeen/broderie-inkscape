@@ -663,6 +663,7 @@ function boutonsCopie(o) {
     rendreProps(); message(`Réglages de « ${o.nom} » copiés : choisissez une autre forme puis « Coller ».`);
   };
   d.appendChild(b);
+  d.appendChild(menuFavoris(o));
   if (S.copie && S.copie.type === typePrincipal(o)) {      // coller seulement entre formes du même type
     const memes = S.etat.objets.filter((x) => typePrincipal(x) === S.copie.type);
     if (S.copie.de !== o.nom) {
@@ -678,6 +679,42 @@ function boutonsCopie(o) {
     }
   }
   return d;
+}
+// Réglages favoris : « mon satin bordure », « tatami jersey »… enregistrés une fois, réappliqués d'un clic,
+// dans n'importe quel dessin (même type de forme)
+function menuFavoris(o) {
+  const typ = typePrincipal(o), sel = document.createElement('select'); sel.className = 'favoris';
+  const remplir = () => {
+    const miens = (S.favoris || []).map((f, i) => [f, i]).filter(([f]) => f.type === typ);
+    sel.innerHTML = `<option value="">★ Mes réglages favoris…</option>` + miens.map(([f, i]) => `<option value="a${i}">Appliquer « ${esc(f.nom)} »</option>`).join('')
+      + `<option value="enr">＋ Enregistrer ces réglages…</option>` + (miens.length ? `<optgroup label="Supprimer">${miens.map(([f, i]) => `<option value="s${i}">Supprimer « ${esc(f.nom)} »</option>`).join('')}</optgroup>` : '');
+  };
+  if (!S.favoris) api('favoris').then((r) => { S.favoris = r.favoris; remplir(); }).catch(() => { S.favoris = []; });
+  remplir();
+  sel.onchange = async () => {
+    const v = sel.value; sel.value = '';
+    try {
+      if (v === 'enr') {
+        const nom = prompt(`Nom de ce favori (${(NOM_TYPE[typ] || typ).toLowerCase()}) :`, o.nom); if (!nom) return;
+        const valeurs = Object.fromEntries(Object.entries(o.valeurs).filter(([k]) => !NON_COPIES.has(k)));
+        S.favoris = (await api('favoris_ecrire', { favoris: [...S.favoris, { nom, type: typ, valeurs }] })).favoris;
+        message(`Favori « ${nom} » enregistré : il est proposé pour toutes les formes « ${(NOM_TYPE[typ] || typ).toLowerCase()} ».`);
+      } else if (v[0] === 's') {
+        const f = S.favoris[+v.slice(1)];
+        S.favoris = (await api('favoris_ecrire', { favoris: S.favoris.filter((x) => x !== f) })).favoris; message(`Favori « ${f.nom} » supprimé.`);
+      } else if (v[0] === 'a') {
+        const f = S.favoris[+v.slice(1)], cibles = o.ids ? S.etat.objets.filter((x) => o.ids.includes(x.id)) : [o];
+        for (const c of cibles) {
+          const val = { ...f.valeurs };
+          for (const k of Object.keys(c.valeurs)) if (!(k in val) && !NON_COPIES.has(k)) val[k] = null;   // le favori en entier, pas un mélange
+          S.etat = await api('params', { id: c.id, valeurs: val });
+        }
+        rendreTout(); apercuBientot(); message(`Favori « ${f.nom} » appliqué.`); return;
+      }
+      remplir();
+    } catch (e) { message(e.message, true); }
+  };
+  return sel;
 }
 async function coller(cibles) {
   try {
@@ -1319,6 +1356,38 @@ async function rendreCadres() {
   $('#cbCadrePage').onchange = () => { if ($('#cbCadrePage').checked) pageAuCadre(); };
   verifierCadre();
 }
+
+// Vérifier avant d'exporter : dépistage d'Ink/Stitch (traduit), sauts sans coupe, densité, objets minuscules, cadre.
+// Chaque problème renvoie à son objet (« Montrer ») et, quand c'est possible, se corrige d'un clic.
+async function verifier() {
+  const l = $('#verifListe'); l.className = 'muted small'; l.textContent = 'Ink/Stitch vérifie le dessin…';
+  let r;
+  try { r = await api('verifier', {}, 'Vérification du dessin…'); } catch (e) { l.textContent = e.message; return; }
+  const pbs = r.problemes.slice();
+  const c = cadreChoisi();
+  if (c && S.dimensions) {
+    const [w, h] = S.dimensions;
+    if (w > c.largeur || h > c.hauteur) pbs.unshift({ gravite: 'erreur', titre: 'Le motif dépasse le cadre',
+      detail: `Motif ${w.toFixed(0)} × ${h.toFixed(0)} mm, cadre ${c.largeur} × ${c.hauteur} mm : choisissez un plus grand cadre ou réduisez le motif.`, id: null });
+  }
+  l.className = '';
+  if (!pbs.length) { l.innerHTML = '<div class="ok-texte">✓ Aucun problème trouvé : vous pouvez exporter.</div>'; return; }
+  const ICO = { erreur: '⛔', alerte: '⚠', conseil: 'ℹ' };
+  l.innerHTML = `<div class="small muted">${pbs.length} point(s) à regarder :</div>` + pbs.map((p, i) => `<div class="pb ${p.gravite}">
+    <span class="pb-ico">${ICO[p.gravite] || '•'}</span><span class="pb-txt"><b>${esc(p.titre)}</b>${p.objet ? ` · ${esc(p.objet)}` : ''}<br>
+    <span class="muted small">${esc(p.detail)}</span></span>
+    <span class="pb-act">${p.id ? `<button class="petit" data-montrer="${i}">Montrer</button>` : ''}${p.corriger ? `<button class="petit principal" data-corriger="${i}">${esc(p.corriger.libelle)}</button>` : ''}</span></div>`).join('');
+  $$('[data-montrer]', l).forEach((b) => { b.onclick = () => { changerVue('objets'); choisir([pbs[+b.dataset.montrer].id]); }; });
+  $$('[data-corriger]', l).forEach((b) => { b.onclick = async () => {
+    const p = pbs[+b.dataset.corriger];
+    try {
+      if (p.corriger.action === 'params') S.etat = await api('params', { id: p.id, valeurs: p.corriger.valeurs });
+      else if (p.corriger.action === 'visible') S.etat = await api('visible', { id: p.id, visible: p.corriger.visible });
+      S.simu = null; rendreTout(); verifier();
+    } catch (e) { message(e.message, true); }
+  }; });
+}
+$('#bVerifier').onclick = verifier;
 
 // Bobines : la marque de fil, et pour chaque couleur du dessin la bobine la plus proche (ou choisie à la main)
 const BOB = { marque: null, choix: {}, donnees: null, ouvert: null, nuancier: null };

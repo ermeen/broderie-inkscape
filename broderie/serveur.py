@@ -63,6 +63,27 @@ def lire_cadres():
         return [dict(c) for c in CADRES_DEFAUT]
 
 
+# réglages favoris : ensembles de réglages nommés, par type de forme, réutilisables dans tous les dessins
+FAVORIS = os.path.join(S.donnees(), "favoris.json")
+
+
+def lire_favoris():
+    try:
+        with open(FAVORIS, encoding="utf-8") as f:
+            return json.load(f)
+    except (OSError, ValueError):
+        return []
+
+
+def ecrire_favoris(favoris):
+    propres = [{"nom": str(f.get("nom") or "Favori")[:60], "type": str(f.get("type") or ""), "valeurs": dict(f.get("valeurs") or {})}
+               for f in favoris if isinstance(f, dict) and f.get("type")]
+    os.makedirs(os.path.dirname(FAVORIS), exist_ok=True)
+    with open(FAVORIS, "w", encoding="utf-8") as f:
+        json.dump(propres, f, ensure_ascii=False, indent=1)
+    return propres
+
+
 def ecrire_cadres(cadres):
     propres = []
     for c in cadres:
@@ -251,6 +272,8 @@ class Session:
             return {"version": self.version, "attente": len(self.attente), "tache": self.tache}
         if nom == "bobines":
             return self._bobines(d)
+        if nom == "verifier":
+            return self._verifier(d)
         if nom == "lettres_resume":
             with self.verrou:
                 return {"lettres": M.resume_lettres(self.document, d["id"]) if self.document is not None else None}
@@ -346,6 +369,10 @@ class Session:
                 self.version += 1
                 self.log("Cadre %g × %g mm appliqué" % (op[1], op[2]))
                 return self.etat()
+            if nom == "favoris":                      # réglages favoris (liste personnelle)
+                return {"favoris": lire_favoris()}
+            if nom == "favoris_ecrire":
+                return {"favoris": ecrire_favoris(d.get("favoris") or [])}
             if nom == "cadres":                       # cadres de la brodeuse (liste personnelle)
                 return {"cadres": lire_cadres()}
             if nom == "cadres_ecrire":
@@ -479,6 +506,91 @@ class Session:
         self.attente.append(("commande", "batch_lettering"))
         self.log("Texte brodé ajouté")
         return {"id": g.get("id")}
+
+    def _verifier(self, d):
+        """Vérifier avant d'exporter : dépistage d'Ink/Stitch (traduit), sauts longs sans coupe, zones trop denses,
+        objets minuscules. Chaque problème est rattaché à l'objet concerné, avec ce qu'il faut faire."""
+        import math
+        with self.verrou:
+            if self.document is None:
+                raise ValueError("Aucun dessin : appuyez sur ⌘⌥B dans Inkscape.")
+            doc = _lire(etree.tostring(self.document.getroot()))
+        boites = M.boites_objets(doc)
+        noms = {i: M.decrire(M.par_id(doc, i))["nom"] for i in boites}
+        mm = M.mm_par_unite(doc)
+        out, vus = [], set()
+
+        def ajouter(gravite, titre, detail, ident, corriger=None, cle=None):
+            cle = cle or (titre, ident)
+            if cle in vus:
+                return
+            vus.add(cle)
+            out.append({"gravite": gravite, "titre": titre, "detail": detail, "id": ident,
+                        "objet": noms.get(ident), "corriger": corriger})
+
+        # 1. dépistage d'Ink/Stitch
+        code, sortie, err = E.executer(doc, "troubleshoot", None, {"show-errors": True, "show-warnings": True,
+                                       "show-type-warning": True, "pointer-size": 5, "font-size": 2}, delai=180)
+        res = E.document_modifie(sortie)
+        if res is not None:
+            for nom, x, y in M.problemes_inkstitch(doc, res):
+                gravite, titre, detail = M.PROBLEMES.get(nom, ("alerte", nom, "Signalé par Ink/Stitch."))
+                ajouter(gravite, titre, detail, M._objet_proche(doc, x, y, boites))
+        # 2. sauts longs sans coupe (le point de départ du saut désigne l'objet à couper)
+        r, err = E.points(doc)
+        seuil = float(d.get("saut_max") or 5)
+        if r and r["points"] and boites:
+            pts = r["points"]
+            xs = [p[0] for p in pts if p[2] == "STITCH"] or [0]
+            ys = [p[1] for p in pts if p[2] == "STITCH"] or [0]
+            cpx, cpy = (min(xs) + max(xs)) / 2, (min(ys) + max(ys)) / 2
+            bx0, by0 = min(b[0] for b in boites.values()), min(b[1] for b in boites.values())
+            bx1, by1 = max(b[2] for b in boites.values()), max(b[3] for b in boites.values())
+            cbx, cby = (bx0 + bx1) / 2, (by0 + by1) / 2
+            dessin = lambda x, y: (cbx + (x - cpx) / 10 / mm, cby + (y - cpy) / 10 / mm)
+            dernier, depart, coupe, apres_couleur = None, None, False, False
+            for x, y, c in pts:
+                if c == "STITCH":
+                    if depart is not None and not coupe and not apres_couleur:
+                        long_mm = math.dist(depart, (x, y)) / 10
+                        if long_mm > seuil:
+                            ident = M._objet_proche(doc, *dessin(*depart), boites)
+                            ajouter("alerte", "Saut long sans coupe",
+                                    "Un saut de %.0f mm laisse un fil à couper à la main : ajoutez une coupe après cet objet." % long_mm,
+                                    ident, {"action": "params", "valeurs": {"trim_after": True}, "libelle": "Couper après"})
+                    dernier, depart, coupe, apres_couleur = (x, y), None, False, False
+                elif c == "JUMP":
+                    if depart is None:
+                        depart = dernier
+                elif c == "TRIM":
+                    coupe = True
+                elif c == "COLOR_CHANGE":
+                    apres_couleur = True
+        # 3. zones trop denses (carte de densité d'Ink/Stitch : points rouges)
+        dens, err = E.densite(doc)
+        if dens:
+            try:
+                plan = etree.fromstring('<svg xmlns="http://www.w3.org/2000/svg">%s</svg>' % dens)
+                rouges = {}
+                for gr in plan.iter("{%s}g" % M.SVG_NS):
+                    if "red" in (gr.get("id") or ""):
+                        for ci in gr.iter("{%s}circle" % M.SVG_NS):
+                            k = 0.264583 if "scale" in (ci.get("transform") or gr.get("transform") or "") else 1
+                            ident = M._objet_proche(doc, float(ci.get("cx", 0)) * k, float(ci.get("cy", 0)) * k, boites)
+                            rouges[ident] = rouges.get(ident, 0) + 1
+                for ident, n in rouges.items():
+                    ajouter("alerte", "Zone trop dense", "%d point(s) trop serrés (risque de casse) : espacez les rangs "
+                            "ou réduisez les sous-couches de cet objet." % n, ident)
+            except etree.XMLSyntaxError:
+                pass
+        # 4. objets minuscules
+        for ident, b in boites.items():
+            if (b[2] - b[0]) * mm < 1 and (b[3] - b[1]) * mm < 1:
+                ajouter("alerte", "Objet minuscule", "Moins de 1 mm : il ne se brodera pas bien. Agrandissez-le ou masquez-le.",
+                        ident, {"action": "visible", "visible": False, "libelle": "Masquer"})
+        ordre = {"erreur": 0, "alerte": 1, "conseil": 2}
+        out.sort(key=lambda p: ordre.get(p["gravite"], 3))
+        return {"problemes": out}
 
     def _bobines(self, d):
         """Fils du dessin (ordre de couture) et bobine de la marque choisie pour chacun : la plus proche,

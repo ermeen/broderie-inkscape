@@ -900,3 +900,68 @@ def reappliquer_lettres(g, reglages):
     if reglages and (reglages.get("tous") or reglages.get("lettres")):
         g.set(LETTRES, json.dumps(reglages, ensure_ascii=False))
         _appliquer_lettres(g, reglages)
+
+
+# ---------------------------------------------------------------- vérifier avant d'exporter
+# Problèmes signalés par le dépistage d'Ink/Stitch, traduits, avec ce qu'il faut faire
+PROBLEMES = {
+    "Simple Satin": ("conseil", "Satin simple (un seul trait épais)",
+                     "Il se brode, mais une colonne satin à deux rails donne un plus beau résultat (outil « Trait en satin »)."),
+    "Too narrow satin": ("alerte", "Satin trop étroit", "Élargissez-le (au moins 1 mm) ou passez-le en point droit."),
+    "Border crosses itself": ("alerte", "Le contour se croise",
+                              "Dans Inkscape : Chemin › Union sur cette forme, pour supprimer le croisement."),
+    "Small shape": ("alerte", "Forme très petite", "Elle risque de ne pas se broder : agrandissez-la ou masquez-la."),
+    "Unconnected": ("erreur", "Forme en plusieurs morceaux", "Dans Inkscape : Chemin › Séparer, puis réglez chaque morceau."),
+    "Not stitchable": ("erreur", "Forme impossible à broder", "Vérifiez qu'elle a une surface ou un contour."),
+}
+
+
+def _objet_proche(svg, x, y, boites):
+    """Objet (id) dont l'emprise contient le point (le plus petit), sinon le plus proche."""
+    dedans = [(b[2] - b[0]) * (b[3] - b[1]) for b in boites.values()]
+    meilleur, aire = None, None
+    for i, b in boites.items():
+        if b[0] - 0.5 <= x <= b[2] + 0.5 and b[1] - 0.5 <= y <= b[3] + 0.5:
+            a = (b[2] - b[0]) * (b[3] - b[1])
+            if aire is None or a < aire:
+                meilleur, aire = i, a
+    if meilleur:
+        return meilleur
+    import math
+    return min(boites, key=lambda i: math.dist((x, y), ((boites[i][0] + boites[i][2]) / 2, (boites[i][1] + boites[i][3]) / 2)),
+               default=None)
+
+
+def boites_objets(svg):
+    """Emprise de chaque objet brodé et affiché, en unités du dessin."""
+    out = {}
+    for el in objets(svg):
+        b = emprise(svg, [el.get("id")]) if el.get("id") else None
+        if b:
+            out[el.get("id")] = b
+    return out
+
+
+def problemes_inkstitch(svg, resultat):
+    """Calque « Troubleshoot » renvoyé par Ink/Stitch → [(type, x, y)] (point du repère, unités du dessin)."""
+    ix = _inkex()
+    out = []
+    r = resultat.getroot() if hasattr(resultat, "getroot") else resultat
+    for g in r.iter("{%s}g" % SVG_NS):
+        nom = g.get("{%s}label" % INKSCAPE_NS)
+        pointeurs = [p for p in g if isinstance(p.tag, str) and (p.get("id") or "").startswith("inkstitch__invalid_pointer")]
+        if not nom or not pointeurs:
+            continue
+        for p in pointeurs:
+            try:
+                debut = ix.paths.Path(p.get("d")).end_points
+                q = next(iter(debut))
+                t = ix.transforms.Transform(p.get("transform") or "")
+                for a in p.iterancestors():
+                    if a.get("transform"):
+                        t = ix.transforms.Transform(a.get("transform")) @ t
+                q = t.apply_to_point(q)
+                out.append((nom, q.x, q.y))
+            except Exception:
+                continue
+    return out
