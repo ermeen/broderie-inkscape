@@ -172,6 +172,7 @@ class Session:
                 "reserve": {k: len(v) for k, v in self.reserve.items()},
                 "version_panneau": VERSION_PANNEAU, "raccourci": S.RACCOURCI, "mac": S.MAC,
                 "ancien": E.ancien(self.document), "bati": M.reglages_bati(self.document),
+                "origine": M.origine_active(self.document),
                 "moteur": {"chemin": E.binaire(), "version": E.version()},
                 "commandes": cmds, "formats": sorties, "journal": self.journal[-20:]}
 
@@ -224,6 +225,9 @@ class Session:
     def _rejouer(self, doc, op):
         if op[0] == "visible":
             M.montrer(doc, op[1], op[2])
+            return
+        if op[0] == "origine":
+            M.placer_origine(doc, op[1], op[2])
             return
         if op[0] == "applique":
             M.creer_applique(doc, op[1], op[2])
@@ -280,6 +284,8 @@ class Session:
             return self._bobines(d)
         if nom == "verifier":
             return self._verifier(d)
+        if nom == "origine":                           # motif centré (défaut) ou placé comme sur la feuille
+            return self._origine(d)
         if nom == "ouvrir_machine":                    # fichier de broderie → dessin Inkscape, ouvert dans Inkscape
             return self._ouvrir_machine(d)
         if nom == "optimiser":
@@ -601,6 +607,27 @@ class Session:
                 self.version += 1
                 self.sauver()
             return {"coupes": len(idents), "etat": self.etat()}
+
+    def _origine(self, d):
+        actif = bool(d.get("actif"))
+        with self.verrou:
+            if self.document is None:
+                raise ValueError("Aucun dessin : appuyez sur ⌘⌥B dans Inkscape.")
+            sym = M.symbole_origine(self.document)
+            copie = None if sym or not actif else _lire(etree.tostring(self.document.getroot()))
+        if copie is not None:                           # le symbole d'origine vient d'Ink/Stitch (commande globale)
+            code, out, err = E.executer(copie, "global_commands", None, {"origin": True, "stop_position": False})
+            res = E.document_modifie(out)
+            sym = M.symbole_origine(res) if res is not None else None
+            if not sym:
+                raise ValueError(_message(err) or "Ink/Stitch n'a pas fourni le point d'origine.")
+        with self.verrou:
+            if not M.placer_origine(self.document, actif, sym):
+                raise ValueError("Impossible de poser l'origine (page du dessin introuvable).")
+            self.attente.append(("origine", actif, sym))
+            self.version += 1
+            self.sauver()
+            return self.etat()
 
     def _ouvrir_machine(self, d):
         chemin = d.get("chemin") or ""

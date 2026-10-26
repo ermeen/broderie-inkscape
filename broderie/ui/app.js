@@ -996,6 +996,7 @@ async function apercu() {
     const lw = /^([\d.]+)\s*(mm|cm|in|pt|px)?$/.exec(svg.getAttribute('width') || '');
     svg.removeAttribute('width'); svg.removeAttribute('height');
     let v = (svg.getAttribute('viewBox') || '0 0 100 100').split(/[ ,]+/).map(Number);
+    svg.dataset.page = v.join(' ');                     // la page d'Inkscape (avant d'agrandir la vue)
     const uMM = lw ? v[2] / (parseFloat(lw[1]) * MM[lw[2] || '']) : 1;     // unités du dessin par mm
     svg.dataset.uMm = uMM;
     // vue de départ : la page et tout le motif (un texte posé hors de la page reste visible)
@@ -1031,7 +1032,11 @@ function dessinerCadreApercu(svg, plan, v, u) {
   let b, m;
   try { b = plan.getBBox(); m = svg.getCTM().inverse().multiply(plan.getCTM()); } catch (e) { return v; }
   const p0 = new DOMPoint(b.x, b.y).matrixTransform(m), p1 = new DOMPoint(b.x + b.width, b.y + b.height).matrixTransform(m);
-  const w = c.largeur * u, h = c.hauteur * u, cx = (p0.x + p1.x) / 2, cy = (p0.y + p1.y) / 2;
+  const w = c.largeur * u, h = c.hauteur * u;
+  const pg = (svg.dataset.page || '').split(' ').map(Number);
+  // motif « comme sur la feuille » : le cadre est la feuille (son centre) ; sinon centré sur le motif, comme la machine
+  const surFeuille = S.etat.origine && pg.length === 4;
+  const cx = surFeuille ? pg[0] + pg[2] / 2 : (p0.x + p1.x) / 2, cy = surFeuille ? pg[1] + pg[3] / 2 : (p0.y + p1.y) / 2;
   const NS = 'http://www.w3.org/2000/svg';
   const g = document.createElementNS(NS, 'g'); g.setAttribute('class', 'cadre-panneau'); g.setAttribute('pointer-events', 'none');
   g.innerHTML = `<rect x="${cx - w / 2}" y="${cy - h / 2}" width="${w}" height="${h}" rx="${Math.min(w, h) * 0.04}" fill="none"
@@ -1367,8 +1372,20 @@ async function rendreCadres() {
   sel.onchange = () => { try { localStorage.setItem('broderie.cadreN', sel.value); } catch (e) { /* rien */ } verifierCadre(); pageAuCadre();
     if (BATI.actif) envoyerBati(); else redessinerCadre(); };     // le bâti suit le nouveau cadre
   $('#cbCadrePage').onchange = () => { if ($('#cbCadrePage').checked) pageAuCadre(); };
+  $('#fPosition').value = S.etat.origine ? 'feuille' : 'centre';
   verifierCadre();
 }
+// position du motif dans le cadre : centré (défaut d'Ink/Stitch) ou comme sur la feuille (origine au centre de la feuille)
+$('#fPosition').onchange = async (e) => {
+  const feuille = e.target.value === 'feuille';
+  try {
+    S.etat = await api('origine', { actif: feuille }, feuille ? 'Ink/Stitch pose le point d\'origine…' : null);
+    if (feuille && !$('#cbCadrePage').checked) { $('#cbCadrePage').checked = true; await pageAuCadre(); }
+    S.simu = null; rendreAttente(); redessinerCadre(); if (S.simMode === 'animation') chargerSimulation();
+    message(feuille ? 'Le motif sera brodé à sa place sur la feuille (qui a la taille du cadre) : déplacez-le dans Inkscape pour le décaler.'
+      : 'Le motif sera brodé au centre du cadre.');
+  } catch (x) { message(x.message, true); e.target.value = feuille ? 'centre' : 'feuille'; }
+};
 
 // Vérifier avant d'exporter : dépistage d'Ink/Stitch (traduit), sauts sans coupe, densité, objets minuscules, cadre.
 // Chaque problème renvoie à son objet (« Montrer ») et, quand c'est possible, se corrige d'un clic.
@@ -1509,10 +1526,17 @@ async function rendreNuancier(div) {
 function verifierCadre() {
   const i = $('#cadreInfo'), c = cadreChoisi();
   if (!c || !S.dimensions) { i.textContent = ''; $('#cadreExport').textContent = ''; return; }
-  const [w, h] = S.dimensions;
+  let [w, h] = S.dimensions;
+  if (S.etat.origine && S.simu && S.simu.points.length) {     // motif décalé : il doit tenir autour du centre du cadre
+    let mx = 0, my = 0;
+    for (const [x, y, k] of S.simu.points) if (k === 'STITCH') { mx = Math.max(mx, Math.abs(x)); my = Math.max(my, Math.abs(y)); }
+    w = Math.max(w, mx / 5); h = Math.max(h, my / 5);            // 0,1 mm, de part et d'autre du centre
+  }
   const ok = (w <= c.largeur && h <= c.hauteur);
-  const tourne = !ok && w <= c.hauteur && h <= c.largeur;
-  i.innerHTML = ok ? `<span style="color:#5ec27a">✓ Le motif (${w.toFixed(0)} × ${h.toFixed(0)} mm) tient dans le cadre.</span>`
+  const tourne = !ok && !S.etat.origine && w <= c.hauteur && h <= c.largeur;
+  i.innerHTML = ok ? `<span style="color:#5ec27a">✓ Le motif (${S.dimensions[0].toFixed(0)} × ${S.dimensions[1].toFixed(0)} mm) tient dans le cadre${S.etat.origine ? ', à sa place sur la feuille' : ''}.</span>`
+    : S.etat.origine && S.dimensions[0] <= c.largeur && S.dimensions[1] <= c.hauteur
+      ? `<span style="color:#f2b45a">⚠ Placé comme sur la feuille, le motif sort du cadre : rapprochez-le du centre de la feuille.</span>`
     : tourne ? `<span style="color:#f2b45a">⚠ Le motif tient seulement s'il est tourné d'un quart de tour (dans Inkscape).</span>`
     : `<span style="color:#f2b45a">⚠ Le motif (${w.toFixed(0)} × ${h.toFixed(0)} mm) dépasse ce cadre.</span>`;
   $('#cadreExport').innerHTML = `Cadre ${c.largeur} × ${c.hauteur} mm : ` + i.innerHTML + ' (à régler dans Simulation)';
@@ -1670,7 +1694,7 @@ function dessinerSimulation() {
   cv.width = cv.clientWidth * dpr; cv.height = cv.clientHeight * dpr;
   const g = cv.getContext('2d');
   g.fillStyle = SIM_AFF.fond; g.fillRect(0, 0, cv.width, cv.height);
-  if (!SIM.pts || !SIM.pts.length) return;
+  if (!SIM.pts || !SIM.pts.length || cv.width < 60 || cv.height < 60) return;    // zone pas encore à sa taille
   const { k, ox, oy } = cadreSimulation(cv);
   SIM.repere = { k, ox, oy };
   if (SIM_AFF.suivre) {                               // suivre l'aiguille : elle reste au centre de la vue
@@ -1861,11 +1885,27 @@ const ACTIONS_SIMU = {
 const VUES_SIMU = [['enpoints', 'vue_points', 'Vue en points : fil fin et chaque piqûre de l\'aiguille'], ['suivre', 'aiguille', 'Suivre l\'aiguille : la vue reste centrée sur elle'], ['cadre', 'cadre', 'Cadre de la brodeuse'], ['npp', 'npp', 'Pénétrations de l\'aiguille (O)'], ['sauts', 'jump', 'Sauts'], ['coupes', 'trim', 'Coupes'],
   ['arrets', 'stop', 'Arrêts'], ['couleurs', 'color_change', 'Changements de couleur'], ['mire', 'cursor', 'Mire sur l\'aiguille'],
   ['page', 'page', 'Afficher la page'], ['info', 'info', 'Informations sur le motif']];
+// Point suivant / précédent : un clic = un point ; bouton maintenu = les points défilent en continu,
+// de plus en plus vite, et s'arrêtent dès qu'on relâche
+function maintenir(b, sens) {
+  let minut = null, debut = 0;
+  const pas = () => {
+    const t = Date.now() - debut, n = t < 1500 ? 1 : t < 3500 ? 3 : 10;       // accélère si on reste appuyé
+    allerA(SIM.i + sens * n);
+    minut = setTimeout(pas, t < 400 ? 400 : 40);
+  };
+  const arreter = () => { clearTimeout(minut); minut = null; };
+  b.addEventListener('pointerdown', (e) => { if (e.button !== 0) return; e.preventDefault(); try { b.setPointerCapture(e.pointerId); } catch (_) {} clearTimeout(minut); debut = Date.now(); pas(); });
+  b.addEventListener('pointerup', arreter); b.addEventListener('pointercancel', arreter); b.addEventListener('lostpointercapture', arreter);
+}
 function construireBarresSimu() {
   const c = $('#simuControles'); c.innerHTML = '';
   for (const [k, [titre, f]] of Object.entries(ACTIONS_SIMU)) {
     const b = document.createElement('button'); b.className = 'ico-btn'; b.dataset.action = k; b.title = titre;
-    b.innerHTML = icone(k); b.onclick = f; c.appendChild(b);
+    b.innerHTML = icone(k);
+    if (k === 'forward_stitch' || k === 'backward_stitch') maintenir(b, k === 'forward_stitch' ? 1 : -1);
+    else b.onclick = f;
+    c.appendChild(b);
   }
   const v = $('#simuVues'); v.innerHTML = '';
   for (const [k, ic, titre] of VUES_SIMU) {

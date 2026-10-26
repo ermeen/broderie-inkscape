@@ -1044,3 +1044,56 @@ def creer_applique(svg, i, largeur=3.0):
     el.addnext(g)
     montrer(svg, i, False)
     return g.get("id")
+
+
+# ---------------------------------------------------------------- position du motif dans le cadre (origine)
+# Par défaut, Ink/Stitch exporte le motif centré : la machine le brode au centre du cadre. Avec la commande
+# « Origine » d'Ink/Stitch posée au centre de la feuille (qui a la taille du cadre), le motif est brodé à sa
+# place sur la feuille, décalé dans le cadre s'il l'est dans Inkscape.
+ORIGINE = "inkstitch_origin"
+XLINK = "http://www.w3.org/1999/xlink"
+
+
+def _usages_origine(svg):
+    r = svg.getroot() if hasattr(svg, "getroot") else svg
+    return [u for u in r.iter("{%s}use" % SVG_NS)
+            if (u.get("{%s}href" % XLINK) or u.get("href") or "").lstrip("#") == ORIGINE]
+
+
+def origine_active(svg):
+    return bool(_usages_origine(svg))
+
+
+def symbole_origine(svg):
+    """Le symbole d'origine d'Ink/Stitch (dans les définitions du dessin), en texte, ou None."""
+    r = svg.getroot() if hasattr(svg, "getroot") else svg
+    s = r.xpath("//*[@id='%s']" % ORIGINE)
+    return etree.tostring(s[0], encoding="unicode") if s else None
+
+
+def placer_origine(svg, actif, symbole=None):
+    """Pose (actif) ou retire l'origine, au centre de la feuille. symbole : le symbole d'Ink/Stitch, ajouté aux
+    définitions s'il manque (dessin d'Inkscape au moment de la synchronisation)."""
+    r = svg.getroot() if hasattr(svg, "getroot") else svg
+    for u in _usages_origine(r):
+        u.getparent().remove(u)
+    if not actif:
+        return True
+    if not r.xpath("//*[@id='%s']" % ORIGINE):
+        if not symbole:
+            return False
+        defs = r.find("{%s}defs" % SVG_NS)
+        if defs is None:
+            defs = etree.Element("{%s}defs" % SVG_NS)
+            r.insert(0, defs)
+        defs.append(etree.fromstring(symbole))
+    vb = [float(x) for x in (r.get("viewBox") or "0 0 0 0").replace(",", " ").split()]
+    if len(vb) != 4 or not vb[2]:
+        return False
+    u = etree.SubElement(r, "{%s}use" % SVG_NS)
+    u.set("id", "broderie_origine")
+    u.set("{%s}label" % INKSCAPE_NS, "Ink/Stitch Command: Origin for exported embroidery files")
+    u.set("{%s}href" % XLINK, "#" + ORIGINE)
+    u.set("x", "%g" % (vb[0] + vb[2] / 2))
+    u.set("y", "%g" % (vb[1] + vb[3] / 2))
+    return True
