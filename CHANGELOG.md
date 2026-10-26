@@ -13,6 +13,9 @@ Le numéro de version suit le schéma `MAJEUR.MINEUR.CORRECTIF` :
 
 **Objets**
 - **Couleurs déjà dans le dessin** : sous la couleur de l'objet, une pastille par couleur utilisée (tous calques). Un clic donne exactement la même couleur à l'objet, ou à tous les objets choisis. Au survol : les objets qui l'utilisent, et le fil si une bobine est choisie.
+- **Glisser plusieurs objets d'un coup** dans la liste : toute la sélection suit, dans son ordre.
+- **Glisser entre deux calques** : sur le bord haut de l'en-tête d'un calque, « Nouveau calque ici » ; les objets vont dans un calque à eux (« Citrouille · avant Etoile 3 »), placé entre les deux. Pour broder une partie d'un calque avant ou après un autre sans mélanger les calques.
+- Un objet glissé dans un autre calque **garde sa place à l'écran**, même si ce calque est décalé ou tourné (avant, il bougeait).
 - **ⓘ sur tous les réglages**, y compris « Plus de réglages » : notre conseil pour les principaux, sinon la description d'Ink/Stitch en français, avec le lien vers sa documentation.
 - **Appliqué** : son propre bloc dans la fiche d'une forme remplie (avant, un bouton perdu parmi les outils), avec la largeur de la bordure et un ⓘ qui explique les deux arrêts et renvoie au tutoriel d'Ink/Stitch.
 - **Conseils ⓘ** à côté des réglages importants (densité, compensation, découpe, sous-couches, points courts, angle, longueur de point, coupe, arrêt…) : la bonne pratique en deux phrases et le lien vers la page de la documentation d'Ink/Stitch en français.

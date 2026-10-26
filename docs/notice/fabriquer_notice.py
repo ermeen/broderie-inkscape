@@ -305,13 +305,13 @@ c += [Chapitre(3, "Le geste à retenir", "Un raccourci relie Inkscape et le pann
 
 # ---------------------------------------------------------------- 4. objets
 c += [Chapitre(4, "Onglet Objets", "Régler la broderie de chaque forme"),
-      capture("objets", 64, "L'aperçu des points à gauche ; les calques, les objets et leurs réglages à droite."),
+      capture("objets", 58, "L'aperçu des points à gauche ; les calques, les objets et leurs réglages à droite."),
       p("Choisir", "h2"),
       *puces(touche("clic") + " un objet · " + touche("Cmd") + " " + touche("clic") + " en ajouter ou en retirer · "
              + touche("Maj") + " " + touche("clic") + " toute une suite.",
              "Un clic sur la <b>ligne d'un calque</b> le replie ou le déplie ; son bouton <b>Tout</b> (au survol) choisit tous "
              "ses objets ; un <b>clic dans l'aperçu</b> choisit l'objet sous la souris. La <b>punaise</b> garde la liste en haut.",
-             "<b>Glissez</b> un objet ou un calque pour changer l'ordre de couture ; l'<b>œil</b> le masque (plus brodé).",
+             "<b>Glissez</b> un ou plusieurs objets : ordre de couture ; sur le haut d'un calque : entre deux calques. L'<b>œil</b> masque.",
              "Plusieurs objets : les réglages s'appliquent à tous ; <b>≠</b> signale une valeur différente. "
              "<b>Choisir les semblables</b> : tous les objets du même point (et mêmes réglages) d'un coup."),
       p("Régler", "h2"),

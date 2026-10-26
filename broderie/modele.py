@@ -1305,7 +1305,8 @@ def largeur_satin(svg, el):
 
 
 # ---------------------------------------------------------------- broder avant / après un autre calque
-# Ink/Stitch brode dans l'ordre du dessin. Pour broder quelques objets d'un calque après (ou avant) un autre calque
+# Ink/Stitch brode dans l'ordre du dessin. Pour broder quelques objets d'un calque avant un autre calque (objets
+# glissés entre deux calques dans la liste)
 # sans mélanger les calques, on les met dans un calque « <nom> · après <calque> » placé juste après (ou avant) ce calque.
 # Leur position à l'écran ne change pas (transformations recalculées), leurs repères de départ et de fin suivent.
 def _calques(r):
