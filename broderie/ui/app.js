@@ -706,17 +706,17 @@ function changerVue(v) {
   if (v === 'points') { rendreCadres(); rendreBati(); rendreStats('#stats').then(verifierCadre); modeSimulation(S.simMode); }
   if (v === 'export') rendreExport();
 }
-// Simulation : « Animation » (le simulateur), « Points » ou « Réaliste » (les rendus d'Ink/Stitch), sur la même page blanche,
+// Simulation : « Animation » (le simulateur) ou « Réaliste » (le rendu d'Ink/Stitch), sur la même page blanche,
 // avec le cadre schématisé ; le mode de l'aperçu des Objets est retrouvé en sortant
 S.simMode = 'animation';
-const MODES_SIMU = ['animation', 'points', 'realiste'];
+const MODES_SIMU = ['animation', 'realiste'];       // l'ancien mode Points est la « vue en points » de l'Animation
 try { const m = localStorage.getItem('broderie.simMode'); if (MODES_SIMU.includes(m)) S.simMode = m; } catch (e) { /* défaut */ }
 let modeObjets = null;
 function restaurerMode() { if (modeObjets !== null) { MODE = modeObjets; modeObjets = null; } }
 function modeSimulation(m) {
   S.simMode = m; try { localStorage.setItem('broderie.simMode', m); } catch (e) { /* rien */ }
   $$('#simMode button').forEach((b) => b.classList.toggle('on', b.dataset.mode === m));
-  const rendu = m !== 'animation';                       // Points et Réaliste : le rendu d'Ink/Stitch, comme l'aperçu
+  const rendu = m !== 'animation';                       // Réaliste : le rendu d'Ink/Stitch, comme l'aperçu
   $('#simu').hidden = rendu; $('#emplApercu').hidden = !rendu;
   if (rendu) {
     arreterSimulation();
@@ -1326,6 +1326,7 @@ const SIM_AFF = { npp: false, sauts: true, coupes: true, arrets: true, couleurs:
 const SIM_PREF = { epaisseur: 0.3, npp: 0.5, mireRayon: 12, mireEpaisseur: 2, mireCouleur: '#e74c3c', adapter: true };
 try {
   Object.assign(SIM_AFF, JSON.parse(localStorage.getItem('broderie.simAff') || '{}'));
+  if (localStorage.getItem('broderie.simMode') === 'points') { SIM_AFF.enpoints = true; localStorage.setItem('broderie.simMode', 'animation'); }
   Object.assign(SIM_PREF, JSON.parse(localStorage.getItem('broderie.simPref') || '{}'));
 } catch (e) { /* valeurs par défaut */ }
 const memoriser = () => { try { localStorage.setItem('broderie.simAff', JSON.stringify(SIM_AFF)); localStorage.setItem('broderie.simPref', JSON.stringify(SIM_PREF)); } catch (e) { /* rien */ } };
@@ -1406,6 +1407,7 @@ function dessinerSimulation() {
   g.fillStyle = SIM_AFF.fond; g.fillRect(0, 0, cv.width, cv.height);
   if (!SIM.pts || !SIM.pts.length) return;
   const { k, ox, oy } = cadreSimulation(cv);
+  SIM.repere = { k, ox, oy };
   if (SIM_AFF.suivre) {                               // suivre l'aiguille : elle reste au centre de la vue
     const p = SIM.pts[Math.max(0, Math.min(SIM.i, SIM.pts.length) - 1)];
     if (p) { SIM.vue.x = cv.width / 2 - SIM.vue.k * (ox + p[0] * k); SIM.vue.y = cv.height / 2 - SIM.vue.k * (oy + p[1] * k); }
@@ -1475,6 +1477,17 @@ function dessinerSimulation() {
     if (!montre[n] || !ICONES[n].complete) continue;
     g.fillStyle = 'rgba(255,255,255,.85)'; g.beginPath(); g.arc(x + t * 0.6, y - t * 0.6, t * 0.62, 0, 7); g.fill();
     g.drawImage(ICONES[n], x + t * 0.1, y - t * 1.1, t, t);
+  }
+  if (SIM.mesure) {                                   // règle : trait, piqûres accrochées et distance en mm
+    const { a, b } = SIM.mesure, xa = X(a.x), ya = Y(a.y), xb = X(b.x), yb = Y(b.y);
+    g.save(); g.strokeStyle = '#2f80ed'; g.fillStyle = '#2f80ed'; g.lineWidth = 1.5 * dpr * px; g.setLineDash([]);
+    g.beginPath(); g.moveTo(xa, ya); g.lineTo(xb, yb); g.stroke();
+    for (const [q, xq, yq] of [[a, xa, ya], [b, xb, yb]]) { g.beginPath(); g.arc(xq, yq, 4 * dpr * px, 0, 7); g.fillStyle = q.accroche ? '#2f80ed' : '#fff'; g.fill(); g.stroke(); }
+    const t = `${(Math.hypot(b.x - a.x, b.y - a.y) / 10).toFixed(2).replace('.', ',')} mm`;
+    g.font = `600 ${13 * dpr * px}px -apple-system, "Segoe UI", sans-serif`;
+    const lw = g.measureText(t).width + 12 * dpr * px, mx = (xa + xb) / 2, my = (ya + yb) / 2 - 14 * dpr * px;
+    g.fillStyle = '#2f80ed'; g.beginPath(); g.roundRect(mx - lw / 2, my - 11 * dpr * px, lw, 20 * dpr * px, 5 * dpr * px); g.fill();
+    g.fillStyle = '#fff'; g.textAlign = 'center'; g.textBaseline = 'middle'; g.fillText(t, mx, my - 1 * dpr * px); g.restore();
   }
   // aiguille : mire
   const cur = SIM.pts[fin - 1];
@@ -1589,11 +1602,13 @@ function construireBarresSimu() {
     const b = document.createElement('button'); b.className = 'ico-btn'; b.dataset.action = k; b.title = titre;
     b.innerHTML = icone(k); b.onclick = f; c.appendChild(b);
   }
-  const tout = document.createElement('button'); tout.className = 'ico-btn'; tout.title = 'Tout voir : recentrer le dessin (double-clic sur la vue)';
-  tout.innerHTML = icone('voir_tout'); tout.onclick = () => { SIM_AFF.suivre = false; memoriser(); SIM.vue = { k: 1, x: 0, y: 0 }; construireBarresSimu(); dessinerSimulation(); };
-  c.appendChild(tout);
   const v = $('#simuVues'); v.innerHTML = '';
   for (const [k, ic, titre] of VUES_SIMU) {
+    if (k === 'suivre') {                              // Tout voir, juste avant Suivre l'aiguille
+      const tout = document.createElement('button'); tout.className = 'ico-btn'; tout.title = 'Tout voir : recentrer le dessin (double-clic sur la vue)';
+      tout.innerHTML = icone('voir_tout'); tout.onclick = () => { SIM_AFF.suivre = false; memoriser(); SIM.vue = { k: 1, x: 0, y: 0 }; construireBarresSimu(); dessinerSimulation(); };
+      v.appendChild(tout);
+    }
     const b = document.createElement('button'); b.className = 'ico-btn bascule' + (SIM_AFF[k] ? ' on' : ''); b.title = titre;
     b.innerHTML = icone(ic);
     b.onclick = () => {
@@ -1602,6 +1617,13 @@ function construireBarresSimu() {
       dessinerPiste(); rendreInfoSimu(); dessinerSimulation();
     };
     v.appendChild(b);
+    if (k === 'suivre') {                              // la règle, juste après Suivre l'aiguille
+      const r = document.createElement('button'); r.className = 'ico-btn bascule' + (SIM.regle ? ' on' : '');
+      r.title = 'Règle : tirez d\'une piqûre à une autre pour mesurer en mm'; r.innerHTML = icone('mesure');
+      r.onclick = () => { SIM.regle = !SIM.regle; SIM.mesure = null; r.classList.toggle('on', SIM.regle); $('#simuCanvas').classList.toggle('mesure', SIM.regle);
+        message(SIM.regle ? 'Règle : tirez d\'une piqûre à une autre dans la simulation.' : ''); dessinerSimulation(); };
+      v.appendChild(r);
+    }
   }
   const fond = document.createElement('label'); fond.className = 'ico-btn'; fond.title = 'Couleur du fond';
   fond.innerHTML = `<input type="color" value="${SIM_AFF.fond}">`;
@@ -1659,11 +1681,31 @@ $('#simuCanvas').addEventListener('wheel', (e) => {
   dessinerSimulation();
 }, { passive: false });
 $('#simuCanvas').addEventListener('pointerdown', (e) => {
+  if (SIM.regle && e.button === 0 && SIM.pts && SIM.repere) { mesurerSimulation(e); return; }
   const dpr = window.devicePixelRatio || 1, x0 = SIM.vue.x, y0 = SIM.vue.y;
   const mv = (ev) => { SIM.vue.x = x0 + (ev.clientX - e.clientX) * dpr; SIM.vue.y = y0 + (ev.clientY - e.clientY) * dpr; dessinerSimulation(); };
   const up = () => { document.removeEventListener('pointermove', mv); document.removeEventListener('pointerup', up); };
   document.addEventListener('pointermove', mv); document.addEventListener('pointerup', up);
 });
+// règle de la simulation : points en 0,1 mm, accrochée à la piqûre la plus proche parmi celles déjà brodées
+function mesurerSimulation(e) {
+  const cv = $('#simuCanvas'), dpr = window.devicePixelRatio || 1, { k, ox, oy } = SIM.repere;
+  const fin = Math.min(SIM.i, SIM.pts.length);
+  const ver = (ev) => {
+    const r = cv.getBoundingClientRect();
+    const ux = ((ev.clientX - r.left) * dpr - SIM.vue.x) / SIM.vue.k, uy = ((ev.clientY - r.top) * dpr - SIM.vue.y) / SIM.vue.k;
+    const x = (ux - ox) / k, y = (uy - oy) / k, seuil = 10 * dpr / (SIM.vue.k * k);
+    let best = null, d2 = seuil * seuil;
+    for (let i = 0; i < fin; i++) { const p = SIM.pts[i]; if (p[2] !== 'STITCH') continue; const d = (p[0] - x) ** 2 + (p[1] - y) ** 2; if (d < d2) { d2 = d; best = p; } }
+    return best ? { x: best[0], y: best[1], accroche: true } : { x, y, accroche: false };
+  };
+  const a = ver(e);
+  SIM.mesure = { a, b: a }; dessinerSimulation();
+  const mv = (ev) => { SIM.mesure = { a, b: ver(ev) }; dessinerSimulation(); };
+  const up = () => { document.removeEventListener('pointermove', mv); document.removeEventListener('pointerup', up);
+    const { b } = SIM.mesure; message(`Mesure : ${(Math.hypot(b.x - a.x, b.y - a.y) / 10).toFixed(2).replace('.', ',')} mm` + (a.accroche && b.accroche ? ' (d\'une piqûre à l\'autre)' : '')); };
+  document.addEventListener('pointermove', mv); document.addEventListener('pointerup', up);
+}
 $('#simuCanvas').addEventListener('dblclick', () => { SIM_AFF.suivre = false; memoriser(); SIM.vue = { k: 1, x: 0, y: 0 }; construireBarresSimu(); dessinerSimulation(); });
 
 // ---------------------------------------------------------------- texte brodé (sans fenêtre Ink/Stitch)
@@ -2013,7 +2055,7 @@ function adapterTouches(raccourci) {
   const [h, arg] = decodeURIComponent(location.hash.slice(1)).split('/');
   if (arg && h === 'objets') choisir([arg]);
   if (arg === 'realiste' && h === 'objets') MODE = 'realiste';
-  if (h === 'apercu' || (h === 'points' && arg)) S.simMode = MODES_SIMU.includes(arg) ? arg : 'realiste';   // ancien onglet Aperçu
+  if (h === 'apercu' || (h === 'points' && arg)) S.simMode = arg === 'points' ? 'animation' : MODES_SIMU.includes(arg) ? arg : 'realiste';   // ancien onglet Aperçu
   if (h === 'texte') { changerVue('objets'); S.texte = true; rendreTout(); }
   else changerVue(h === 'apercu' ? 'points' : ['points', 'export'].includes(h) ? h : 'objets');
 })();

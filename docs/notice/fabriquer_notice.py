@@ -358,10 +358,9 @@ c += [Chapitre(5, "Colonnes satin", "Le point brillant des bordures et des lettr
 c += [Chapitre(7, "Onglet Simulation", "Regarder la machine broder, dans son cadre"),
       capture("simulation", 120, "Animation des points dans le cadre schématisé (pointillés gris), avec le bâti (orange) ; "
                                  "à droite le cadre, le bâti et les statistiques."),
-      *puces("<b>Animation</b> : la machine brode point par point ; <b>vue en points</b>, <b>suivre l'aiguille</b> et "
-             "<b>tout voir</b> en boutons. "
-             "<b>Points</b> : tous les points d'un coup (sauts, coupes, densité, pénétrations). <b>Réaliste</b> : le fil sur le "
-             "tissu. Molette : zoom · glisser : déplacer · double-clic : tout voir.",
+      *puces("<b>Animation</b> : la machine brode point par point. Boutons <b>vue en points</b> (chaque piqûre), "
+             "<b>tout voir</b>, <b>suivre l'aiguille</b> et <b>règle</b> (mesure en mm d'une piqûre à l'autre). "
+             "<b>Réaliste</b> : le fil sur le tissu. Molette : zoom · glisser : déplacer. La carte de densité est dans l'aperçu des Objets.",
              "<b>Cadre</b> : choisissez votre cadre (ou ajoutez-le). Il est dessiné autour du motif, centré comme la machine le "
              "brodera ; le panneau dit si le motif tient. Choisir un cadre donne sa taille à la <b>feuille d'Inkscape</b> à la "
              "prochaine synchronisation ; <b>Centrer le motif dans le cadre</b> centre aussi le motif.",

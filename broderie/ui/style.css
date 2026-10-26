@@ -377,3 +377,5 @@ footer button { padding: 9px 16px; font-size: 13.5px; border-radius: 9px; }
   text-transform: none; letter-spacing: 0; border-radius: 6px; padding: 1px 7px; margin-right: 6px; }
 #liste li.calque:hover .tout-calque { visibility: visible; }
 #liste .tout-calque:hover { border-color: var(--accent); }
+
+#simuCanvas.mesure { cursor: crosshair; }
