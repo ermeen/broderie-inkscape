@@ -242,6 +242,33 @@ function suivreCouleur(input, appliquer, apercuLocal) {
   input.addEventListener('blur', () => { if (minut) envoyer(); });
 }
 
+// Couleurs déjà utilisées dans le dessin (tous calques) : un clic donne exactement la même aux objets choisis.
+const hexa = (c) => (/^#[0-9a-f]{3}$/i.test(c) ? '#' + [...c.slice(1)].map((x) => x + x).join('') : (c || '#000000').slice(0, 7)).toLowerCase();
+function nuancierDessin(choix, appliquer) {
+  const groupes = new Map();
+  for (const x of S.etat.objets) {
+    if (!/^#[0-9a-f]{3}([0-9a-f]{3})?/i.test(x.couleur || '')) continue;
+    const c = hexa(x.couleur);
+    if (!groupes.has(c)) groupes.set(c, []);
+    groupes.get(c).push(x.nom);
+  }
+  const d = document.createElement('div'); d.className = 'nuancier';
+  if (groupes.size < 2 && choix.every((o) => groupes.has(hexa(o.couleur)))) return d;   // rien d'autre à proposer
+  const actives = new Set(choix.map((o) => hexa(o.couleur)));
+  d.innerHTML = '<div class="muted small">Couleurs déjà dans le dessin</div><div class="pastilles"></div>';
+  [...groupes].forEach(([c, noms], i) => {
+    const b = document.createElement('button'); b.type = 'button';
+    b.className = 'pastille' + (actives.has(c) && actives.size === 1 ? ' on' : '');
+    b.style.background = c;
+    const fil = nomFil(c, i);
+    b.title = (fil.startsWith('Fil ') ? c : fil) + ' — ' + noms.join(', ');
+    if (noms.length > 1) b.innerHTML = `<span>${noms.length}</span>`;
+    b.onclick = async () => { await appliquer(c); rendreProps(); };
+    $('.pastilles', d).appendChild(b);
+  });
+  return d;
+}
+
 // ---------------------------------------------------------------- propriétés
 function valeurParDefaut(p) {
   if (p.default === null || p.default === undefined || p.default === '') return BORNES[p.name] ? BORNES[p.name][3] : null;
@@ -785,6 +812,7 @@ function rendreMulti(objs) {
   coul.innerHTML = `<label>Couleur (tous)</label><span class="couleur"><input type="color" value="${(o.couleur || '#000000').slice(0, 7)}"></span>`;
   suivreCouleur($('input', coul), async (v) => { for (const x of objs) await changerCouleur(x, v); });
   div.appendChild(coul);
+  div.appendChild(nuancierDessin(objs, async (v) => { for (const x of objs) await changerCouleur(x, v); }));
   const el = S.schema.element;
   if (el) {
     const fin = ['trim_after', 'stop_after'].map((n) => el.params.find((p) => p.name === n)).filter(Boolean);
@@ -806,7 +834,6 @@ function rendreProps() {
     <div><h3>${esc(o.nom)}</h3><span class="muted small">${esc(NOM_TYPE[t] || t)} · ${esc(o.balise === 'path' ? 'chemin' : o.balise)}</span></div>`;
   div.appendChild(ent);
   div.appendChild(boutonsCopie(o));
-  const hexa = (c) => (/^#[0-9a-f]{3}$/i.test(c) ? '#' + [...c.slice(1)].map((x) => x + x).join('') : (c || '#000000').slice(0, 7));
   const coul = document.createElement('div'); coul.className = 'ligne';
   coul.innerHTML = `<label>Couleur</label><span class="couleur"><input type="color" value="${hexa(o.couleur)}"><span class="muted small">${esc(o.couleur)}</span></span>`;
   suivreCouleur($('input', coul), (v) => changerCouleur(o, v), (v) => { $('.muted', coul).textContent = v; ent.querySelector('.vignette').style.color = v; });
@@ -830,6 +857,7 @@ function rendreProps() {
     montres = new Set([...montres, ...r.montres]);
   }
   div.appendChild(coul);
+  div.appendChild(nuancierDessin([o], (v) => changerCouleur(o, v)));
   const el = S.schema.element;
   if (el) {
     const fin = ['trim_after', 'stop_after'].map((n) => el.params.find((p) => p.name === n)).filter(Boolean);
