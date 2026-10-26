@@ -2259,6 +2259,59 @@ $('#bEnvoyer').onclick = async () => {
   }
 };
 $('#bFichePdf').onclick = () => commande('print');
+// Fiche machine en français : à imprimer ou à enregistrer en PDF (Fichier › Imprimer › PDF).
+// Fils dans l'ordre de couture avec leur bobine, longueur de fil par couleur (somme des points), cadre, bâti, durée.
+$('#bFiche').onclick = async () => {
+  const w = window.open('', '_blank');                  // ouverte tout de suite : sinon Safari la bloque
+  if (!w) { message('Autorisez les fenêtres surgissantes pour 127.0.0.1 dans Safari.', true); return; }
+  w.document.write('<p style="font:15px -apple-system,sans-serif;padding:30px">Préparation de la fiche…</p>');
+  try {
+    const d = await donneesPoints(), st = calculerStats(d);
+    if (!BOB.donnees) BOB.donnees = await api('bobines', { marque: BOB.marque, choix: BOB.choix });
+    const ap = await api('apercu', { ids: S.etat.selection, mode: 'points', options: { sauts: false, penetrations: false } });
+    // longueur de fil par couleur : somme des points brodés (fil du dessus, sans les sauts)
+    const fils = d.fils.map((c) => ({ couleur: c, mm: 0, points: 0 }));
+    let f = 0, prec = null;
+    for (const [x, y, c] of d.points) {
+      if (c === 'COLOR_CHANGE') { f = Math.min(f + 1, fils.length - 1); prec = null; continue; }
+      if (c !== 'STITCH') { prec = null; continue; }
+      if (prec) fils[f].mm += Math.hypot(x - prec[0], y - prec[1]) / 10;
+      fils[f].points++; prec = [x, y];
+    }
+    const bob = (c) => (BOB.donnees.fils || []).find((x) => x.couleur === String(c).toLowerCase()) || {};
+    const longueur = (mm) => { const m = mm * 1.15 / 1000; return m < 1 ? `${Math.max(1, Math.round(m * 100))} cm` : `${m.toFixed(1).replace('.', ',')} m`; };
+    const c = cadreChoisi(), bati = S.etat.bati, duree = st.min < 1 ? '< 1 min' : Math.round(st.min) + ' min';
+    const lignes = fils.map((x, i) => {
+      const b = bob(x.couleur);
+      return `<tr><td class="n">${i + 1}</td><td><span class="pa" style="background:${esc(x.couleur)}"></span></td>
+        <td><b>${b.bobine ? esc(`${BOB.donnees.marque} ${b.bobine.numero}`) : '—'}</b>${b.bobine ? ' · ' + esc(b.bobine.nom) : ''}<br><span class="m">${esc((b.objets || []).join(', '))}</span></td>
+        <td class="d">${x.points.toLocaleString('fr')}</td><td class="d">≈ ${longueur(x.mm)}</td></tr>`;
+    }).join('');
+    const svg = (ap.svg || '').replace(/<svg /, '<svg style="width:100%;height:100%" ');
+    w.document.open();
+    w.document.write(`<!doctype html><html lang="fr"><head><meta charset="utf-8"><title>Fiche – ${esc(S.etat.nom || 'dessin')}</title><style>
+      body{font:13px -apple-system,"Segoe UI",sans-serif;color:#222;margin:28px} h1{font-size:22px;margin:0 0 2px} .m{color:#777;font-size:11.5px}
+      .haut{display:flex;gap:24px;margin:18px 0} .img{width:300px;height:300px;border:1px solid #ddd;border-radius:8px;padding:8px;flex:none}
+      .infos div{margin:5px 0} .infos b{display:inline-block;min-width:150px;color:#555;font-weight:500}
+      table{width:100%;border-collapse:collapse;margin-top:6px} td,th{padding:6px 8px;border-bottom:1px solid #eee;text-align:left;vertical-align:top}
+      th{font-size:11px;text-transform:uppercase;color:#777} .n{width:22px;color:#777} .d{text-align:right;white-space:nowrap}
+      .pa{display:inline-block;width:22px;height:22px;border-radius:5px;border:1px solid #bbb} .imp{margin-top:18px}
+      @media print{.imp{display:none} body{margin:12mm}}</style></head><body>
+      <h1>${esc(S.etat.nom || 'Dessin')}</h1><div class="m">Fiche machine · Broderie ${esc(S.etat.version_panneau || '')} · ${new Date().toLocaleDateString('fr')}</div>
+      <div class="haut"><div class="img">${svg}</div><div class="infos">
+        <div><b>Dimensions</b>${st.larg.toFixed(1)} × ${st.haut.toFixed(1)} mm</div>
+        <div><b>Points</b>${st.n.toLocaleString('fr')}</div><div><b>Durée estimée</b>${duree}</div>
+        <div><b>Fils</b>${fils.length} · ${st.coupes} coupe(s)</div>
+        <div><b>Cadre</b>${c ? `${esc(c.nom)} (${c.largeur} × ${c.hauteur} mm)` : '—'}</div>
+        <div><b>Bâti</b>${bati ? `oui, à ${bati.ecart} mm du motif, brodé en premier` : 'non'}</div>
+        <div><b>Fil total</b>≈ ${longueur(fils.reduce((t, x) => t + x.mm, 0))}</div></div></div>
+      <h2 style="font-size:15px">Fils dans l'ordre de couture</h2>
+      <table><tr><th></th><th></th><th>Bobine · objets</th><th class="d">Points</th><th class="d">Fil (dessus)</th></tr>${lignes}</table>
+      <p class="m">Longueur de fil estimée : longueur des points + 15 % (tension et piqûres). Prévoyez de la marge.</p>
+      <button class="imp" onclick="print()">Imprimer ou enregistrer en PDF</button></body></html>`);
+    w.document.close();
+  } catch (e) { w.document.body.textContent = 'Fiche impossible : ' + e.message; }
+};
 $('#bPlus').onclick = () => { rendreCommandes(); $('#dlgCmd').showModal(); $('#cmdRecherche').focus(); };
 $('#cmdRecherche').oninput = rendreCommandes;
 $('#bAbandonner').onclick = async () => { S.etat = await api('abandonner'); rendreTout(); apercuBientot(); message('Modifications annulées.'); };
