@@ -447,6 +447,19 @@ function outils(o) {
   };
   const d = document.createElement('div'); d.className = 'outils';
   principaux.forEach((e) => d.appendChild(bouton(e)));
+  if (o.types.includes('fill_stitch') && !o.ids) {        // assistant appliqué (forme remplie)
+    const ap = document.createElement('button'); ap.textContent = 'Appliqué…';
+    ap.title = 'Transforme la forme en appliqué : placement (arrêt pour poser le tissu), fixation (arrêt pour découper), bordure satin';
+    ap.onclick = async () => {
+      const l = prompt('Largeur de la bordure satin (mm) :', '3'); if (l === null) return;
+      try {
+        const r = await api('applique', { id: o.id, largeur: parseFloat(String(l).replace(',', '.')) || 3 });
+        S.etat = r.etat; S.sel = `applique_${o.id}_bordure`; S.choix = new Set(); rendreTout(); apercuBientot();
+        message('Appliqué créé : 1 placement (arrêt, posez le tissu) · 2 fixation (arrêt, découpez le tissu) · 3 bordure satin. La forme d\'origine est masquée.');
+      } catch (e) { message(e.message, true); }
+    };
+    d.appendChild(ap);
+  }
   const blocO = bloc('Outils', d);
   if (autres.length) {
     const det = document.createElement('details'); det.className = 'theme';

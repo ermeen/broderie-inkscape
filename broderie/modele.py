@@ -1009,3 +1009,38 @@ def resume_couture(points):
         elif p[2] == "STITCH":
             dans = False
     return {"changements": chg, "sauts": sauts, "coupes": coupes}
+
+
+# ---------------------------------------------------------------- assistant appliqué
+def creer_applique(svg, i, largeur=3.0):
+    """Appliqué à partir d'une forme fermée : 1 placement (arrêt pour poser le tissu), 2 fixation (arrêt pour
+    découper le tissu), 3 bordure satin de largeur mm. La forme d'origine est masquée. Renvoie l'id du groupe."""
+    el = par_id(svg, i)
+    d = _tracé(el) if el is not None else ""
+    if not d:
+        return None
+    u = 1.0 / mm_par_unite(svg)                              # unités du dessin par mm
+    c = hex6(couleur(el)) or "#000000"
+    nom = decrire(el)["nom"]
+    g = etree.Element("{%s}g" % SVG_NS)
+    g.set("id", "applique_" + i)
+    g.set("{%s}label" % INKSCAPE_NS, "Appliqué : %s" % nom)
+    etapes = [("placement", "1 · Placement (arrêt : posez le tissu)", 0.3, {"stroke_method": "running_stitch",
+               "running_stitch_length_mm": "2.5", "stop_after": "True"}),
+              ("fixation", "2 · Fixation (arrêt : découpez le tissu)", 0.3, {"stroke_method": "running_stitch",
+               "running_stitch_length_mm": "2", "stop_after": "True"}),
+              ("bordure", "3 · Bordure satin", float(largeur), {"satin_column": "True", "zigzag_spacing_mm": "0.4",
+               "center_walk_underlay": "True"})]
+    for cle, libelle, epaisseur, reglages in etapes:
+        p = etree.SubElement(g, "{%s}path" % SVG_NS)
+        p.set("id", "applique_%s_%s" % (i, cle))
+        p.set("{%s}label" % INKSCAPE_NS, libelle)
+        p.set("d", d)
+        if el.get("transform"):
+            p.set("transform", el.get("transform"))
+        p.set("style", "fill:none;stroke:%s;stroke-width:%g" % (c, epaisseur * u))
+        for k, v in reglages.items():
+            p.set("{%s}%s" % (INKSTITCH_NS, k), v)
+    el.addnext(g)
+    montrer(svg, i, False)
+    return g.get("id")

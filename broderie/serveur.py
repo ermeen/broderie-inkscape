@@ -225,6 +225,9 @@ class Session:
         if op[0] == "visible":
             M.montrer(doc, op[1], op[2])
             return
+        if op[0] == "applique":
+            M.creer_applique(doc, op[1], op[2])
+            return
         if op[0] == "ordre_couleurs":
             M.ordre_par_couleur(doc)
             return
@@ -259,7 +262,7 @@ class Session:
     # --- actions du panneau -------------------------------------------------
     def action(self, nom, d):
         r = self._action(nom, d)
-        if nom in ("params", "couleur", "ordre", "abandonner", "sync", "lettrage", "assembler", "marquer_a_jour", "cadre", "placer", "visible", "appliquer_fils", "bati", "figer", "lettres"):
+        if nom in ("params", "couleur", "ordre", "abandonner", "sync", "lettrage", "assembler", "marquer_a_jour", "cadre", "placer", "visible", "appliquer_fils", "bati", "figer", "lettres", "applique"):
             self.sauver()
         return r
 
@@ -316,6 +319,13 @@ class Session:
                 return self.sync(d)
             if self.document is None:
                 raise ValueError("Aucun dessin : lancez Extensions › Broderie › Panneau de broderie dans Inkscape.")
+            if nom == "applique":                      # assistant appliqué : placement, fixation, bordure satin
+                ident = M.creer_applique(self.document, d["id"], float(d.get("largeur") or 3))
+                if not ident:
+                    raise ValueError("Choisissez une forme fermée (rectangle, cercle, chemin…).")
+                self.attente.append(("applique", d["id"], float(d.get("largeur") or 3)))
+                self.version += 1
+                return {"id": ident, "etat": self.etat()}
             if nom == "lettres":                       # réglages des lettres d'un texte (par type de forme)
                 lettre = d.get("lettre")
                 if not M.regler_lettres(self.document, d["id"], d["type"], d.get("valeurs") or {}, lettre):
