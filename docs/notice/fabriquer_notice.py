@@ -308,8 +308,8 @@ c += [Chapitre(4, "Onglet Objets", "Régler la broderie de chaque forme"),
       p("Choisir", "h2"),
       *puces(touche("clic") + " un objet · " + touche("Cmd") + " " + touche("clic") + " en ajouter ou en retirer · "
              + touche("Maj") + " " + touche("clic") + " toute une suite.",
-             "Un clic sur le <b>nom d'un calque</b> choisit tous ses objets ; un <b>clic dans l'aperçu</b> choisit "
-             "l'objet sous la souris.",
+             "Un clic sur le <b>nom d'un calque</b> choisit tous ses objets (▸ / ▾ le replie) ; un <b>clic dans "
+             "l'aperçu</b> choisit l'objet sous la souris. La <b>punaise</b> garde la liste en haut pendant que les réglages défilent.",
              "<b>Glissez</b> un objet ou un calque dans la liste pour changer l'ordre de couture. L'<b>œil</b> masque "
              "un objet ou un calque : il n'est plus brodé, mais reste dans la liste.",
              "Plusieurs objets : les réglages s'appliquent à tous ; <b>≠</b> signale une valeur différente d'un objet "

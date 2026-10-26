@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape" xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd" xmlns:inkstitch="http://inkstitch.org/namespace" width="120mm" height="120mm" viewBox="0 0 120 120" sodipodi:docname="coeur.svg">
+  <metadata><inkstitch:inkstitch_svg_version>4</inkstitch:inkstitch_svg_version></metadata>
+  <g inkscape:groupmode="layer" id="calque_coeur" inkscape:label="Cœur">
+    <path id="coeur" inkscape:label="Cœur" d="M 60,95 C 20,65 15,40 35,30 C 48,24 57,33 60,40 C 63,33 72,24 85,30 C 105,40 100,65 60,95 Z" style="fill:#d64545;stroke:none"/>
+    <path id="bordure" inkscape:label="Bordure satin" d="M 30,100 C 50,92 70,92 90,100" style="fill:none;stroke:#2d4a7a;stroke-width:9" inkstitch:satin_column="True"/>
+  </g>
+  <g inkscape:groupmode="layer" id="calque_tige" inkscape:label="Tige">
+    <path id="tige" inkscape:label="Tige" d="M 60,95 C 56,100 55,105 58,112" style="fill:none;stroke:#2e8b57;stroke-width:0.3"/>
+  </g>
+</svg>

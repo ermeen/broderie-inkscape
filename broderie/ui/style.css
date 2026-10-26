@@ -329,3 +329,30 @@ footer button { padding: 9px 16px; font-size: 13.5px; border-radius: 9px; }
 .curseur-bati { margin: 8px 0; }
 .curseur-bati .haut { display: flex; justify-content: space-between; font-size: 12.5px; }
 .curseur-bati input { width: 100%; accent-color: var(--accent); }
+
+/* réglage vide dans Ink/Stitch (désactivé / automatique) : curseur grisé, case « Activer » */
+.reglage.inactif input[type=range] { opacity: .4; }
+.reglage.inactif input[type=number]::placeholder { color: var(--muted); font-style: italic; }
+.reglage .activer { display: inline-flex; align-items: center; gap: 4px; font-size: 11.5px; color: var(--accent); margin-right: 6px; cursor: pointer; }
+
+/* punaise de la carte « Calques et objets » : épinglée, elle reste en haut de la colonne pendant que les
+   réglages défilent ; la molette sur la liste ne fait défiler que la liste */
+.actions-titre { display: inline-flex; gap: 6px; align-items: center; }
+.ico-epingle { width: 28px; height: 26px; padding: 0; display: inline-flex; align-items: center; justify-content: center; border-radius: 7px;
+  background: none; border: 1px solid var(--bord); color: var(--muted); }
+.ico-epingle svg { width: 16px; height: 16px; transform: rotate(35deg); transition: transform .15s; }
+.ico-epingle.on { background: var(--sel); border-color: var(--accent); color: var(--texte); }
+.ico-epingle.on svg { transform: none; }
+#carteListe.epingle { position: sticky; top: 0; z-index: 3; flex: none; box-shadow: 0 6px 14px rgba(0,0,0,.28); }
+#liste { overscroll-behavior: contain; }
+/* épinglée, la carte ne prend jamais plus de la moitié de la colonne : sa liste défile alors à l'intérieur */
+#carteListe.epingle { max-height: 50%; display: flex; flex-direction: column; }
+#carteListe.epingle #liste { flex: 1 1 auto; min-height: 56px; max-height: none; }
+#carteListe.epingle #aideSelection { flex: none; }
+
+/* calques repliables (▸ / ▾) */
+#liste li.calque .replier { border: none; background: none; padding: 0 6px 0 0; color: var(--texte); font-size: 15px; line-height: 1; width: 20px; cursor: pointer; }
+#liste li.calque .replier:hover { color: var(--texte); }
+/* carte épinglée : pas de dépassement sur les réglages ; l'aide reste au survol */
+#carteListe.epingle { overflow: hidden; }
+#carteListe.epingle #aideSelection { display: none; }

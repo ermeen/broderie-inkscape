@@ -68,6 +68,8 @@ const ESSENTIELS = {
   satin_column: ['zigzag_spacing_mm', 'pull_compensation_mm', 'max_stitch_length_mm', 'split_method'],
   stroke: ['running_stitch_length_mm', 'repeats', 'zigzag_spacing_mm', 'line_count', 'min_line_dist_mm', 'satin_guide_pattern_position'],
 };
+// même réglage, sens différent selon le type : pour un satin, la longueur max. sert à découper les longs points
+const NOMS_TYPE = { satin_column: { max_stitch_length_mm: 'Découpe des longs points (longueur max.)', split_method: 'Méthode de découpe' } };
 const NOMS = { // libellés simples
   row_spacing_mm: 'Densité (écart entre les rangs)', angle: 'Angle', max_stitch_length_mm: 'Longueur de point',
   zigzag_spacing_mm: 'Densité (écart entre les points)', pull_compensation_mm: 'Compensation', running_stitch_length_mm: 'Longueur de point',
@@ -81,6 +83,8 @@ const BORNES = { // curseurs : [min, max, pas, valeur par défaut d'Ink/Stitch]
   repeats: [1, 10, 1, 1], line_count: [2, 50, 1, 10], min_line_dist_mm: [0.2, 10, 0.1, 0], meander_scale_percent: [20, 400, 5, 100],
   pattern_size_mm: [1, 10, 0.5, 3], rows_per_thread: [1, 10, 1, 2],
 };
+// réglages vides par défaut dans Ink/Stitch : ce que veut dire « vide » (sinon : « auto »)
+const VIDE = { max_stitch_length_mm: 'non' };
 const THEMES = [
   ['Sous-couche', (p) => !!p.groupe],
   ['Compensation', (p) => /compensation/.test(p.name)],
@@ -137,6 +141,14 @@ function glisser(li, id, calque) {
   });
 }
 
+// calques repliés dans la liste (retenus d'une fois sur l'autre)
+let REPLIES = new Set();
+try { REPLIES = new Set(JSON.parse(localStorage.getItem('broderie.replies') || '[]')); } catch (e) { /* aucun */ }
+function replier(cle, oui) {
+  if (oui) REPLIES.add(cle); else REPLIES.delete(cle);
+  try { localStorage.setItem('broderie.replies', JSON.stringify([...REPLIES])); } catch (e) { /* rien */ }
+  rendreListe();
+}
 function rendreListe() {
   const ul = $('#liste'); ul.innerHTML = '';
   if (!S.choix.size && S.sel) S.choix.add(S.sel);
@@ -148,23 +160,25 @@ function rendreListe() {
   }
   const plusieursCalques = calques.size > 1;
   let dernier = null;
-  for (const [, c] of calques) {
+  for (const [cle, c] of calques) {
+    const replie = REPLIES.has(cle) && !c.objets.some((o) => o.id === S.sel);   // l'objet choisi reste visible
     if (plusieursCalques || calques.size === 1 && c.objets.length > 1) {
       const h = document.createElement('li'); h.className = 'calque';
       const tous = c.objets.every((o) => S.choix.has(o.id));
       const cm = c.objets[0].calque_masque;
-      h.innerHTML = `<span class="nom">▾ ${esc(c.nom)}</span><span class="type">${c.objets.length} objet(s)</span>`
+      h.innerHTML = `<button class="replier" title="${replie ? 'Déplier ce calque' : 'Replier ce calque'}">${replie ? '▸' : '▾'}</button><span class="nom">${esc(c.nom)}</span><span class="type">${c.objets.length} objet(s)</span>`
         + (c.objets[0].calque ? `<button class="oeil" title="${cm ? 'Calque masqué : non brodé. Cliquer pour l’afficher' : 'Masquer ce calque (il ne sera pas brodé)'}">${OEIL(!cm)}</button>` : '');
       if (cm) h.classList.add('masque');
       const bo = h.querySelector('.oeil');
       if (bo) bo.onclick = (e) => { e.stopPropagation(); basculerVisible(c.objets[0].calque, cm); };
+      $('.replier', h).onclick = (e) => { e.stopPropagation(); replier(cle, !replie); };
       h.title = 'Choisir tout le calque (⌘-clic : ajouter à la sélection)';
       if (tous && S.choix.size > 1) h.classList.add('on');
       h.onclick = (e) => choisir(c.objets.map((o) => o.id), e.metaKey || e.ctrlKey);
       if (c.objets[0].calque) glisser(h, c.objets[0].calque, true);
       ul.appendChild(h);
     }
-    for (const o of c.objets) {
+    for (const o of replie ? [] : c.objets) {
       const t = typePrincipal(o);
       const li = document.createElement('li');
       li.className = 'objet' + (S.choix.has(o.id) ? ' on' : '') + (o.masque ? ' masque' : '');
@@ -196,6 +210,7 @@ function rendreListe() {
   if (!S.etat.objets.length) ul.innerHTML = '<li class="muted small" style="cursor:default">Aucun objet. Dessinez une forme dans Inkscape, puis appuyez sur ⌘⌥B.</li>';
   const aide = $('#aideSelection');
   if (aide) aide.textContent = S.choix.size > 1 ? `${S.choix.size} objets choisis` : '⌘-clic : plusieurs · ⇧-clic : une suite · clic sur un calque : tout le calque · glisser : changer l’ordre';
+  $('#carteListe .carte-titre span').title = '⌘-clic : plusieurs · ⇧-clic : une suite · clic sur un calque : tout le calque · ▸ / ▾ : replier ou déplier · glisser : changer l’ordre';
 }
 
 function changerCouleur(o, valeur) {
@@ -281,10 +296,16 @@ function reglage(o, p, nomSimple) {
     $('select', d).onchange = (e) => envoyer(o, { [p.name]: e.target.value });
   } else if (BORNES[p.name] && !isNaN(parseFloat(v ?? BORNES[p.name][3]))) {
     const [mi, ma, pas, def] = BORNES[p.name];
+    // réglage vide dans Ink/Stitch (découpe des longs points, angle d'un clone…) : désactivé ou automatique.
+    // On ne montre pas une valeur qui ne serait pas appliquée : curseur grisé et case « Activer ».
+    const vide = !modifie && (p.default === null || p.default === undefined || p.default === '');
+    const etatVide = VIDE[p.name] || 'auto';
     const n = parseFloat(v ?? def);
-    d.innerHTML = `<div class="haut"><label title="${aide}">${lib}</label><span class="val">${raz}<input type="number" step="${pas}" value="${n}">${unite}</span></div>
+    d.innerHTML = `<div class="haut"><label title="${aide}">${lib}</label><span class="val">${vide
+      ? `<label class="activer" title="Appliquer la valeur proposée (${n} ${esc(p.unite || '')})"><input type="checkbox"> Activer</label>` : raz}<input type="number" step="${pas}" value="${vide ? '' : n}" placeholder="${etatVide}">${unite}</span></div>
       <input type="range" min="${mi}" max="${ma}" step="${pas}" value="${n}">`;
     const num = $('input[type=number]', d), cur = $('input[type=range]', d);
+    if (vide) { d.classList.add('inactif'); $('.activer input', d).onchange = () => envoyer(o, { [p.name]: n }); }
     cur.oninput = () => { num.value = cur.value; };
     cur.onchange = () => envoyer(o, { [p.name]: cur.value });
     num.onchange = () => envoyer(o, { [p.name]: num.value });
@@ -292,7 +313,7 @@ function reglage(o, p, nomSimple) {
     d.innerHTML = `<div class="haut"><label title="${aide}">${lib}</label><span class="val">${raz}<input type="text" value="${esc(o.valeurs[p.name] ?? '')}" placeholder="${esc(valeurParDefaut(p) ?? 'auto')}">${unite}</span></div>`;
     $('input', d).onchange = (e) => envoyer(o, { [p.name]: e.target.value });
   }
-  $('.raz', d).onclick = () => envoyer(o, { [p.name]: null });
+  const raz0 = $('.raz', d); if (raz0) raz0.onclick = () => envoyer(o, { [p.name]: null });   // absent si le réglage est vide
   return d;
 }
 
@@ -354,7 +375,7 @@ function sectionType(o, typ) {
   }
   // 2. réglages essentiels
   const ess = (ESSENTIELS[typ] || []).map((n) => parNom(typ, n)).filter((p) => p && visible(o, p, typ));
-  if (ess.length) out.push(bloc('Paramètres ' + T.titre.toLowerCase(), ...ess.map((p) => reglage(o, p, NOMS[p.name]))));
+  if (ess.length) out.push(bloc('Paramètres ' + T.titre.toLowerCase(), ...ess.map((p) => reglage(o, p, (NOMS_TYPE[typ] || {})[p.name] || NOMS[p.name]))));
   // 3. sous-couche
   if (typ === 'fill_stitch') {
     if (parNom(typ, 'fill_underlay')) {
@@ -693,6 +714,14 @@ function modeSimulation(m) {
 }
 $$('#simMode button').forEach((b) => { b.onclick = () => modeSimulation(b.dataset.mode); });
 $$('#vues button').forEach((b) => { b.onclick = () => changerVue(b.dataset.vue); });
+// punaise : la carte « Calques et objets » reste en haut, seuls les réglages en dessous défilent
+function epingler(oui) {
+  $('#carteListe').classList.toggle('epingle', oui); $('#bEpingle').classList.toggle('on', oui);
+  $('#bEpingle').title = oui ? 'Désépingler : la liste défile avec les réglages' : 'Épingler : la liste reste en haut, seuls les réglages défilent';
+  try { localStorage.setItem('broderie.epingle', oui ? '1' : '0'); } catch (e) { /* rien */ }
+}
+try { epingler(localStorage.getItem('broderie.epingle') !== '0'); } catch (e) { epingler(true); }
+$('#bEpingle').onclick = () => epingler(!$('#carteListe').classList.contains('epingle'));
 $('#bTexte').onclick = () => { S.texte = true; S.texteVu = null; TX.dims = null; const o = S.etat.objets.find((x) => x.id === S.sel); if (o && typePrincipal(o) !== 'lettrage') S.sel = null; TX.pour = null; rendreTout(); };
 
 // ---------------------------------------------------------------- aperçu des points (zoom net par viewBox)

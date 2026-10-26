@@ -5,7 +5,18 @@ Le numéro de version suit le schéma `MAJEUR.MINEUR.CORRECTIF` :
 - **MINEUR** : nouvelle fonction ;
 - **CORRECTIF** : correction sans nouvelle fonction.
 
-## 1.5.0 — 25 octobre 2026
+## 1.6.0 — 26 octobre 2026
+
+**Onglet Objets**
+- **Punaise** sur la carte « Calques et objets » : épinglée (par défaut), la liste reste en haut et seuls les réglages en dessous défilent à la molette. On passe ainsi d'un objet ou d'un calque à l'autre sans remonter. Un clic sur la punaise la libère.
+- **Calques repliables** : un clic sur ▸ / ▾ replie ou déplie un calque. Le calque de l'objet choisi reste déplié, et le choix est retenu.
+
+**Correction : réglages vides dans Ink/Stitch**
+- Certains réglages n'ont pas de valeur par défaut dans Ink/Stitch (vide = désactivé ou automatique). Le panneau affichait pourtant une valeur qu'il n'appliquait pas. Exemple : la découpe des longs points d'une colonne satin affichait 3 mm, alors qu'aucune découpe n'était faite tant qu'on ne bougeait pas le curseur.
+- Ces réglages apparaissent maintenant grisés, marqués « non » ou « auto », avec une case **Activer** qui applique vraiment la valeur proposée. Concernés : découpe des longs points (satin et trait), angle d'un clone, écart minimal d'un trait ondulé.
+- Pour un satin, le réglage s'appelle désormais « Découpe des longs points (longueur max.) ». Vérifié sur une bordure satin : sans découpe, le plus long point mesure 9 mm ; après « Activer » (3 mm), il mesure 4,1 mm.
+
+ — 25 octobre 2026
 
 **Onglet Simulation** (remplace Points et Aperçu)
 - Trois onglets au lieu de quatre : Objets, Simulation, Export. L'aperçu des réglages reste en haut de l'onglet Objets.

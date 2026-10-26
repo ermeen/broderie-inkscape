@@ -23,8 +23,8 @@
   <section id="v-objets" class="vue">
     <div id="emplApercuObjets" class="empl-apercu"><div id="apercu" class="vide">L'aperçu des points s'affiche ici.</div><div id="poignee" title="Glisser pour agrandir ou réduire l'aperçu"></div></div>
     <div class="defile">
-    <div class="carte">
-      <div class="carte-titre"><span>Calques et objets</span><button id="bTexte" class="petit" title="Ajouter un texte brodé">＋ Texte</button></div>
+    <div class="carte" id="carteListe">
+      <div class="carte-titre"><span>Calques et objets</span><span class="actions-titre"><button id="bTexte" class="petit" title="Ajouter un texte brodé">＋ Texte</button><button id="bEpingle" class="ico-epingle" title="Épingler : la liste reste en haut, seuls les réglages défilent"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M9 3h6M10 3v6l-3 4h10l-3-4V3M12 13v8"/></svg></button></span></div>
       <ul id="liste"></ul>
       <div id="aideSelection" class="muted small"></div>
     </div>
