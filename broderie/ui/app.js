@@ -157,7 +157,7 @@ function glisser(li, id, calque) {
         const ids = !g.calque && S.choix.has(g.id) && S.choix.size > 1 ? [...S.choix] : [g.id];
         S.etat = await api('placer', { id: g.id, ids, cible: id, apres: z === 'apres' });
       }
-      S.simu = null; rendreTout(); apercuBientot();
+      S.simu = S.simuP = null; rendreTout(); apercuBientot();
     } catch (x) { message(x.message, true); }
   });
 }
@@ -255,7 +255,7 @@ function alerteTransparent(objs) {
   d.innerHTML = `<b>Fond transparent : pas brodé.</b> L'opacité du fond est à 0 (curseur A dans Fond et contour d'Inkscape), `
     + `Ink/Stitch ne calcule aucun point. <button type="button" class="petit">Rendre le fond opaque</button>`;
   $('button', d).onclick = async () => {
-    try { S.etat = await api('opaque', { ids: objs.map((x) => x.id) }); S.simu = null; rendreTout(); apercuBientot(); message('Fond rendu opaque : l\'objet sera brodé.'); }
+    try { S.etat = await api('opaque', { ids: objs.map((x) => x.id) }); S.simu = S.simuP = null; rendreTout(); apercuBientot(); message('Fond rendu opaque : l\'objet sera brodé.'); }
     catch (e) { message(e.message, true); }
   };
   return d;
@@ -269,7 +269,7 @@ function isoler(ids) {
   S.isole = ids && ids.length && !meme ? new Set(ids) : null;
   S.recadrer = true;                                  // l'aperçu se cadre sur ce qui est montré
   const vieux = $('#apercu .barre-rendu'); if (vieux) vieux.replaceWith(barreRendu());
-  S.simu = null; rendreListe(); apercuBientot();
+  S.simu = S.simuP = null; rendreListe(); apercuBientot();
   message(S.isole ? `Isolé : seulement ${S.isole.size > 1 ? `ces ${S.isole.size} objets` : 'cet objet'} dans l'aperçu et la simulation (le dessin ne change pas).` : 'Tout le dessin est de nouveau affiché.');
 }
 // « Tout désélectionner » dans l'en-tête de la liste, seulement quand quelque chose est choisi (Échap fait pareil)
@@ -292,7 +292,7 @@ function bandeauSelection() {
   b.innerHTML = `<span>Sélection d’Inkscape : <b>${n}</b> objet${n > 1 ? 's' : ''} sur ${total}</span><button type="button" class="petit">Tout le dessin</button>`;
   b.title = 'Au ⌘⌥B, des objets étaient sélectionnés dans Inkscape : la liste, l’aperçu et l’export se limitent à eux.';
   $('button', b).onclick = async () => {
-    try { S.etat = await api('tout_le_dessin'); S.simu = null; rendreTout(); apercuBientot(); } catch (e) { message(e.message, true); }
+    try { S.etat = await api('tout_le_dessin'); S.simu = S.simuP = null; rendreTout(); apercuBientot(); } catch (e) { message(e.message, true); }
   };
 }
 
@@ -500,7 +500,7 @@ function modeReglage(o, noms) {
     if (k === 'auto') b.onclick = async () => {
       try {
         const r = await api('auto', { ids: o.ids || [o.id], noms });
-        S.etat = r.etat; S.simu = null; rendreTout(); apercuBientot();
+        S.etat = r.etat; S.simu = S.simuP = null; rendreTout(); apercuBientot();
         if (!S.profilVu && S.etat.profil) { S.profilVu = true; message(`Auto d'après le profil « ${S.etat.profils.tissu[S.etat.profil.tissu]} » : changez-le dans Export › Préparer la broderie.`); }
       } catch (e) { message(e.message, true); }
     };
@@ -932,7 +932,7 @@ function modePlacement() {
 async function poserPosition(id, quoi, extra) {
   try {
     S.etat = await api('position', { id, quoi, ...extra }, extra.retirer ? false : 'Ink/Stitch pose le repère…');
-    S.simu = null; rendreTout(); apercuBientot();
+    S.simu = S.simuP = null; rendreTout(); apercuBientot();
     message(extra.retirer ? 'Repère retiré : Ink/Stitch choisit.' : 'Repère posé : l’aperçu montre le nouveau trajet. Il se déplace aussi dans Inkscape (symbole relié à la forme).');
   } catch (e) { message(e.message, true); }
 }
@@ -1286,6 +1286,7 @@ async function apercu() {
   try {
     badge.textContent = MODE === 'points' ? 'Calcul des points…' : 'Rendu réaliste…';
     const modeDemande = MODE;
+    if (MODE === 'points' && (AFF.sauts || AFF.coupes)) donneesPoints().catch(() => {});   // en parallèle : sauts et coupes
     const r = await api('apercu', { ids: idsVus(), mode: MODE, options: { sauts: false, penetrations: AFF.penetrations } });
     if (modeDemande !== 'points' && S.vue !== 'points') { apercuDemande++; return; }    // rendu réaliste arrivé après le retour aux Objets
     if (!r.svg) { a.className = 'vide'; a.textContent = r.erreur || 'Aucun point.'; a.appendChild(barreRendu()); vb = vb0 = null; return; }
@@ -1681,7 +1682,7 @@ let minuterie = null;
 function apercuBientot() {
   clearTimeout(minuterie);
   minuterie = setTimeout(() => {
-    S.simu = null;
+    S.simu = S.simuP = null;
     if (S.vue === 'points') { if (S.simMode !== 'animation') apercu(); else chargerSimulation(); rendreStats('#stats').then(verifierCadre); }
     else if (S.vue === 'objets') { if (S.texte) apercuTexteBientot(); else apercu(); }
     else if (S.vue === 'export') { rendreExport(); rendreProfil(); }
@@ -1689,13 +1690,19 @@ function apercuBientot() {
 }
 
 // ---------------------------------------------------------------- statistiques (points d'Ink/Stitch)
+// une seule demande à la fois pour les mêmes objets : l'aperçu la lance tout de suite, en même temps que le dessin
+// des points, et les sauts, la simulation ou les statistiques reprennent la même réponse
 async function donneesPoints() {
-  if (!S.simu) {
-    const r = await api('points', { ids: idsVus() });
-    if (r.erreur) throw new Error(r.erreur);
-    S.simu = r;
+  const cle = JSON.stringify(idsVus());
+  if (S.simu && S.simuCle === cle) return S.simu;
+  if (!S.simuP || S.simuPCle !== cle) {
+    S.simuPCle = cle;
+    S.simuP = api('points', { ids: idsVus() }).then((r) => { if (r.erreur) throw new Error(r.erreur); return r; });
+    S.simuP.catch(() => { S.simuP = null; });
   }
-  return S.simu;
+  const p = S.simuP, r = await p;
+  if (S.simuP === p) { S.simu = r; S.simuCle = cle; }
+  return r;
 }
 function calculerStats(d) {
   let n = 0, sauts = 0, coupes = 0, chg = 0, x0 = Infinity, x1 = -Infinity, y0 = Infinity, y1 = -Infinity;
@@ -1756,7 +1763,7 @@ $('#fPosition').onchange = async (e) => {
   try {
     S.etat = await api('origine', { actif: feuille }, feuille ? 'Ink/Stitch pose le point d\'origine…' : null);
     if (feuille && !$('#cbCadrePage').checked) { $('#cbCadrePage').checked = true; await pageAuCadre(); }
-    S.simu = null; rendreAttente(); redessinerCadre(); if (S.simMode === 'animation') chargerSimulation();
+    S.simu = S.simuP = null; rendreAttente(); redessinerCadre(); if (S.simMode === 'animation') chargerSimulation();
     message(feuille ? 'Le motif sera brodé à sa place sur la feuille (qui a la taille du cadre) : déplacez-le dans Inkscape pour le décaler.'
       : 'Le motif sera brodé au centre du cadre.');
   } catch (x) { message(x.message, true); e.target.value = feuille ? 'centre' : 'feuille'; }
@@ -1789,7 +1796,7 @@ async function verifier() {
       if (p.corriger.action === 'params') S.etat = await api('params', { id: p.id, valeurs: p.corriger.valeurs });
       else if (p.corriger.action === 'visible') S.etat = await api('visible', { id: p.id, visible: p.corriger.visible });
       else if (p.corriger.action === 'opaque') S.etat = await api('opaque', { id: p.id });
-      S.simu = null; rendreTout(); verifier();
+      S.simu = S.simuP = null; rendreTout(); verifier();
     } catch (e) { message(e.message, true); }
   }; });
 }
@@ -1812,7 +1819,7 @@ for (const id of ['#prTissu', '#prStab', '#prFil']) {
   $(id).onchange = async () => {
     try {
       S.etat = await api('profil', { profil: { tissu: $('#prTissu').value, stabilisateur: $('#prStab').value, fil: $('#prFil').value } });
-      S.simu = null; rendreTout(); rendreExport(); rendreProfil();
+      S.simu = S.simuP = null; rendreTout(); rendreExport(); rendreProfil();
       message('Profil enregistré dans le dessin : les réglages « auto » sont recalculés, ceux réglés à la main ne changent pas.');
     } catch (e) { message(e.message, true); }
   };
@@ -1832,7 +1839,7 @@ $('#bPrTissu').onclick = async () => {
       for (const typ of Object.keys(l ? l.types : {})) if (x[typ]) await api('lettres', { id: o.id, type: typ, valeurs: x[typ] });
       nt++;
     }
-    S.etat = await api('etat'); S.simu = null; rendreTout(); rendreExport(); rendreProfil();
+    S.etat = await api('etat'); S.simu = S.simuP = null; rendreTout(); rendreExport(); rendreProfil();
     message(`${r.n} objet(s) en auto${nt ? `, ${nt} texte(s) réglé(s)` : ''}. Chaque réglage reste modifiable : la valeur passe alors « à la main ».`);
   } catch (e) { message(e.message, true); }
 };
@@ -1844,13 +1851,13 @@ $('#bPrOrdre').onclick = async () => {
     const gain = `changements de fil : ${r.avant.changements} → ${r.apres.changements} · sauts : ${r.avant.sauts} → ${r.apres.sauts}`;
     if (!confirm(`Regrouper les couleurs (calque par calque) ?\n${gain}\n\nVérifiez ensuite la simulation : un objet peut passer au-dessus d'un autre.`)) { i.textContent = gain; return; }
     const r2 = await api('optimiser', { appliquer: true });
-    S.etat = r2.etat; S.simu = null; rendreTout(); rendreExport(); i.textContent = '✓ ' + gain;
+    S.etat = r2.etat; S.simu = S.simuP = null; rendreTout(); rendreExport(); i.textContent = '✓ ' + gain;
   } catch (e) { i.textContent = ''; message(e.message, true); }
 };
 $('#bPrLiaison').onclick = async () => {
   try {
     const r = await api('relier_sauts', { max: +$('#prLiaison').value || 3 }, 'Ink/Stitch relie les sauts…');
-    S.etat = r.etat; S.simu = null; rendreTout(); rendreExport();
+    S.etat = r.etat; S.simu = S.simuP = null; rendreTout(); rendreExport();
     message(r.n ? `${r.n} saut(s) relié(s) par un point droit (nouveaux traits dans la liste, à masquer ou supprimer si l'un se voit).`
       : 'Aucun saut court à relier entre deux formes de même couleur.');
   } catch (e) { message(e.message, true); }
@@ -1858,7 +1865,7 @@ $('#bPrLiaison').onclick = async () => {
 $('#bPrCoupes').onclick = async () => {
   try {
     const r = await api('couper_sauts', { seuil: +$('#prSeuil').value || 5 }, 'Recherche des sauts longs…');
-    S.etat = r.etat; S.simu = null; rendreTout(); rendreExport();
+    S.etat = r.etat; S.simu = S.simuP = null; rendreTout(); rendreExport();
     message(r.coupes ? `${r.coupes} coupe(s) ajoutée(s) après les sauts longs.` : 'Aucun saut long sans coupe.');
   } catch (e) { message(e.message, true); }
 };
@@ -1899,7 +1906,7 @@ async function rendreBobines() {
     for (const f of BOB.donnees.fils) if (f.bobine && f.ecart >= 0.5) corr[f.couleur] = f.bobine.couleur;
     try {
       S.etat = await api('appliquer_fils', { correspondances: corr });
-      BOB.choix = {}; BOB.ouvert = null; S.simu = null;
+      BOB.choix = {}; BOB.ouvert = null; S.simu = S.simuP = null;
       rendreAttente(); rendreBobines(); rendreStats('#statsExport');
       message(`${Object.keys(corr).length} couleur(s) remplacée(s) par celles des bobines. Synchronisez pour les envoyer à Inkscape.`);
     } catch (e) { message(e.message, true); }
@@ -1972,7 +1979,7 @@ async function envoyerBati() {
   try {
     const c = cadreChoisi();
     S.etat = await api('bati', { ...BATI, cadre_largeur: c ? c.largeur : null, cadre_hauteur: c ? c.hauteur : null });
-    S.simu = null; rendreAttente(); rendreBati();
+    S.simu = S.simuP = null; rendreAttente(); rendreBati();
     if (S.simMode !== 'animation') apercu(); else chargerSimulation();
     rendreStats('#stats').then(verifierCadre);
     message(BATI.actif ? 'Bâti placé autour du motif : Synchroniser pour l\'envoyer à Inkscape.' : 'Bâti retiré : Synchroniser pour l\'enlever d\'Inkscape.');

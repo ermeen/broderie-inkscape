@@ -126,6 +126,7 @@ class Session:
         self.journal = []
         self.vu = 0.0                     # dernier signe de vie du panneau
         self.tache = None                 # commande Ink/Stitch en cours (fenêtre éventuelle)
+        self.calculs = {}                 # derniers aperçus / points / densités, par dessin et demande
         self.actif = time.time()
 
     # --- sauvegarde : les modifications en attente survivent à un redémarrage du panneau ---------
@@ -346,20 +347,37 @@ class Session:
             with self.verrou:
                 if self.document is None:
                     raise ValueError("Aucun dessin : appuyez sur ⌘⌥B dans Inkscape.")
-                copie = _lire(etree.tostring(self.document.getroot()))
-            if nom == "densite":
-                svg, err = E.densite(copie, d.get("ids") or None, d.get("seuils"))
-                return {"svg": svg, "erreur": None if svg else _message(err)}
-            if nom == "apercu":
-                svg, err = E.apercu(copie, d.get("ids") or None, d.get("mode") or "points", d.get("options") or {})
-                return {"svg": svg, "erreur": None if svg else (err or "")[-2000:]}
-            r, err = E.points(copie, d.get("ids") or None)
-            if r:
-                try:
-                    r["page"] = M.page_et_centre(copie, d.get("ids") or None)
-                except Exception:
-                    r["page"] = None
-            return r or {"erreur": _message(err) or "Aucun point."}
+                texte = etree.tostring(self.document.getroot())
+            # même dessin, même demande : le résultat déjà calculé (Ink/Stitch met ~2 s à démarrer à chaque fois)
+            import hashlib
+            cle = hashlib.sha1(texte + json.dumps([nom, d], sort_keys=True, default=str).encode()).hexdigest()
+            if cle in self.calculs:
+                return self.calculs[cle]
+            r = self._calcul(nom, d, _lire(texte))
+            if not (isinstance(r, dict) and r.get("erreur")):
+                self.calculs[cle] = r
+                while len(self.calculs) > 12:              # les plus anciens d'abord
+                    self.calculs.pop(next(iter(self.calculs)))
+            return r
+        return self._action_suite(nom, d)
+
+    def _calcul(self, nom, d, copie):
+        """Aperçu, points ou carte de densité, calculés par Ink/Stitch sur une copie du dessin."""
+        if nom == "densite":
+            svg, err = E.densite(copie, d.get("ids") or None, d.get("seuils"))
+            return {"svg": svg, "erreur": None if svg else _message(err)}
+        if nom == "apercu":
+            svg, err = E.apercu(copie, d.get("ids") or None, d.get("mode") or "points", d.get("options") or {})
+            return {"svg": svg, "erreur": None if svg else (err or "")[-2000:]}
+        r, err = E.points(copie, d.get("ids") or None)
+        if r:
+            try:
+                r["page"] = M.page_et_centre(copie, d.get("ids") or None)
+            except Exception:
+                r["page"] = None
+        return r or {"erreur": _message(err) or "Aucun point."}
+
+    def _action_suite(self, nom, d):
         with self.verrou:
             if nom == "etat":
                 return self.etat()

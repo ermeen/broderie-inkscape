@@ -7,6 +7,7 @@ Le numéro de version suit le schéma `MAJEUR.MINEUR.CORRECTIF` :
 
 ## 1.7.1 — 27 octobre 2026
 
+- **Aperçu plus rapide** : le dessin des points et les sauts / coupes sont calculés en même temps (≈ 3 s au lieu de ≈ 4,5 s sur la citrouille), et un affichage déjà calculé (même dessin, même vue : changer d'onglet, isoler puis tout réafficher…) revient en moins d'une demi-seconde, sans relancer Ink/Stitch. Ink/Stitch met lui-même ≈ 2 s à démarrer à chaque calcul.
 - **Isoler** : la petite cible (au survol d'un objet dans la liste) ne montre que cet objet, ou toute la sélection, dans l'aperçu et la simulation, cadrés sur lui. Le dessin ne change pas (ni Inkscape, ni export : ce n'est pas l'œil). « Isolé (3) ✕ » dans la barre de l'aperçu pour tout réafficher.
 - **Aperçu des Objets toujours en points** : un rendu réaliste lancé dans la Simulation et arrivé après le retour aux Objets n'y reste plus affiché.
 - **Panneau arrêté** (par exemple pendant une mise à jour) : message clair « Le panneau ne répond plus… appuyez sur ⌘⌥B » au lieu de « Load failed ».
