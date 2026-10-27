@@ -115,6 +115,7 @@ function choisir(ids, ajouter = false) {
   S.texte = false;
   rendreTout();
 }
+const CIBLE = '<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="7.5"/><circle cx="12" cy="12" r="2.6" fill="currentColor"/><path d="M12 1.5v3M12 19.5v3M1.5 12h3M19.5 12h3"/></svg>';
 const OEIL = (vis) => vis ? '<svg viewBox="0 0 24 24"><path d="M2 12s4-7 10-7 10 7 10 7-4 7-10 7S2 12 2 12z"/><circle cx="12" cy="12" r="3"/></svg>'
   : '<svg viewBox="0 0 24 24"><path d="M3 3l18 18M10.6 5.1A10 10 0 0 1 12 5c6 0 10 7 10 7a17 17 0 0 1-3.2 3.9M6.6 6.6C3.9 8.4 2 12 2 12s4 7 10 7a9.6 9.6 0 0 0 4.4-1"/></svg>';
 async function basculerVisible(id, visible) {
@@ -213,7 +214,13 @@ function rendreListe() {
       li.innerHTML = `<span class="pastille" style="background:${esc(o.couleur)}"></span><span class="nom">${esc(o.nom)}</span>
         <span class="type">${esc(NOM_TYPE[t] || t)}</span>
         <button class="fl" data-sens="-1" title="Coudre plus tôt">▲</button><button class="fl" data-sens="1" title="Coudre plus tard">▼</button>
+        <button class="isoler${S.isole && S.isole.has(o.id) ? ' on' : ''}" title="${S.isole && S.isole.has(o.id) ? 'Isolé : cliquer pour tout réafficher' : 'Isoler : ne voir que lui (ou la sélection) dans l’aperçu et la simulation'}">${CIBLE}</button>
         <button class="oeil" title="${o.masque ? 'Masqué : non brodé. Cliquer pour l’afficher' : 'Masquer (ne pas broder)'}">${OEIL(!o.masque)}</button>`;
+      if (S.isole && !S.isole.has(o.id)) li.classList.add('hors-isole');
+      $('.isoler', li).onclick = (e) => {
+        e.stopPropagation();
+        isoler(S.choix.has(o.id) && S.choix.size > 1 ? [...S.choix] : [o.id]);
+      };
       $('.oeil', li).onclick = (e) => {
         e.stopPropagation();
         if (o.calque_masque) { message('Son calque est masqué : cliquez sur l’œil du calque pour l’afficher.'); return; }
@@ -252,6 +259,18 @@ function alerteTransparent(objs) {
     catch (e) { message(e.message, true); }
   };
   return d;
+}
+// Isoler : l'aperçu et la simulation ne montrent que ces objets. Rien ne change dans le dessin (ni Inkscape, ni export) :
+// ce n'est pas l'œil, qui retire un objet de la broderie.
+S.isole = null;
+const idsVus = () => (S.isole && S.isole.size ? [...S.isole] : S.etat.selection);
+function isoler(ids) {
+  const meme = ids && S.isole && ids.length === S.isole.size && ids.every((i) => S.isole.has(i));
+  S.isole = ids && ids.length && !meme ? new Set(ids) : null;
+  S.recadrer = true;                                  // l'aperçu se cadre sur ce qui est montré
+  const vieux = $('#apercu .barre-rendu'); if (vieux) vieux.replaceWith(barreRendu());
+  S.simu = null; rendreListe(); apercuBientot();
+  message(S.isole ? `Isolé : seulement ${S.isole.size > 1 ? `ces ${S.isole.size} objets` : 'cet objet'} dans l'aperçu et la simulation (le dessin ne change pas).` : 'Tout le dessin est de nouveau affiché.');
 }
 // « Tout désélectionner » dans l'en-tête de la liste, seulement quand quelque chose est choisi (Échap fait pareil)
 function toutDeselectionner() { S.choix = new Set(); S.sel = null; S.aucun = true; S.texte = false; S.placer = null; modePlacement(); rendreTout(); }
@@ -1098,6 +1117,7 @@ function rendreProps() {
 function rendreTout() {
   const existants = new Set(S.etat.objets.map((o) => o.id));
   S.choix = new Set([...S.choix].filter((i) => existants.has(i)));
+  if (S.isole) { S.isole = new Set([...S.isole].filter((i) => existants.has(i))); if (!S.isole.size) S.isole = null; }
   if (S.sel && !existants.has(S.sel)) S.sel = null;
   if (!S.sel && !S.aucun && S.etat.objets.length) S.sel = (S.etat.objets.find((o) => S.etat.selection.includes(o.id)) || S.etat.objets[0]).id;
   rendreListe(); if (!S.choixCouleur) rendreProps(); rendreAttente(); rendreAncien(); afficherSelection();   // sélecteur de couleur ouvert : fiche intacte
@@ -1241,6 +1261,12 @@ function barreRendu() {
     if (!MESURE) $$('#apercu .mesure-panneau').forEach((x) => x.remove());
     message(MESURE ? 'Règle : tirez d\'un point à un autre dans l\'aperçu. Elle s\'accroche aux points d\'aiguille proches.' : ''); };
   outilsVue.append(tout, regle); d.appendChild(outilsVue);
+  if (S.isole && S.isole.size) {
+    const iso = document.createElement('button'); iso.type = 'button'; iso.className = 'isole-actif';
+    iso.textContent = `Isolé (${S.isole.size}) ✕`; iso.title = 'Tout réafficher';
+    iso.onclick = (e) => { e.stopPropagation(); isoler(null); };
+    d.appendChild(iso);
+  }
   const c = document.createElement('label'); c.title = 'Couleur du tissu';
   c.innerHTML = `Tissu <input type="color" value="${TISSU}">`;
   $('input', c).oninput = (e) => { TISSU = e.target.value; $('#apercu').style.background = TISSU; majTissu(); try { localStorage.setItem('broderie.tissu', TISSU); } catch (x) { /* rien */ } };
@@ -1260,7 +1286,7 @@ async function apercu() {
   try {
     badge.textContent = MODE === 'points' ? 'Calcul des points…' : 'Rendu réaliste…';
     const modeDemande = MODE;
-    const r = await api('apercu', { ids: S.etat.selection, mode: MODE, options: { sauts: false, penetrations: AFF.penetrations } });
+    const r = await api('apercu', { ids: idsVus(), mode: MODE, options: { sauts: false, penetrations: AFF.penetrations } });
     if (modeDemande !== 'points' && S.vue !== 'points') { apercuDemande++; return; }    // rendu réaliste arrivé après le retour aux Objets
     if (!r.svg) { a.className = 'vide'; a.textContent = r.erreur || 'Aucun point.'; a.appendChild(barreRendu()); vb = vb0 = null; return; }
     const garder = vb && vb0;
@@ -1292,6 +1318,7 @@ async function apercu() {
     }
     if (S.vue === 'points' && SIM_AFF.cadre) v = dessinerCadreApercu(svg, plan, v, uMM);
     vb0 = v; vbTout = cadrageAffiche(svg, plan); if (!garder) vb = v.slice();
+    if (S.recadrer && vbTout) { vb = vbTout.slice(); S.recadrer = false; }
     if (MODE !== 'points') habiller(svg, v); else { pointsAiguille(svg); contrasteFils(svg); superposerCommandes(svg); if (AFF.densite) carteDensite(svg); }
     zonesCliquables(svg);
     appliquerVue();
@@ -1561,7 +1588,7 @@ function legendeDensite() {
 }
 async function carteDensite(svg) {
   let r;
-  try { r = await api('densite', { ids: S.etat.selection, seuils: DENS }); } catch (e) { message(e.message, true); return; }
+  try { r = await api('densite', { ids: idsVus(), seuils: DENS }); } catch (e) { message(e.message, true); return; }
   if (!r.svg || !svg.isConnected) { if (r.erreur) message(r.erreur, true); return; }
   const doc = new DOMParser().parseFromString(`<svg xmlns="http://www.w3.org/2000/svg">${r.svg}</svg>`, 'image/svg+xml');
   $$('.densite-panneau', svg).forEach((x) => x.remove());
@@ -1580,7 +1607,7 @@ async function zonesCliquables(svg) {
   const NS = 'http://www.w3.org/2000/svg';
   const g = document.createElementNS(NS, 'g'); g.setAttribute('class', 'cibles-panneau');
   for (const o of r.objets) {
-    if (!o.svg) continue;
+    if (!o.svg || (S.isole && !S.isole.has(o.id))) continue;
     const doc = new DOMParser().parseFromString(o.svg, 'image/svg+xml');
     const n = document.importNode(doc.documentElement, true);
     n.removeAttribute('class'); n.dataset.objet = o.id;
@@ -1664,7 +1691,7 @@ function apercuBientot() {
 // ---------------------------------------------------------------- statistiques (points d'Ink/Stitch)
 async function donneesPoints() {
   if (!S.simu) {
-    const r = await api('points', { ids: S.etat.selection });
+    const r = await api('points', { ids: idsVus() });
     if (r.erreur) throw new Error(r.erreur);
     S.simu = r;
   }

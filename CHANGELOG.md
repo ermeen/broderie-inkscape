@@ -7,6 +7,7 @@ Le numéro de version suit le schéma `MAJEUR.MINEUR.CORRECTIF` :
 
 ## 1.7.1 — 27 octobre 2026
 
+- **Isoler** : la petite cible (au survol d'un objet dans la liste) ne montre que cet objet, ou toute la sélection, dans l'aperçu et la simulation, cadrés sur lui. Le dessin ne change pas (ni Inkscape, ni export : ce n'est pas l'œil). « Isolé (3) ✕ » dans la barre de l'aperçu pour tout réafficher.
 - **Aperçu des Objets toujours en points** : un rendu réaliste lancé dans la Simulation et arrivé après le retour aux Objets n'y reste plus affiché.
 - **Panneau arrêté** (par exemple pendant une mise à jour) : message clair « Le panneau ne répond plus… appuyez sur ⌘⌥B » au lieu de « Load failed ».
 - **Après une mise à jour**, la page du panneau déjà ouverte se recharge d'elle-même : elle ne mélange plus l'ancien affichage et le nouveau programme (une partie de la Simulation pouvait manquer jusqu'à un redémarrage).
