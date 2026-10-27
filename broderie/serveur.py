@@ -169,6 +169,10 @@ class Session:
         sorties = sorted({c["format"] for c in M.CATALOGUE["commandes"] if c["type"] == "output" and c["format"]})
         total = len(M.objets(self.document, masques=True)) if self.ids else len(objs)
         return {"objets": [M.decrire(o) for o in objs], "selection": self.ids, "nom": self.nom, "total": total, "synchro": getattr(self, "synchro", 0),
+                "profil": M.profil(self.document), "profils": {
+                    "tissu": {k: v["nom"] for k, v in M.TISSUS.items()}, "stabilisateur": {k: v["nom"] for k, v in M.STABILISATEURS.items()},
+                    "fil": {k: v["nom"] for k, v in M.FILS.items()}, "auto": M.PARAMS_AUTO},
+                "conseil_profil": M.conseil_profil(M.profil(self.document)),
                 "attente": len(self.attente), "version": self.version,
                 "reserve": {k: len(v) for k, v in self.reserve.items()},
                 "version_panneau": VERSION_PANNEAU, "raccourci": S.RACCOURCI, "mac": S.MAC,
@@ -236,6 +240,9 @@ class Session:
         if op[0] == "detacher":
             M.retirer_commande(doc, op[1], op[2])
             return
+        if op[0] == "profil":                          # profil de broderie du dessin (tissu, stabilisateur, fil)
+            M.regler_profil(doc, op[1])
+            return
         if op[0] == "broder_ailleurs":                 # objets mis dans un calque « suite » avant / après un autre
             M.broder_ailleurs(doc, op[1], op[2], op[3], op[4])
             return
@@ -271,6 +278,9 @@ class Session:
             return                                     # objet supprimé dans Inkscape entre-temps
         if op[0] == "params":
             M.ecrire(el, op[2])
+        elif op[0] == "auto":                          # réglages calculés : valeurs écrites et notées « auto »
+            M.ecrire(el, op[2])
+            M.marquer_auto(el, op[3])
         elif op[0] == "couleur":
             M.changer_couleur(el, op[2], op[3])
         elif op[0] == "ordre":
@@ -358,6 +368,30 @@ class Session:
                 self.version += 1
                 self.sauver()
                 return self.etat()
+            if nom == "profil":                        # tissu, stabilisateur, fil : les réglages auto sont recalculés
+                M.regler_profil(self.document, d.get("profil") or {})
+                self.attente.append(("profil", M.profil(self.document)))
+                for i, v in M.recalculer_auto(self.document).items():
+                    self.attente.append(("auto", i, v, M._auto(M.par_id(self.document, i)) or []))
+                self.version += 1
+                self.sauver()
+                return self.etat()
+            if nom == "auto":                          # passer des réglages (ou tous) en auto, sur un ou plusieurs objets
+                if not M.profil(self.document):        # premier usage : profil par défaut (coton, à déchirer, fil 40)
+                    M.regler_profil(self.document, M.PROFIL_DEFAUT)
+                    self.attente.append(("profil", M.profil(self.document)))
+                n = 0
+                for i in d.get("ids") or []:
+                    el = M.par_id(self.document, i)
+                    if el is None:
+                        continue
+                    v = M.appliquer_auto(self.document, el, d.get("noms") or None)
+                    if v:
+                        n += 1
+                        self.attente.append(("auto", i, v, M._auto(el) or []))
+                self.version += 1
+                self.sauver()
+                return {"n": n, "etat": self.etat()}
             if nom == "tout_le_dessin":                # liste limitée à la sélection d'Inkscape → tout le dessin
                 self.ids = []
                 self.version += 1

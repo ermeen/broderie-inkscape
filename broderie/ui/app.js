@@ -454,7 +454,35 @@ function docPour(o, p) {
   if ((S.schema.element?.params || []).some((q) => q.name === p.name)) return DOC + 'params/';
   return { satin_column: DOC_SATIN + '#paramètres', fill_stitch: DOC_REMP + '#paramètres', stroke: DOC_TRAIT + '#paramétres' }[typePrincipal(o)] || DOC + 'params/';
 }
+// Ink/Stitch · Auto · Main : d'où vient la valeur d'un réglage calculé par le profil
+function estAuto(o, noms) { return noms.every((n) => (o.auto || []).includes(n)); }
+function modeReglage(o, noms) {
+  const auto = estAuto(o, noms), main = !auto && noms.some((n) => o.valeurs[n] !== undefined);
+  const d = document.createElement('span'); d.className = 'mode-reglage';
+  const etats = [['inkstitch', 'Ink/Stitch', 'Valeur par défaut d\'Ink/Stitch'], ['auto', 'Auto', 'Calculée d\'après le profil du dessin (tissu, stabilisateur, fil) et la forme'], ['main', 'Main', 'Votre valeur : modifiez le réglage pour passer à la main']];
+  const actif = auto ? 'auto' : main ? 'main' : 'inkstitch';
+  for (const [k, lib, t] of etats) {
+    const b = document.createElement('button'); b.type = 'button'; b.textContent = lib; b.title = t;
+    b.className = k === actif ? 'on' : '';
+    if (k === 'inkstitch') b.onclick = () => envoyer(o, Object.fromEntries(noms.map((n) => [n, null])));
+    if (k === 'auto') b.onclick = async () => {
+      try {
+        const r = await api('auto', { ids: o.ids || [o.id], noms });
+        S.etat = r.etat; S.simu = null; rendreTout(); apercuBientot();
+        if (!S.profilVu && S.etat.profil) { S.profilVu = true; message(`Auto d'après le profil « ${S.etat.profils.tissu[S.etat.profil.tissu]} » : changez-le dans Export › Préparer la broderie.`); }
+      } catch (e) { message(e.message, true); }
+    };
+    if (k === 'main') b.onclick = () => message('Modifiez la valeur (curseur ou case) : le réglage passe « à la main ».');
+    d.appendChild(b);
+  }
+  return d;
+}
+const autoPour = (o, nom) => ((S.etat.profils || {}).auto || {})[typePrincipal(o)]?.includes(nom);
 function avecConseil(d, o, p) {
+  if (autoPour(o, p.name) && d.classList.contains('reglage')) {       // le sélecteur remplace la petite flèche ↺
+    const h = $('.haut', d);
+    if (h) { const raz = $('.raz', h); if (raz) raz.remove(); h.after(modeReglage(o, [p.name])); }
+  }
   const nom = p.name;
   const c = CONSEILS[typePrincipal(o) + '.' + nom] || CONSEILS[nom] || (p.aide ? [p.aide.charAt(0).toUpperCase() + p.aide.slice(1), docPour(o, p)] : null);
   const lab = c && $('label', d);
@@ -526,12 +554,12 @@ function sectionType(o, typ) {
   if (typ === 'fill_stitch') {
     if (parNom(typ, 'fill_underlay')) {
       const on = estVrai(valeur(o, parNom(typ, 'fill_underlay')) ?? true);
-      out.push(bloc('Sous-couche', tuiles([['non', 'Sans', 'sans'], ['oui', 'Avec', 'avec']], on ? 'oui' : 'non', (k) => envoyer(o, { fill_underlay: k === 'oui' }))));
+      out.push(bloc('Sous-couche', modeReglage(o, ['fill_underlay']), tuiles([['non', 'Sans', 'sans'], ['oui', 'Avec', 'avec']], on ? 'oui' : 'non', (k) => envoyer(o, { fill_underlay: k === 'oui' }))));
     }
   } else if (typ === 'satin_column') {
     const sc = [['center_walk_underlay', 'Centre', 'centre'], ['contour_underlay', 'Contour', 'contour'], ['zigzag_underlay', 'Zigzag', 'zigzag_sc']];
     const actifs = sc.filter(([n]) => estVrai(o.valeurs[n] ?? false)).map(([n]) => n);
-    out.push(bloc('Sous-couches (plusieurs possibles)', tuiles(sc, actifs, (n) => envoyer(o, { [n]: !actifs.includes(n) }), true)));
+    out.push(bloc('Sous-couches (plusieurs possibles)', modeReglage(o, sc.map(([n]) => n)), tuiles(sc, actifs, (n) => envoyer(o, { [n]: !actifs.includes(n) }), true)));
     // points courts : dans une courbe, un point sur deux est raccourci côté intérieur (moins de fil entassé)
     const pc = ['short_stitch_inset', 'short_stitch_distance_mm'].map((n) => parNom(typ, n)).filter((p) => p && visible(o, p, typ));
     if (pc.length) {
@@ -964,7 +992,8 @@ function objetCommun(objs) {
   const balise = objs.every((o) => o.balise === objs[0].balise) ? objs[0].balise : 'path';
   return { ids: objs.map((o) => o.id), id: objs[0].id, nom: `${objs.length} objets`, types, valeurs, mixte, balise,
     sous_chemins: Math.min(...objs.map((o) => o.sous_chemins || 1)), couleur: objs[0].couleur, contour: objs[0].contour,
-    remplissage: objs[0].remplissage, multi: true, typesTous: [...new Set(objs.flatMap((o) => o.types))] };
+    remplissage: objs[0].remplissage, multi: true, typesTous: [...new Set(objs.flatMap((o) => o.types))],
+    auto: (objs[0].auto || []).filter((n) => objs.every((x) => (x.auto || []).includes(n))) };
 }
 function rendreMulti(objs) {
   const div = $('#props');
@@ -1111,7 +1140,7 @@ function changerVue(v) {
   // un seul aperçu, déplacé dans l'onglet affiché : en haut des Objets pour voir l'effet des réglages
   if (v === 'objets') { $('#emplApercuObjets').insertBefore($('#apercu'), $('#poignee')); if (S.texte) apercuTexteBientot(); else apercu(); }
   if (v === 'points') { rendreCadres(); rendreBati(); rendreStats('#stats').then(verifierCadre); modeSimulation(S.simMode); }
-  if (v === 'export') rendreExport();
+  if (v === 'export') { rendreExport(); rendreProfil(); }
 }
 // Simulation : « Animation » (le simulateur) ou « Réaliste » (le rendu d'Ink/Stitch), sur la même page blanche,
 // avec le cadre schématisé ; le mode de l'aperçu des Objets est retrouvé en sortant
@@ -1584,7 +1613,7 @@ function apercuBientot() {
     S.simu = null;
     if (S.vue === 'points') { if (S.simMode !== 'animation') apercu(); else chargerSimulation(); rendreStats('#stats').then(verifierCadre); }
     else if (S.vue === 'objets') { if (S.texte) apercuTexteBientot(); else apercu(); }
-    else if (S.vue === 'export') rendreExport();
+    else if (S.vue === 'export') { rendreExport(); rendreProfil(); }
   }, 400);
 }
 
@@ -1695,21 +1724,44 @@ async function verifier() {
 $('#bVerifier').onclick = verifier;
 
 // Préparer la broderie : adapter tout le dessin au tissu, regrouper les couleurs, couper les sauts longs
-$('#prTissu').innerHTML = Object.entries(TISSUS).map(([cle, x]) => `<option value="${cle}">${esc(x.nom)}</option>`).join('');
+// Profil de broderie du dessin : tissu, stabilisateur, fil. Les réglages « auto » en sont calculés (côté serveur,
+// règles documentées dans modele.py) et recalculés quand le profil change ; ceux réglés à la main ne bougent pas.
+const PROFIL_TEXTE = { toile: 'jean', pique: 'jersey' };      // préréglages des lettres (TISSUS) les plus proches
+function rendreProfil() {
+  const P = S.etat.profils; if (!P) return;
+  const p = Object.assign({ tissu: 'coton', stabilisateur: 'dechirer', fil: '40' }, S.etat.profil || {});
+  for (const [id, k] of [['#prTissu', 'tissu'], ['#prStab', 'stabilisateur'], ['#prFil', 'fil']]) {
+    $(id).innerHTML = Object.entries(P[k]).map(([c, nom]) => `<option value="${c}" ${c === p[k] ? 'selected' : ''}>${esc(nom)}</option>`).join('');
+  }
+  $('#prConseil').textContent = (S.etat.conseil_profil || []).map((c) => c.charAt(0).toUpperCase() + c.slice(1) + '.').join(' ')
+    || (S.etat.profil ? 'Les réglages « auto » suivent ce profil.' : 'Choisissez le tissu, le stabilisateur et le fil : les réglages « auto » en sont calculés.');
+}
+for (const id of ['#prTissu', '#prStab', '#prFil']) {
+  $(id).onchange = async () => {
+    try {
+      S.etat = await api('profil', { profil: { tissu: $('#prTissu').value, stabilisateur: $('#prStab').value, fil: $('#prFil').value } });
+      S.simu = null; rendreTout(); rendreExport(); rendreProfil();
+      message('Profil enregistré dans le dessin : les réglages « auto » sont recalculés, ceux réglés à la main ne changent pas.');
+    } catch (e) { message(e.message, true); }
+  };
+}
 $('#bPrTissu').onclick = async () => {
-  const x = TISSUS[$('#prTissu').value];
-  let n = 0;
   try {
-    for (const o of S.etat.objets) {
-      const t = typePrincipal(o);
-      if (t === 'lettrage') {
-        const r = (await api('lettres_resume', { id: o.id })).lettres;
-        for (const typ of Object.keys(r ? r.types : {})) if (x[typ]) await api('lettres', { id: o.id, type: typ, valeurs: x[typ] });
-        n++;
-      } else if (x[t]) { S.etat = await api('params', { id: o.id, valeurs: x[t] }); n++; }
+    if (!S.etat.profil) S.etat = await api('profil', { profil: { tissu: $('#prTissu').value, stabilisateur: $('#prStab').value, fil: $('#prFil').value } });
+    const ids = S.etat.objets.filter((o) => ['satin_column', 'fill_stitch'].includes(typePrincipal(o))).map((o) => o.id);
+    const r = await api('auto', { ids }, 'Calcul des réglages…');
+    S.etat = r.etat;
+    // textes : préréglage du tissu le plus proche, lettre par lettre (comme avant)
+    const x = TISSUS[PROFIL_TEXTE[S.etat.profil.tissu] || S.etat.profil.tissu];
+    let nt = 0;
+    for (const o of S.etat.objets.filter((q) => typePrincipal(q) === 'lettrage')) {
+      if (!x) break;
+      const l = (await api('lettres_resume', { id: o.id })).lettres;
+      for (const typ of Object.keys(l ? l.types : {})) if (x[typ]) await api('lettres', { id: o.id, type: typ, valeurs: x[typ] });
+      nt++;
     }
-    S.etat = await api('etat'); S.simu = null; rendreTout(); rendreExport();
-    message(`${n} objet(s) réglé(s) pour ${x.nom.toLowerCase()}. Stabilisateur conseillé : ${x.conseil}.`);
+    S.etat = await api('etat'); S.simu = null; rendreTout(); rendreExport(); rendreProfil();
+    message(`${r.n} objet(s) en auto${nt ? `, ${nt} texte(s) réglé(s)` : ''}. Chaque réglage reste modifiable : la valeur passe alors « à la main ».`);
   } catch (e) { message(e.message, true); }
 };
 $('#bPrOrdre').onclick = async () => {

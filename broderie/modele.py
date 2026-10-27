@@ -232,6 +232,7 @@ def decrire(el):
         "calque": cid, "calque_nom": cnom, "masque": masque(el),
         "calque_masque": bool(cid) and masque(par_id(el.getroottree(), cid)),
         "valeurs": {etree.QName(k).localname: v for k, v in el.attrib.items() if k.startswith("{%s}" % INKSTITCH_NS)},
+        "auto": _auto(el) or [],
     }
 
 
@@ -312,7 +313,9 @@ def par_id(svg, i):
 
 
 def ecrire(el, valeurs):
-    """Écrit les réglages : None ou "" supprime l'attribut (valeur par défaut d'Ink/Stitch)."""
+    """Écrit les réglages : None ou "" supprime l'attribut (valeur par défaut d'Ink/Stitch).
+    Un réglage écrit à la main n'est plus « auto »."""
+    marquer_auto(el, [n for n in (_auto(el) or []) if n not in valeurs])
     for nom, v in valeurs.items():
         cle = "{%s}%s" % (INKSTITCH_NS, nom)
         if v is None or v == "":
@@ -1360,3 +1363,134 @@ def broder_ailleurs(svg, ids, cible, apres=True, nouveau=None):
         if g is not suite and (g.get("id") or "").startswith("calque_suite") and not any(isinstance(e.tag, str) for e in g):
             g.getparent().remove(g)
     return suite.get("id")
+
+
+# ---------------------------------------------------------------- profil de broderie et réglages automatiques
+# Trois façons pour un réglage : valeur d'Ink/Stitch (rien d'écrit), « auto » (calculée d'après le profil du dessin
+# — tissu, stabilisateur, fil — et la forme), ou à la main. Les réglages auto sont écrits comme les autres (le fichier
+# reste un fichier Ink/Stitch ordinaire) et notés dans data-broderie-auto pour être recalculés si le profil change.
+#
+# Sources des règles (aucune table officielle chiffrée n'existe : Wilcom, Hatch et Ink/Stitch demandent un essai) :
+# - sous-couches satin selon la largeur : Ink/Stitch, tutoriel « underlay » (centre 1 à 2 mm, contour 2 à 3,5 mm,
+#   contour + zigzag au-delà de 4 mm) ; mailles et polaire : sous-couches renforcées (Wilcom, « About auto fabrics ») ;
+# - compensation selon la largeur : environ 0,15 mm pour une colonne de 2 mm, 0,25 à 0,3 mm de 5 à 7 mm (guides de
+#   numérisation) ; mailles : davantage, tissés stables et soie : moins (Wilcom, « About auto fabrics ») ;
+# - densité satin selon le fil : 0,4 mm en fil 40 (0,42 chez Wilcom et Hatch), plus serré en fil 60 (≈ 0,35),
+#   plus large en fil 30 (≈ 0,45) ; tissus épais, polaire, mailles : un peu moins dense (Wilcom) ;
+# - remplissage : 0,4 mm en fil 40, valeur sûre (guides Hatch) ; soie : sous-couche minimale (Wilcom) ;
+# - stabilisateur : à découper pour les mailles, à déchirer pour les tissés, film soluble dessus pour les tissus à
+#   poils (Hatch « Choose auto fabrics », Threads Magazine) ; plus faible que conseillé : le tissu bouge davantage.
+AUTO = "data-broderie-auto"
+PROFIL = "data-broderie-profil"
+PROFIL_DEFAUT = {"tissu": "coton", "stabilisateur": "dechirer", "fil": "40"}
+STABILITE = {"decouper": 3, "dechirer": 2, "soluble": 1, "aucun": 0}   # du plus stable au moins stable
+# comp : multiplicateur de la compensation (coton = 1) ; dens : multiplicateur de l'écart entre points (1 = normal) ;
+# renfort : sous-couche contour + zigzag dès 2 mm ; stab : stabilisateur conseillé ; dessus : film soluble dessus
+TISSUS = {
+    "toile":  {"nom": "Toile, jean, tissu épais", "comp": 0.7, "dens": 1.1, "renfort": False, "stab": "dechirer", "dessus": False},
+    "coton":  {"nom": "Coton, lin", "comp": 1.0, "dens": 1.0, "renfort": False, "stab": "dechirer", "dessus": False},
+    "fin":    {"nom": "Tissu fin, soie, voile", "comp": 0.6, "dens": 1.1, "renfort": False, "stab": "soluble", "dessus": False},
+    "pique":  {"nom": "Piqué (polo)", "comp": 1.3, "dens": 1.05, "renfort": True, "stab": "decouper", "dessus": True},
+    "jersey": {"nom": "Jersey, tee-shirt, maille", "comp": 1.6, "dens": 1.05, "renfort": True, "stab": "decouper", "dessus": False},
+    "eponge": {"nom": "Éponge, polaire, sweat", "comp": 1.4, "dens": 1.1, "renfort": True, "stab": "decouper", "dessus": True},
+    "cuir":   {"nom": "Cuir, simili", "comp": 0.6, "dens": 1.1, "renfort": False, "stab": "dechirer", "dessus": False},
+}
+STABILISATEURS = {"decouper": {"nom": "À découper (ou thermocollant)"}, "dechirer": {"nom": "À déchirer"},
+                  "soluble": {"nom": "Soluble à l'eau"}, "aucun": {"nom": "Aucun"}}
+FILS = {"30": {"nom": "Fil 30 (épais)", "satin": 0.45, "remp": 0.45}, "40": {"nom": "Fil 40 (courant)", "satin": 0.40, "remp": 0.40},
+        "60": {"nom": "Fil 60 (fin)", "satin": 0.35, "remp": 0.35}}
+PARAMS_AUTO = {"satin_column": ("zigzag_spacing_mm", "pull_compensation_mm", "max_stitch_length_mm",
+                                "center_walk_underlay", "contour_underlay", "zigzag_underlay"),
+               "fill_stitch": ("row_spacing_mm", "pull_compensation_mm", "fill_underlay")}
+
+
+def conseil_profil(p):
+    """Phrase de conseil pour le profil : stabilisateur conseillé, film soluble dessus."""
+    p = dict(PROFIL_DEFAUT, **(p or {}))
+    t = TISSUS.get(p["tissu"], TISSUS["coton"])
+    out = []
+    if STABILITE.get(p["stabilisateur"], 2) < STABILITE[t["stab"]]:
+        out.append("stabilisateur conseillé pour ce tissu : %s (la compensation est augmentée de 20 %% en attendant)"
+                   % STABILISATEURS[t["stab"]]["nom"].lower())
+    if t["dessus"]:
+        out.append("posez un film soluble sur le tissu, pour que les points ne s'enfoncent pas")
+    return out
+
+
+def _auto(el):
+    v = el.get(AUTO)
+    return v.split() if v else None
+
+
+def marquer_auto(el, noms):
+    if noms:
+        el.set(AUTO, " ".join(sorted(set(noms))))
+    else:
+        el.attrib.pop(AUTO, None)
+
+
+def profil(svg):
+    r = svg.getroot() if hasattr(svg, "getroot") else svg
+    try:
+        p = json.loads(r.get(PROFIL) or "null")
+    except ValueError:
+        p = None
+    return p
+
+
+def regler_profil(svg, p):
+    r = svg.getroot() if hasattr(svg, "getroot") else svg
+    p = {k: p.get(k) for k in PROFIL_DEFAUT if p and p.get(k)}
+    r.set(PROFIL, json.dumps(p, ensure_ascii=False))
+    return p
+
+
+def _arrondi(v, pas=0.05):
+    return round(round(v / pas) * pas, 2)
+
+
+def valeurs_auto(svg, el, p=None):
+    """Valeurs calculées pour l'objet, d'après le profil du dessin et sa forme (règles et sources ci-dessus)."""
+    p = dict(PROFIL_DEFAUT, **(p or profil(svg) or {}))
+    t, fil = TISSUS.get(p["tissu"], TISSUS["coton"]), FILS.get(p["fil"], FILS["40"])
+    faible = 1.2 if STABILITE.get(p["stabilisateur"], 2) < STABILITE[t["stab"]] else 1.0
+    ty = types(el)
+    if "satin_column" in ty:
+        larg = largeur_satin(svg, el) or 3.0
+        base = min(0.35, 0.15 + 0.03 * max(0.0, larg - 2.0))            # 0,15 à 2 mm … 0,30 à 7 mm
+        contour = larg >= 2.0
+        zigzag = larg > 4.0 or (contour and t["renfort"])
+        return {"zigzag_spacing_mm": _arrondi(fil["satin"] * t["dens"], 0.01),
+                "pull_compensation_mm": _arrondi(base * t["comp"] * faible, 0.01),
+                "max_stitch_length_mm": 7 if larg > 8 else None,
+                "center_walk_underlay": not contour, "contour_underlay": contour, "zigzag_underlay": zigzag}
+    if "fill_stitch" in ty:
+        return {"row_spacing_mm": _arrondi(fil["remp"] * t["dens"], 0.01),
+                "pull_compensation_mm": _arrondi(0.2 * t["comp"] * faible, 0.01),
+                "fill_underlay": p["tissu"] != "fin"}
+    return {}
+
+
+def appliquer_auto(svg, el, noms=None):
+    """Passe les réglages noms (tous ceux qui ont un calcul par défaut) en « auto » ; renvoie les valeurs écrites."""
+    calc = valeurs_auto(svg, el)
+    noms = [n for n in (noms or calc) if n in calc]
+    if not noms:
+        return {}
+    deja = set(_auto(el) or [])
+    vals = {n: calc[n] for n in noms}
+    ecrire(el, vals)
+    marquer_auto(el, deja | set(noms))
+    return vals
+
+
+def recalculer_auto(svg):
+    """Après un changement de profil : recalcule tous les réglages auto du dessin. Renvoie {id: valeurs}."""
+    out = {}
+    for el in objets(svg, masques=True):
+        a = _auto(el)
+        if a:
+            v = appliquer_auto(svg, el, a)
+            if v:
+                out[el.get("id")] = v
+    return out

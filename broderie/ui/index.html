@@ -85,8 +85,14 @@
     </div>
     <div class="carte" id="preparer">
       <div class="carte-titre"><span>Préparer la broderie</span></div>
-      <label class="etiquette">Adapter au tissu (tout le dessin)</label>
-      <div class="ligne-tissu"><select id="prTissu"></select><button id="bPrTissu" class="petit">Adapter</button></div>
+      <label class="etiquette">Profil de broderie (ce dessin)</label>
+      <div class="profil">
+        <label>Tissu<select id="prTissu"></select></label>
+        <label>Stabilisateur<select id="prStab"></select></label>
+        <label>Fil<select id="prFil"></select></label>
+      </div>
+      <p id="prConseil" class="muted small"></p>
+      <div class="ligne-tissu"><button id="bPrTissu" class="petit" title="Densité, compensation, sous-couches et découpe calculées pour chaque objet d'après le profil et sa forme (largeur des satins). Chaque réglage reste modifiable à la main.">Tout le dessin en auto</button><span class="muted small">réglages calculés, modifiables un à un</span></div>
       <label class="etiquette">Ordre de couture</label>
       <div class="ligne-tissu"><button id="bPrOrdre" class="petit">Regrouper les couleurs…</button><span id="prOrdreInfo" class="muted small"></span></div>
       <label class="etiquette">Coupes</label>
