@@ -7,6 +7,7 @@ Le numéro de version suit le schéma `MAJEUR.MINEUR.CORRECTIF` :
 
 ## 1.7.1 — 27 octobre 2026
 
+- **Après une mise à jour**, la page du panneau déjà ouverte se recharge d'elle-même : elle ne mélange plus l'ancien affichage et le nouveau programme (une partie de la Simulation pouvait manquer jusqu'à un redémarrage).
 - **Fond transparent** : un objet rempli dont l'opacité du fond est à 0 (curseur A dans Fond et contour d'Inkscape) n'est pas brodé par Ink/Stitch, quelle que soit sa couleur. Sa fiche le signale avec un bouton **Rendre le fond opaque**, et « Vérifier avant d'exporter » aussi (« Rendre opaque »). Cas des yeux de la chauve-souris : 0 point avant, 46 après.
 - **Fils clairs visibles** : un fil presque de la couleur du tissu (blanc sur blanc, jaune clair…) a un fin liseré dans l'aperçu et la simulation, pour voir son trajet ; sa couleur reste la vraie.
 - **Auto par défaut** : à chaque synchronisation, les réglages calculables que personne n'a touchés (nouvelles formes, dessins jamais réglés) passent en **Auto**, d'après le profil du dessin (« coton, à déchirer, fil 40 » s'il n'y en a pas). Les valeurs réglées à la main ne bougent pas, et un réglage remis exprès sur « Ink/Stitch » le reste. Vérifié sur la citrouille : 41 objets passés en auto, aucune valeur réglée à la main modifiée, un second passage ne change rien.

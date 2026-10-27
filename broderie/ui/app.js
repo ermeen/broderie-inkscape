@@ -2758,6 +2758,8 @@ $('#bAbandonner').onclick = async () => { S.etat = await api('abandonner'); rend
 async function surveiller() {
   try {
     const r = await api('present');
+    // panneau mis à jour pendant que la page était ouverte : on recharge, sinon l'ancien affichage côtoie le nouveau programme
+    if (r.panneau && S.etat && S.etat.version_panneau && r.panneau !== S.etat.version_panneau) { location.reload(); return; }
     if (S.tache && r.tache && r.tache.fini && r.tache.extension === S.tache.extension) await tacheFinie(r.tache);
     else if (S.etat && r.version !== S.etat.version) { S.etat = await api('etat'); rendreTout(); apercuBientot(); }
   } catch (e) { $('#attenteInfo').textContent = 'Panneau arrêté : appuyez sur ⌘⌥B dans Inkscape.'; }

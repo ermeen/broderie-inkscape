@@ -317,7 +317,7 @@ class Session:
             return {"ok": ok, "message": msg}
         if nom == "present":                           # signe de vie (sans verrou : jamais bloqué)
             self.vu = self.actif = time.time()
-            return {"version": self.version, "attente": len(self.attente), "tache": self.tache}
+            return {"version": self.version, "attente": len(self.attente), "tache": self.tache, "panneau": VERSION_PANNEAU}
         if nom == "bobines":
             return self._bobines(d)
         if nom == "verifier":
