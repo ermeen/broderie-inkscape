@@ -105,6 +105,16 @@ class Chapitre(Flowable):
         c.line(14 * mm, 1.2 * mm, 40 * mm, 1.2 * mm)
 
 
+def _jpeg(chemin):
+    """Capture en JPEG (qualité 90) : reportlab garderait le PNG non compressé, le PDF serait trop lourd."""
+    import io
+    from PIL import Image
+    tampon = io.BytesIO()
+    Image.open(chemin).convert("RGB").save(tampon, "JPEG", quality=90, optimize=True)
+    tampon.seek(0)
+    return ImageReader(tampon)
+
+
 class Capture(Flowable):
     """Capture d'écran dans un cadre arrondi, avec une ombre douce."""
     def __init__(self, nom, largeur):
@@ -127,7 +137,7 @@ class Capture(Flowable):
         chemin = c.beginPath()
         chemin.roundRect(x, y, self.w, self.h, r)
         c.clipPath(chemin, stroke=0, fill=0)
-        c.drawImage(self.f, x, y, self.w, self.h)
+        c.drawImage(_jpeg(self.f), x, y, self.w, self.h)
         c.restoreState()
         c.setStrokeColor(LIGNE)
         c.setLineWidth(0.6)
