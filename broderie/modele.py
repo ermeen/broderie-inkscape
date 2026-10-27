@@ -184,6 +184,8 @@ def types(el):
         return ["clone"]
     if nom == "g":
         return ["lettrage"] if attr(el, "lettering") is not None else []
+    if est_guide(el):
+        return ["guide"]                               # ligne guide d'un remplissage guidé : pas brodée
     out = []
     fill = _style_herite(el, "fill")
     stroke = _style_herite(el, "stroke")
@@ -256,6 +258,7 @@ def decrire(el):
         "valeurs": {etree.QName(k).localname: v for k, v in el.attrib.items() if k.startswith("{%s}" % INKSTITCH_NS)},
         "auto": _auto(el) or [],
         "transparent": "fill_stitch" in t and fond_transparent(el),
+        "guide": guide_de(el.getroottree(), el.get("id")) if "fill_stitch" in t else None,
     }
 
 
@@ -1561,3 +1564,73 @@ def recalculer_auto(svg):
             if v:
                 out[el.get("id")] = v
     return out
+
+
+# ---------------------------------------------------------------- remplissage guidé : la ligne guide
+# Ink/Stitch oriente les rangs d'un remplissage « guidé » le long d'une ligne guide : un tracé marqué d'un repère
+# (marker-start inkstitch-guide-line-marker), placé dans le même groupe ou calque que la forme. Vérifié : même calque
+# = même résultat que groupés ; sans ligne guide, le remplissage guidé redevient un tatami.
+GUIDE = "inkstitch-guide-line-marker"
+
+
+def est_guide(el):
+    return GUIDE in (_style(el).get("marker-start") or "")
+
+
+def guide_de(svg, i):
+    """Identifiant de la ligne guide qui oriente le remplissage i (même groupe ou calque), ou None."""
+    el = par_id(svg.getroot() if hasattr(svg, "getroot") else svg, i)
+    if el is None or el.getparent() is None:
+        return None
+    g = next((x for x in el.getparent() if isinstance(x.tag, str) and est_guide(x)), None)
+    return g.get("id") if g is not None else None
+
+
+def marqueurs_guide(svg):
+    """Définitions du repère de ligne guide (texte), pour les recopier dans un autre dessin."""
+    r = svg.getroot() if hasattr(svg, "getroot") else svg
+    return [etree.tostring(x, encoding="unicode") for x in r.iter() if isinstance(x.tag, str)
+            and (x.get("id") or "").startswith("inkstitch-guide-line") and local(x.getparent()) == "defs"]
+
+
+def lier_guide(svg, i, g, style, marqueurs, groupe=None):
+    """Fait du tracé g la ligne guide du remplissage i : son style devient celui d'une ligne guide (avec le repère
+    d'Ink/Stitch), les autres lignes guides voisines redeviennent des traits, et si g n'est pas dans le même groupe
+    ou calque que i, les deux sont réunis dans un groupe (position à l'écran inchangée). Renvoie le groupe, ou None."""
+    r = svg.getroot() if hasattr(svg, "getroot") else svg
+    f, gl = par_id(r, i), par_id(r, g)
+    if f is None or gl is None:
+        return None
+    defs = r.find("{%s}defs" % SVG_NS)
+    if defs is None:
+        defs = etree.Element("{%s}defs" % SVG_NS)
+        r.insert(0, defs)
+    for m in marqueurs or []:
+        x = etree.fromstring(m)
+        if not r.xpath("//*[@id='%s']" % x.get("id")):
+            defs.append(x)
+    parent = f.getparent()
+    if gl.getparent() is not parent:                   # pas au même endroit : un groupe pour les deux
+        grp = etree.Element("{%s}g" % SVG_NS)
+        grp.set("id", groupe or "guide_" + i)
+        grp.set("{%s}label" % INKSCAPE_NS, "Remplissage guidé")
+        f.addprevious(grp)
+        hors = -_repere(grp)
+        for x in (f, gl):
+            t = hors @ _repere(x)
+            x.getparent().remove(x)
+            x.attrib.pop("transform", None)
+            if t != _inkex().transforms.Transform():
+                x.set("transform", str(t))
+            grp.append(x)
+        parent = grp
+    for x in parent:                                   # une seule ligne guide par groupe
+        if isinstance(x.tag, str) and x is not gl and est_guide(x):
+            st = _style(x)
+            st.pop("marker-start", None)
+            x.set("style", ";".join(f"{k}:{v}" for k, v in st.items()))
+    gl.set("style", style)
+    ecrire(f, {"fill_method": "guided_fill"})
+    if _auto(f):
+        appliquer_auto(svg, f, _auto(f))               # réglages auto recalculés pour un remplissage guidé
+    return parent.get("id")

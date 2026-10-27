@@ -5,6 +5,12 @@ Le numéro de version suit le schéma `MAJEUR.MINEUR.CORRECTIF` :
 - **MINEUR** : nouvelle fonction ;
 - **CORRECTIF** : correction sans nouvelle fonction.
 
+## 1.7.6 — 27 octobre 2026
+
+- **Remplissage guidé** : quand la tuile **Guidé** est choisie, un bloc **Ligne guide** permet de choisir la courbe qui oriente les rangs. Le panneau la marque comme ligne guide (commande d'Ink/Stitch), la réunit à la forme si elle est dans un autre calque (position inchangée) et l'affiche dans la liste comme « Ligne guide » (elle n'est pas brodée).
+- Le remplissage guidé d'Ink/Stitch 3.3 échoue parfois au hasard (erreur interne « oriented_envelope ») : le panneau relance le calcul jusqu'à 3 fois, puis explique quoi essayer. Mesuré sur 12 combinaisons de réglages : 11 réussites au lieu de 5 (feuille), 7 au lieu de 2 (ovale).
+- Changer de type de point recalcule les réglages Auto de l'objet.
+
 ## 1.7.5 — 27 octobre 2026
 
 - **Fond transparent** : un contour dont le fond est transparent n'est plus signalé (c'est un trait, comme pour Ink/Stitch) ; l'alerte « Rendre le fond opaque » ne concerne plus que les formes sans contour, qui ne seraient pas brodées du tout. Vérifié sur la citrouille : les 5 contours à fond transparent sont vus comme des satins, sans alerte.

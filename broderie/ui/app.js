@@ -101,8 +101,8 @@ const THEMES = [
 
 // ---------------------------------------------------------------- liste des objets et couleurs
 const typePrincipal = (o) => o.types.includes('lettrage') ? 'lettrage' : o.types.includes('satin_column') ? 'satin_column' : o.types[0];
-const NOM_TYPE = { fill_stitch: 'Remplissage', satin_column: 'Satin', stroke: 'Trait', clone: 'Clone', lettrage: 'Texte' };
-const ICO_TYPE = { fill_stitch: 'tatami_fill', satin_column: 'satin_column', stroke: 'running_stitch', clone: 'manual_stitch', lettrage: 'texte' };
+const NOM_TYPE = { fill_stitch: 'Remplissage', satin_column: 'Satin', stroke: 'Trait', clone: 'Clone', lettrage: 'Texte', guide: 'Ligne guide' };
+const ICO_TYPE = { fill_stitch: 'tatami_fill', satin_column: 'satin_column', stroke: 'running_stitch', clone: 'manual_stitch', lettrage: 'texte', guide: 'guided_fill' };
 
 // Sélection : S.sel = objet principal ; S.choix = ensemble des objets choisis (plusieurs → réglages communs)
 S.choix = new Set();
@@ -466,6 +466,7 @@ const CONSEILS_BLOC = {
   'Sous-couches (plusieurs possibles)': ['Centre : colonnes fines (moins de 2 mm). Contour : de 2 à 5 mm, bords nets. Contour + Zigzag : satins larges ou tissus épais.', DOC_SATIN + '#sous-couche-centrale'],
   'Points courts dans les courbes': ['Dans une courbe serrée, les points s\'entassent côté intérieur : Ink/Stitch y raccourcit un point sur deux. Les valeurs par défaut conviennent presque toujours.', DOC_SATIN + '#paramètres'],
   'Appliqué': ['Brodez sur un stabilisateur. Au 1er arrêt, posez le tissu sur la ligne de placement ; au 2e, découpez le surplus au ras de la fixation (ciseaux à appliqué) ; la bordure satin recouvre le bord. Bordure de 3 à 4 mm en général.', 'https://inkstitch.org/fr/tutorials/applique/'],
+  'Ligne guide': ['Les rangs du remplissage suivent la courbe choisie, comme les nervures d’une feuille ou les mèches de cheveux. Une courbe douce, de la longueur de la forme, donne le plus beau résultat.', DOC_REMP + '#méthodes'],
   'Départ et fin de l’aiguille': ['Facultatif : sans repère, Ink/Stitch part au plus près de l\'aiguille. Placez la fin près de l\'objet suivant pour raccourcir le saut.', DOC_REMP + '#définir-les-points-de-départ-et-darrivée'],
 };
 function boutonConseil(c) {
@@ -565,6 +566,7 @@ function sectionType(o, typ) {
     if (typ === 'stroke' && k === 'running_stitch') v.bean_stitch_repeats = null;
     envoyer(o, v);
   })));
+  if (typ === 'fill_stitch' && actif === 'guided_fill' && !o.ids) out.push(blocGuide(o));
   if (typ === 'stroke') {
     const a = document.createElement('div'); a.className = 'aide';
     a.innerHTML = '<b>Colonne satin :</b> donnez au trait, dans Inkscape, l\'épaisseur voulue (la largeur du satin), puis choisissez la tuile <b>Satin</b> : le trait est transformé en colonne satin.';
@@ -900,6 +902,31 @@ function blocApplique(o) {
   };
   return bloc('Appliqué', d);
 }
+// Remplissage guidé : les rangs suivent une ligne guide (un tracé marqué par Ink/Stitch, dans le même groupe ou
+// calque que la forme). On choisit le tracé ici ; le panneau le marque et le réunit à la forme si besoin.
+function blocGuide(o) {
+  const d = document.createElement('div');
+  const g = o.guide && S.etat.objets.find((x) => x.id === o.guide);
+  const candidats = S.etat.objets.filter((x) => x.id !== o.id && (x.types.includes('stroke') || x.types.includes('guide')) && !x.types.includes('fill_stitch'));
+  d.innerHTML = `<div class="ligne-position"><span class="lib">Ligne guide</span><span class="etat ${g ? '' : 'muted'} small">${g ? '« ' + esc(g.nom) + ' »' : 'aucune : les rangs restent droits'}</span></div>`;
+  const sel = document.createElement('select'); sel.className = 'favoris';
+  sel.innerHTML = `<option value="">${g ? 'Changer de ligne guide…' : 'Choisir la ligne guide…'}</option>`
+    + candidats.map((x) => `<option value="${esc(x.id)}">${esc(x.nom)}${x.calque_nom ? ' · ' + esc(x.calque_nom) : ''}</option>`).join('');
+  sel.onchange = async () => {
+    const v = sel.value; sel.value = ''; if (!v) return;
+    try {
+      S.etat = await api('guide', { id: o.id, guide: v }, 'Ink/Stitch prépare la ligne guide…');
+      S.simu = S.simuP = null; rendreTout(); apercuBientot();
+      message('Ligne guide en place : les rangs du remplissage suivent la courbe (elle-même n’est pas brodée).');
+    } catch (e) { message(e.message, true); }
+  };
+  d.appendChild(sel);
+  const a = document.createElement('p'); a.className = 'muted small';
+  a.textContent = candidats.length ? 'Dessinez la courbe dans Inkscape (outil Plume), puis choisissez-la ici : elle n’est pas brodée, elle oriente les rangs.'
+    : 'Dessinez d’abord la courbe dans Inkscape (outil Plume), puis ⌘⌥B : elle apparaîtra ici.';
+  d.appendChild(a);
+  return bloc('Ligne guide', d);
+}
 // Départ et fin d'un remplissage : sinon Ink/Stitch choisit. « Placer », puis un clic dans l'aperçu :
 // le repère d'Ink/Stitch est posé là, et l'aiguille part (ou finit) au bord de la forme le plus proche.
 const POSITIONS = [['starting_point', 'Départ', 'depart'], ['ending_point', 'Fin', 'fin']];
@@ -1082,6 +1109,14 @@ function rendreProps() {
   const coul = document.createElement('div'); coul.className = 'ligne';
   coul.innerHTML = `<label>Couleur</label><span class="couleur"><input type="color" value="${hexa(o.couleur)}"><span class="muted small">${esc(o.couleur)}</span></span>`;
   suivreCouleur($('input', coul), (v) => changerCouleur(o, v), (v) => { $('.muted', coul).textContent = v; ent.querySelector('.vignette').style.color = v; });
+  if (t === 'guide') {                                // ligne guide : rien à régler, elle n'est pas brodée
+    const a = document.createElement('p'); a.className = 'muted';
+    const f = S.etat.objets.find((x) => x.guide === o.id);
+    a.innerHTML = `Ligne guide${f ? ` du remplissage « ${esc(f.nom)} »` : ''} : elle n'est pas brodée, elle oriente les rangs. `
+      + 'Modifiez sa forme dans Inkscape. Pour en refaire un trait brodé : dans Inkscape, Fond et contour › Style du contour › Marqueurs, mettez le marqueur de début à « aucun ».';
+    div.appendChild(bloc(null, a));
+    return;
+  }
   if (t === 'lettrage') {
     const b = document.createElement('button'); b.className = 'principal'; b.textContent = 'Modifier le texte';
     b.onclick = () => { S.texte = true; rendreTout(); };

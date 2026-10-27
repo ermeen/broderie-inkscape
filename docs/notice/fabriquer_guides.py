@@ -232,8 +232,8 @@ def guide_complet():
           *puces("<b>Densité</b> (écart entre les rangs) : 0,4 mm en fil 40 ; plus serré, le tissu devient raide.",
                  "<b>Angle</b> : changez-le entre deux zones voisines (45° et 135°) pour qu'elles se distinguent.",
                  "<b>Sous-couche</b> : indispensable sur maille et grandes zones, inutile sur les petits éléments.",
-                 "<b>Guidé</b> : les rangs suivent une ligne guide. Dessinez la ligne dans Inkscape, puis Extensions › Ink/Stitch › "
-                 "Édition › Sélection vers ligne guide (avec la ligne et la forme sélectionnées)."),
+                 "<b>Guidé</b> : les rangs suivent une courbe. Dessinez-la dans Inkscape (Plume), puis dans le panneau : tuile "
+                 "<b>Guidé</b>, et dans le bloc <b>Ligne guide</b>, choisissez la courbe. Elle n'est pas brodée, elle oriente les rangs."),
           p("Départ et fin de l'aiguille", "h2"),
           capture("positions", 150, "Départ (▶ vert) et fin (■ rouge) placés d'un clic dans l'aperçu."),
           p("Facultatif : sans repère, Ink/Stitch part au plus près de l'aiguille. <b>Placer</b>, puis un clic dans l'aperçu près "

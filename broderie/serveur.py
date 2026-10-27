@@ -246,6 +246,9 @@ class Session:
         if op[0] == "detacher":
             M.retirer_commande(doc, op[1], op[2])
             return
+        if op[0] == "guide":                           # ligne guide d'un remplissage guidé
+            M.lier_guide(doc, *op[1:])
+            return
         if op[0] == "opaque":                          # fond transparent rendu visible
             el = M.par_id(doc, op[1])
             if el is not None:
@@ -327,6 +330,8 @@ class Session:
             return self._origine(d)
         if nom == "position":                          # point de départ / de fin d'un remplissage
             return self._position(d)
+        if nom == "guide":                             # choisir la ligne guide d'un remplissage guidé
+            return self._guide_ligne(d)
         if nom == "relier_sauts":                      # sauts courts → points droits (Ink/Stitch « Saut en trait »)
             return self._relier_sauts(d)
         if nom == "ouvrir_machine":                    # fichier de broderie → dessin Inkscape, ouvert dans Inkscape
@@ -362,13 +367,23 @@ class Session:
         return self._action_suite(nom, d)
 
     def _calcul(self, nom, d, copie):
-        """Aperçu, points ou carte de densité, calculés par Ink/Stitch sur une copie du dessin."""
+        """Aperçu, points ou carte de densité, calculés par Ink/Stitch sur une copie du dessin. Le remplissage guidé
+        d'Ink/Stitch 3.3 échoue parfois au hasard (oriented_envelope) : deux nouveaux essais avant d'abandonner."""
+        for essai in range(3):
+            r = self._calcul_une_fois(nom, d, copie)
+            if not (isinstance(r, dict) and r.get("erreur") and "remplissage guidé" in str(r.get("erreur"))):
+                return r
+            copie = _lire(etree.tostring(copie.getroot()))
+        return r
+
+    def _calcul_une_fois(self, nom, d, copie):
         if nom == "densite":
             svg, err = E.densite(copie, d.get("ids") or None, d.get("seuils"))
             return {"svg": svg, "erreur": None if svg else _message(err)}
         if nom == "apercu":
             svg, err = E.apercu(copie, d.get("ids") or None, d.get("mode") or "points", d.get("options") or {})
-            return {"svg": svg, "erreur": None if svg else (err or "")[-2000:]}
+            connue = any(c in (err or "") for c, _ in ERREURS_CONNUES)
+            return {"svg": svg, "erreur": None if svg else (_message(err) if connue else (err or "")[-2000:])}
         r, err = E.points(copie, d.get("ids") or None)
         if r:
             try:
@@ -448,8 +463,14 @@ class Session:
                 self.version += 1
                 return {"etat": self.etat(), "lettres": M.resume_lettres(self.document, d["id"])}
             if nom == "params":
-                M.ecrire(M.par_id(self.document, d["id"]), d.get("valeurs", {}))
+                el = M.par_id(self.document, d["id"])
+                M.ecrire(el, d.get("valeurs", {}))
                 self.attente.append(("params", d["id"], d.get("valeurs", {})))
+                # autre type de point : les réglages auto de l'objet sont recalculés pour lui
+                if any(k in (d.get("valeurs") or {}) for k in ("fill_method", "satin_method")) and M._auto(el):
+                    v = M.appliquer_auto(self.document, el, M._auto(el))
+                    if v:
+                        self.attente.append(("auto", d["id"], v, M._auto(el) or []))
                 return self.etat()
             if nom == "bati":                          # faufilage autour du motif (ajouté, recalculé ou retiré)
                 op = ("bati", bool(d.get("actif")), float(d.get("ecart", 10)), float(d.get("longueur", 5)),
@@ -783,6 +804,34 @@ class Session:
             self.sauver()
             return self.etat()
 
+    def _guide_ligne(self, d):
+        """Fait du tracé choisi la ligne guide du remplissage : le style de ligne guide vient d'Ink/Stitch (commande
+        « Sélection vers ligne guide »), puis le panneau la réunit à la forme si besoin et passe la forme en guidé."""
+        i, g = d["id"], d["guide"]
+        with self.verrou:
+            if self.document is None or M.par_id(self.document, i) is None or M.par_id(self.document, g) is None:
+                raise ValueError("Objet introuvable : appuyez sur %s dans Inkscape." % S.RACCOURCI)
+            deja = M.est_guide(M.par_id(self.document, g))
+            style = M.par_id(self.document, g).get("style") or ""
+            marqueurs = M.marqueurs_guide(self.document)
+            copie = None if deja and marqueurs else _lire(etree.tostring(self.document.getroot()))
+        if copie is not None:
+            code, out, err = E.executer(copie, "selection_to_guide_line", [g], {}, delai=120)
+            res = E.document_modifie(out)
+            el = M.par_id(res, g) if res is not None else None
+            if el is None or not M.est_guide(el):
+                raise ValueError(_message(err) or "Ink/Stitch n'a pas pu faire de ce tracé une ligne guide.")
+            style, marqueurs = el.get("style"), M.marqueurs_guide(res)
+        with self.verrou:
+            groupe = M.lier_guide(self.document, i, g, style, marqueurs)
+            if groupe is None:
+                raise ValueError("Objet introuvable.")
+            # rejoué dans Inkscape : le même identifiant de groupe, seulement si le panneau en a créé un
+            self.attente.append(("guide", i, g, style, marqueurs, groupe if groupe.startswith("guide_") else None))
+            self.version += 1
+            self.sauver()
+            return self.etat()
+
     def _relier_sauts(self, d):
         """Remplace les sauts plus courts que « max » mm entre objets de même couleur par une ligne de points droits,
         comme les chemins de liaison dessinés à la main. Les coupes et arrêts voulus sont respectés."""
@@ -1043,8 +1092,18 @@ class Session:
         return {"lance": True, "fenetre": bool(cmd.get("fenetre"))}
 
 
+ERREURS_CONNUES = (   # erreurs internes d'Ink/Stitch, expliquées
+    ("oriented_envelope", "Ink/Stitch n'arrive pas à calculer ce remplissage guidé (erreur interne d'Ink/Stitch 3.3, qui "
+                          "dépend de la forme et des réglages) : changez un peu la densité, ou prolongez la ligne guide "
+                          "au-delà des bords de la forme, puis réessayez."),
+)
+
+
 def _message(err):
     """Dernières lignes utiles de la sortie d'erreur d'Ink/Stitch (ses messages pour l'utilisateur)."""
+    for cle, texte in ERREURS_CONNUES:
+        if cle in (err or ""):
+            return texte
     lignes = [l for l in (err or "").strip().splitlines() if l.strip() and "Warning" not in l]
     return "\n".join(lignes[-6:])[-1500:] or None
 

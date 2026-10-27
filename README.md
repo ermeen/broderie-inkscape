@@ -38,8 +38,8 @@ Il faut Inkscape 1.4 et Ink/Stitch 3, testés avec Inkscape 1.4.2 et Ink/Stitch 
 4. Appuyez sur **Cmd+Option+B**.
 
 Deux guides en PDF, dans l'archive et ici :
-- [Guide rapide](docs/Guide-rapide-Broderie-1.7.5.pdf) (2 pages, à garder sous la main) ;
-- [Guide complet](docs/Guide-complet-Broderie-1.7.5.pdf) (toutes les fonctions, illustrées, et les bonnes pratiques).
+- [Guide rapide](docs/Guide-rapide-Broderie-1.7.6.pdf) (2 pages, à garder sous la main) ;
+- [Guide complet](docs/Guide-complet-Broderie-1.7.6.pdf) (toutes les fonctions, illustrées, et les bonnes pratiques).
 
 **Windows (version d'essai)** : double-cliquez sur `Installer sous Windows.bat`, relancez Inkscape, puis **Ctrl+Alt+B**. Guide de test : [TESTER-WINDOWS.md](TESTER-WINDOWS.md).
 
