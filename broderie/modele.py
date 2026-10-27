@@ -962,6 +962,11 @@ def reappliquer_lettres(g, reglages):
 # ---------------------------------------------------------------- vérifier avant d'exporter
 # Problèmes signalés par le dépistage d'Ink/Stitch, traduits, avec ce qu'il faut faire
 PROBLEMES = {
+    "Rung doesn't intersect rails": ("alerte", "Traverse qui ne coupe pas les rails",
+                                     "Chaque traverse doit couper les deux rails : prolongez-la dans Inkscape, sinon le sens des points est faux."),
+    "Fill and Stroke color": ("conseil", "Fond et contour",
+                              "Cet objet a un fond et un contour : les deux seront brodés. Retirez l'un des deux dans Inkscape s'il ne doit pas l'être."),
+    "Image": ("conseil", "Image dans le dessin", "Une image n'est jamais brodée : elle sert seulement de modèle (vous pouvez la masquer)."),
     "Simple Satin": ("conseil", "Satin simple (un seul trait épais)",
                      "Il se brode, mais une colonne satin à deux rails donne un plus beau résultat (outil « Trait en satin »)."),
     "Too narrow satin": ("alerte", "Satin trop étroit", "Élargissez-le (au moins 1 mm) ou passez-le en point droit."),

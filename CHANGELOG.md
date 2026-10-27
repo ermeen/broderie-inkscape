@@ -13,6 +13,8 @@ Le numéro de version suit le schéma `MAJEUR.MINEUR.CORRECTIF` :
 
 **Objets**
 - **Couleurs déjà dans le dessin** : sous la couleur de l'objet, une pastille par couleur utilisée (tous calques). Un clic donne exactement la même couleur à l'objet, ou à tous les objets choisis. Au survol : les objets qui l'utilisent, et le fil si une bobine est choisie.
+- **Profil de broderie** (Export › Préparer la broderie) : tissu, stabilisateur et fil, enregistrés dans le dessin, avec le conseil de stabilisateur et de film soluble. **Tout le dessin en auto** remplace « Adapter au tissu ».
+- **Ink/Stitch · Auto · Main** sur les réglages calculés (satin : densité, compensation, découpe, sous-couches ; remplissage : densité, compensation, sous-couche) : valeur d'Ink/Stitch, valeur calculée d'après le profil et la forme (largeur des satins), ou la vôtre. Les valeurs auto sont recalculées quand le profil change ; celles réglées à la main ne bougent pas. Règles documentées (tutoriel sous-couches d'Ink/Stitch, Wilcom, Hatch, guides de numérisation) et décrites dans le code.
 - **Glisser plusieurs objets d'un coup** dans la liste : toute la sélection suit, dans son ordre.
 - **Glisser entre deux calques** : sur le bord haut de l'en-tête d'un calque, « Nouveau calque ici » ; les objets vont dans un calque à eux (« Citrouille · avant Etoile 3 »), placé entre les deux. Pour broder une partie d'un calque avant ou après un autre sans mélanger les calques.
 - Un objet glissé dans un autre calque **garde sa place à l'écran**, même si ce calque est décalé ou tourné (avant, il bougeait).

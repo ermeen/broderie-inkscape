@@ -13,18 +13,19 @@ On **dessine dans Inkscape**, on **règle la broderie dans le panneau**, et **In
 ## Ce que fait le panneau
 
 - **Objets**
-  - Calques et objets : sélection multiple avec réglages communs, ordre par glisser-déposer, œil pour broder ou non.
-  - Types de point en tuiles et réglages essentiels en curseurs ; tous les réglages d'Ink/Stitch rangés par thèmes.
-  - Copier et coller des réglages.
-  - Colonnes satin : conversion d'un trait, assemblage des rails et traverses.
-  - Texte brodé (140 polices) avec aperçu en direct : droit, en arc (jusqu'au cercle) ou sur une courbe dessinée dans Inkscape.
+  - Calques et objets : sélection multiple avec réglages communs, « Choisir les semblables », ordre par glisser-déposer (plusieurs objets, entre deux calques), œil pour broder ou non.
+  - Types de point en tuiles et réglages essentiels en curseurs ; tous les réglages d'Ink/Stitch rangés par thèmes, chacun avec un conseil (i) et le lien vers la documentation.
+  - **Ink/Stitch · Auto · Main** : les réglages qui dépendent du tissu sont calculés d'après le profil du dessin (tissu, stabilisateur, fil) et la forme, ou réglés à la main.
+  - Couleurs déjà dans le dessin, copier-coller des réglages, réglages favoris.
+  - Départ et fin de l'aiguille placés d'un clic, appliqué en un clic, remplissage en satin.
+  - Texte brodé (140 polices) avec aperçu en direct : droit, en arc ou sur une courbe ; réglages lettre par lettre.
 - **Simulation**
-  - Animation point par point (sauts, coupes, changements de couleur) ou rendu réaliste sur tissu, avec zoom.
-  - Le cadre de la brodeuse dessiné autour du motif, et un **bâti** réglable (écart, longueur de point, arrondi des angles).
+  - Animation point par point ou rendu réaliste, avec zoom, règle, suivi de l'aiguille.
+  - Le cadre de la brodeuse autour du motif, et un **bâti** réglable.
 - **Export**
-  - 21 formats de machine.
-  - Bobines : marque de fil (75 nuanciers), bobine la plus proche pour chaque couleur, couleurs exactes des fils.
-  - Durée estimée.
+  - Profil de broderie et « Tout le dessin en auto », regrouper les couleurs, couper ou relier les sauts.
+  - **Vérifier avant d'exporter** : problèmes traduits, avec Montrer et Corriger.
+  - 21 formats de machine, bobines (75 nuanciers), fiche machine en français, ouverture des fichiers machine.
 - **Toutes les commandes Ink/Stitch**, en français.
 
 ## Installer
@@ -36,7 +37,9 @@ Il faut Inkscape 1.4 et Ink/Stitch 3, testés avec Inkscape 1.4.2 et Ink/Stitch 
 3. Quittez puis relancez Inkscape.
 4. Appuyez sur **Cmd+Option+B**.
 
-Mode d'emploi complet et astuces de réglages : [docs/Notice-Broderie-1.7.0.pdf](docs/Notice-Broderie-1.7.0.pdf).
+Deux guides en PDF, dans l'archive et ici :
+- [Guide rapide](docs/Guide-rapide-Broderie-1.7.0.pdf) (2 pages, à garder sous la main) ;
+- [Guide complet](docs/Guide-complet-Broderie-1.7.0.pdf) (toutes les fonctions, illustrées, et les bonnes pratiques).
 
 **Windows (version d'essai)** : double-cliquez sur `Installer sous Windows.bat`, relancez Inkscape, puis **Ctrl+Alt+B**. Guide de test : [TESTER-WINDOWS.md](TESTER-WINDOWS.md).
 

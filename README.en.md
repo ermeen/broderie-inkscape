@@ -19,18 +19,19 @@ Ink/Stitch remains the engine: the panel does not replace it, it makes it easier
 ## What the panel does
 
 - **Objects**
-  - Layers and objects: multiple selection with shared settings, drag and drop to change the stitching order, an eye icon to stitch an object or not.
-  - Stitch types as tiles, essential settings as sliders; all Ink/Stitch settings grouped by topic.
-  - Copy and paste settings.
-  - Satin columns: convert a stroke, join rails and rungs.
-  - Lettering (140 fonts) with live preview: straight, arched (up to a full circle) or along a curve drawn in Inkscape.
+  - Layers and objects: multiple selection with shared settings, "select similar", drag and drop to change the stitching order (several objects, between two layers), an eye icon to stitch an object or not.
+  - Stitch types as tiles, essential settings as sliders; every Ink/Stitch setting grouped by topic, each with a tip (i) and a link to the documentation.
+  - **Ink/Stitch · Auto · Manual**: fabric-dependent settings computed from the design's profile (fabric, stabilizer, thread) and the shape, or set by hand.
+  - Colors already in the design, copy and paste settings, favorite settings.
+  - Fill start and end points placed with a click, one-click appliqué, fill to satin.
+  - Lettering (140 fonts) with live preview: straight, arched or along a curve; per-letter settings.
 - **Simulation**
-  - Stitch-by-stitch animation (jumps, trims, color changes) or realistic render on fabric, with zoom.
-  - Your machine's hoop drawn around the design, and an adjustable **basting** outline (distance, stitch length, corner radius).
+  - Stitch-by-stitch animation or realistic render, with zoom, ruler and needle following.
+  - Your machine's hoop around the design, and an adjustable **basting** outline.
 - **Export**
-  - 21 machine formats.
-  - Thread spools: thread brand (75 Ink/Stitch palettes), closest spool for each color, apply exact thread colors.
-  - Estimated stitching time.
+  - Embroidery profile and "whole design in auto", group colors, trim or connect jumps.
+  - **Check before export**: problems explained, with Show and Fix.
+  - 21 machine formats, thread spools (75 palettes), printable machine sheet, opening machine files.
 - **All Ink/Stitch commands** in one searchable list.
 
 ## Install (macOS)
@@ -42,7 +43,7 @@ Requires Inkscape 1.4 and Ink/Stitch 3. Tested with Inkscape 1.4.2 and Ink/Stitc
 3. Quit and restart Inkscape.
 4. Press **Cmd+Option+B**.
 
-A full illustrated guide (in French) is included: [docs/Notice-Broderie-1.7.0.pdf](docs/Notice-Broderie-1.7.0.pdf).
+Two guides (in French) are included: a [quick guide](docs/Guide-rapide-Broderie-1.7.0.pdf) (2 pages) and a [complete illustrated guide](docs/Guide-complet-Broderie-1.7.0.pdf).
 
 **Windows (test version):** double-click `Installer sous Windows.bat`, restart Inkscape, then press **Ctrl+Alt+B**. Test guide (in French): [TESTER-WINDOWS.md](TESTER-WINDOWS.md).
 

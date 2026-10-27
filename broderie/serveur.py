@@ -827,7 +827,7 @@ class Session:
         res = E.document_modifie(sortie)
         if res is not None:
             for nom, x, y in M.problemes_inkstitch(doc, res):
-                gravite, titre, detail = M.PROBLEMES.get(nom, ("alerte", nom, "Signalé par Ink/Stitch."))
+                gravite, titre, detail = M.PROBLEMES.get(nom, ("alerte", M.tr(nom), "Signalé par Ink/Stitch."))   # sinon : traduction d'Ink/Stitch
                 ajouter(gravite, titre, detail, M._objet_proche(doc, x, y, boites))
         # 2. sauts longs sans coupe (le point de départ du saut désigne l'objet à couper)
         for ident, long_mm in self._sauts_longs(doc, boites, float(d.get("saut_max") or 5)):
