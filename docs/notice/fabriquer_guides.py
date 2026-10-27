@@ -211,11 +211,13 @@ def guide_complet():
                  "<b>Mes réglages favoris</b> : un jeu de réglages gardé sous un nom, pour tous vos dessins."),
           capture("satin", 150, "Fiche d'un satin : Ink/Stitch · Auto · Main sous chaque réglage calculé, et le conseil ouvert (i)."),
           p("Ink/Stitch · Auto · Main", "h2"),
-          p("Sous les réglages qui dépendent du tissu, un petit sélecteur dit d'où vient la valeur :"),
+          p("Sous les réglages qui dépendent du tissu, un petit sélecteur dit d'où vient la valeur. Par défaut, tout réglage "
+            "que vous n'avez pas touché est en <b>Auto</b> (profil « coton, à déchirer, fil 40 » tant que vous n'en choisissez pas un autre) :"),
           *puces("<b>Ink/Stitch</b> : la valeur par défaut d'Ink/Stitch (rien n'est écrit dans le fichier) ;",
                  "<b>Auto</b> : calculée d'après le profil du dessin (tissu, stabilisateur, fil) et la forme (largeur d'un satin). "
                  "Elle est recalculée si le profil change ;",
-                 "<b>Main</b> : votre valeur. Il suffit de bouger le curseur ; elle ne change plus d'elle-même."),
+                 "<b>Main</b> : votre valeur. Il suffit de bouger le curseur ; elle ne change plus d'elle-même. Un réglage remis "
+                 "sur Ink/Stitch le reste aussi."),
           PageBreak(),
           p("La couleur", "h2"),
           capture("couleurs", 150, "Couleurs déjà dans le dessin : un clic donne exactement la même couleur."),

@@ -314,8 +314,17 @@ def par_id(svg, i):
 
 def ecrire(el, valeurs):
     """Écrit les réglages : None ou "" supprime l'attribut (valeur par défaut d'Ink/Stitch).
-    Un réglage écrit à la main n'est plus « auto »."""
+    Un réglage écrit à la main n'est plus « auto » ; un réglage calculable remis à la valeur d'Ink/Stitch est noté
+    comme tel, pour ne pas repasser en auto tout seul."""
     marquer_auto(el, [n for n in (_auto(el) or []) if n not in valeurs])
+    calculables = set(sum((list(PARAMS_AUTO.get(t, ())) for t in types(el)), []))
+    choix = set(_liste(el, INKSTITCH_CHOISI))
+    for nom, v in valeurs.items():
+        if (v is None or v == "") and nom in calculables:
+            choix.add(nom)
+        else:
+            choix.discard(nom)
+    _marquer(el, INKSTITCH_CHOISI, choix)
     for nom, v in valeurs.items():
         cle = "{%s}%s" % (INKSTITCH_NS, nom)
         if v is None or v == "":
@@ -1386,6 +1395,7 @@ def broder_ailleurs(svg, ids, cible, apres=True, nouveau=None):
 # - stabilisateur : à découper pour les mailles, à déchirer pour les tissés, film soluble dessus pour les tissus à
 #   poils (Hatch « Choose auto fabrics », Threads Magazine) ; plus faible que conseillé : le tissu bouge davantage.
 AUTO = "data-broderie-auto"
+INKSTITCH_CHOISI = "data-broderie-inkstitch"          # réglages remis exprès à la valeur d'Ink/Stitch
 PROFIL = "data-broderie-profil"
 PROFIL_DEFAUT = {"tissu": "coton", "stabilisateur": "dechirer", "fil": "40"}
 STABILITE = {"decouper": 3, "dechirer": 2, "soluble": 1, "aucun": 0}   # du plus stable au moins stable
@@ -1422,16 +1432,24 @@ def conseil_profil(p):
     return out
 
 
+def _liste(el, attribut):
+    v = el.get(attribut)
+    return v.split() if v else []
+
+
+def _marquer(el, attribut, noms):
+    if noms:
+        el.set(attribut, " ".join(sorted(set(noms))))
+    else:
+        el.attrib.pop(attribut, None)
+
+
 def _auto(el):
-    v = el.get(AUTO)
-    return v.split() if v else None
+    return _liste(el, AUTO) or None
 
 
 def marquer_auto(el, noms):
-    if noms:
-        el.set(AUTO, " ".join(sorted(set(noms))))
-    else:
-        el.attrib.pop(AUTO, None)
+    _marquer(el, AUTO, noms)
 
 
 def profil(svg):
@@ -1486,7 +1504,28 @@ def appliquer_auto(svg, el, noms=None):
     vals = {n: calc[n] for n in noms}
     ecrire(el, vals)
     marquer_auto(el, deja | set(noms))
+    _marquer(el, INKSTITCH_CHOISI, set(_liste(el, INKSTITCH_CHOISI)) - set(noms))   # « aucune découpe » calculée n'est pas un choix
     return vals
+
+
+def auto_par_defaut(svg):
+    """Met en auto les réglages calculables que personne n'a touchés (ni valeur écrite, ni choix « Ink/Stitch »).
+    Les valeurs réglées à la main ne bougent pas. Sans profil, celui par défaut est enregistré. Renvoie le nombre
+    d'objets réglés."""
+    n = 0
+    for el in objets(svg, masques=True):
+        t = types(el)
+        typ = "satin_column" if "satin_column" in t else "fill_stitch" if "fill_stitch" in t else None
+        if typ is None:
+            continue
+        pris = set(_auto(el) or []) | set(_liste(el, INKSTITCH_CHOISI))
+        noms = [x for x in PARAMS_AUTO[typ] if attr(el, x) is None and x not in pris]
+        if noms:
+            if not profil(svg):
+                regler_profil(svg, PROFIL_DEFAUT)
+            if appliquer_auto(svg, el, noms):
+                n += 1
+    return n
 
 
 def recalculer_auto(svg):

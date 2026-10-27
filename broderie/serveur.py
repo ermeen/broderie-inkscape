@@ -218,6 +218,11 @@ class Session:
                 renvoi = etree.tostring(doc.getroot(), encoding="unicode")
                 self.log("%d modification(s) appliquée(s) dans Inkscape." % len(self.attente))
                 self.attente = []
+            # réglages jamais touchés (nouvelles formes…) : en « auto » par défaut, d'après le profil du dessin
+            n = M.auto_par_defaut(doc)
+            if n:
+                renvoi = etree.tostring(doc.getroot(), encoding="unicode")
+                self.log("%d objet(s) réglé(s) en auto d'après le profil du dessin." % n)
             self.recu = renvoi if renvoi is not None else recu
             self.document = doc
             self.base = signature(doc)
