@@ -245,6 +245,11 @@ class Session:
         if op[0] == "detacher":
             M.retirer_commande(doc, op[1], op[2])
             return
+        if op[0] == "opaque":                          # fond transparent rendu visible
+            el = M.par_id(doc, op[1])
+            if el is not None:
+                M.rendre_opaque(el)
+            return
         if op[0] == "profil":                          # profil de broderie du dessin (tissu, stabilisateur, fil)
             M.regler_profil(doc, op[1])
             return
@@ -397,6 +402,15 @@ class Session:
                 self.version += 1
                 self.sauver()
                 return {"n": n, "etat": self.etat()}
+            if nom == "opaque":                        # fond à opacité 0 : Ink/Stitch ne le brode pas
+                for i in d.get("ids") or [d.get("id")]:
+                    el = M.par_id(self.document, i)
+                    if el is not None and M.fond_transparent(el):
+                        M.rendre_opaque(el)
+                        self.attente.append(("opaque", i))
+                self.version += 1
+                self.sauver()
+                return self.etat()
             if nom == "tout_le_dessin":                # liste limitée à la sélection d'Inkscape → tout le dessin
                 self.ids = []
                 self.version += 1
@@ -874,7 +888,13 @@ class Session:
                         "Jusqu'à %.0f mm de large : des points aussi longs sont lâches et s'accrochent. Découpez les longs "
                         "points, ou brodez cette forme en remplissage." % larg, ident,
                         {"action": "params", "valeurs": {"max_stitch_length_mm": 7}, "libelle": "Découper à 7 mm"})
-        # 5. objets minuscules
+        # 5. fonds transparents : remplis mais d'opacité 0, Ink/Stitch ne les brode pas
+        for ident in list(boites) + [o.get("id") for o in M.objets(doc) if o.get("id") not in boites]:
+            el = M.par_id(doc, ident)
+            if el is not None and "fill_stitch" in M.types(el) and M.fond_transparent(el):
+                ajouter("alerte", "Fond transparent", "L'opacité du fond est à 0 (curseur A dans Fond et contour d'Inkscape) : "
+                        "Ink/Stitch ne brode pas cet objet.", ident, {"action": "opaque", "libelle": "Rendre opaque"})
+        # 6. objets minuscules
         for ident, b in boites.items():
             if (b[2] - b[0]) * mm < 1 and (b[3] - b[1]) * mm < 1:
                 ajouter("alerte", "Objet minuscule", "Moins de 1 mm : il ne se brodera pas bien. Agrandissez-le ou masquez-le.",

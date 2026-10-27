@@ -100,6 +100,24 @@ def _style_herite(el, cle):
     return None
 
 
+def fond_transparent(el):
+    """Fond rempli mais d'opacité 0 (curseur alpha à zéro dans Inkscape) : Ink/Stitch ne le brode pas."""
+    f = _style_herite(el, "fill")
+    if not f or f.lower() == "none":
+        return False
+    try:
+        return float(_style_herite(el, "fill-opacity") or 1) == 0
+    except ValueError:
+        return False
+
+
+def rendre_opaque(el):
+    """Fond visible (opacité 1) : Ink/Stitch le brodera."""
+    st = _style(el)
+    st["fill-opacity"] = "1"
+    el.set("style", ";".join(f"{k}:{v}" for k, v in st.items()))
+
+
 def _cache(el, masques=False):
     """Hors broderie : définitions, aperçu, connecteurs… et objets masqués (sauf si masques=True)."""
     while el is not None and isinstance(el.tag, str):
@@ -233,6 +251,7 @@ def decrire(el):
         "calque_masque": bool(cid) and masque(par_id(el.getroottree(), cid)),
         "valeurs": {etree.QName(k).localname: v for k, v in el.attrib.items() if k.startswith("{%s}" % INKSTITCH_NS)},
         "auto": _auto(el) or [],
+        "transparent": fond_transparent(el),
     }
 
 

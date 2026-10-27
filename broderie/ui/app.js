@@ -240,6 +240,17 @@ function rendreListe() {
   $('#carteListe .carte-titre span').title = '⌘-clic : plusieurs · ⇧-clic : une suite · clic sur un calque : le replier · « Tout » : tout le calque · glisser : changer l’ordre';
 }
 
+// Fond d'opacité 0 (curseur A à zéro dans Inkscape) : Ink/Stitch ne le brode pas, quelle que soit sa couleur
+function alerteTransparent(objs) {
+  const d = document.createElement('div'); d.className = 'alerte-transparent';
+  d.innerHTML = `<b>Fond transparent : pas brodé.</b> L'opacité du fond est à 0 (curseur A dans Fond et contour d'Inkscape), `
+    + `Ink/Stitch ne calcule aucun point. <button type="button" class="petit">Rendre le fond opaque</button>`;
+  $('button', d).onclick = async () => {
+    try { S.etat = await api('opaque', { ids: objs.map((x) => x.id) }); S.simu = null; rendreTout(); apercuBientot(); message('Fond rendu opaque : l\'objet sera brodé.'); }
+    catch (e) { message(e.message, true); }
+  };
+  return d;
+}
 // « Tout désélectionner » dans l'en-tête de la liste, seulement quand quelque chose est choisi (Échap fait pareil)
 function toutDeselectionner() { S.choix = new Set(); S.sel = null; S.aucun = true; S.texte = false; S.placer = null; modePlacement(); rendreTout(); }
 function boutonDeselection() {
@@ -1018,6 +1029,7 @@ function rendreMulti(objs) {
     r.sections.forEach((x) => div.appendChild(x));
     montres = new Set([...montres, ...r.montres]);
   }
+  if (objs.some((x) => x.transparent)) div.appendChild(alerteTransparent(objs.filter((x) => x.transparent)));
   const coul = document.createElement('div'); coul.className = 'ligne';
   coul.innerHTML = `<label>Couleur (tous)</label><span class="couleur"><input type="color" value="${(o.couleur || '#000000').slice(0, 7)}"></span>`;
   suivreCouleur($('input', coul), async (v) => { for (const x of objs) await changerCouleur(x, v); });
@@ -1044,6 +1056,7 @@ function rendreProps() {
     <div><h3>${esc(o.nom)}</h3><span class="muted small">${esc(NOM_TYPE[t] || t)} · ${esc(o.balise === 'path' ? 'chemin' : o.balise)}</span></div>`;
   div.appendChild(ent);
   div.appendChild(boutonsCopie(o));
+  if (o.transparent) div.appendChild(alerteTransparent([o]));
   const coul = document.createElement('div'); coul.className = 'ligne';
   coul.innerHTML = `<label>Couleur</label><span class="couleur"><input type="color" value="${hexa(o.couleur)}"><span class="muted small">${esc(o.couleur)}</span></span>`;
   suivreCouleur($('input', coul), (v) => changerCouleur(o, v), (v) => { $('.muted', coul).textContent = v; ent.querySelector('.vignette').style.color = v; });
@@ -1274,7 +1287,7 @@ async function apercu() {
     }
     if (S.vue === 'points' && SIM_AFF.cadre) v = dessinerCadreApercu(svg, plan, v, uMM);
     vb0 = v; vbTout = cadrageAffiche(svg, plan); if (!garder) vb = v.slice();
-    if (MODE !== 'points') habiller(svg, v); else { pointsAiguille(svg); superposerCommandes(svg); if (AFF.densite) carteDensite(svg); }
+    if (MODE !== 'points') habiller(svg, v); else { pointsAiguille(svg); contrasteFils(svg); superposerCommandes(svg); if (AFF.densite) carteDensite(svg); }
     zonesCliquables(svg);
     appliquerVue();
     afficherSelection(true);
@@ -1328,7 +1341,7 @@ function habiller(svg, v) {
   for (const g of svg.children) if (g.tagName === 'g' && !g.classList.contains('selection-panneau')) g.setAttribute('filter', 'url(#ombre-panneau)');
   majTissu();
 }
-function majTissu() { $$('#apercu .tissu-fond').forEach((r) => r.setAttribute('fill', TISSU)); }
+function majTissu() { $$('#apercu .tissu-fond').forEach((r) => r.setAttribute('fill', TISSU)); contrasteFils($('#apercu > svg')); }
 
 // Sauts, coupes, arrêts et changements de couleur par-dessus l'aperçu (Ink/Stitch dessine les sauts comme du fil).
 // Les points d'Ink/Stitch (0,1 mm, centrés sur le motif) sont recalés sur l'emprise du tracé de l'aperçu.
@@ -1394,6 +1407,24 @@ function pointsAiguille(svg) {
       faits[id] = true;
     }
     ch.setAttribute('style', st.replace(/url\(#inkstitch-needle-point-marker\)/g, `url(#${id})`));
+  }
+}
+
+// Fil presque de la couleur du tissu (blanc sur blanc…) : un fin liseré sombre (ou clair sur tissu foncé) pour voir
+// son trajet ; la couleur du fil reste la vraie
+function luminance(c) {
+  const h = String(c || '#000').replace('#', ''), v = h.length === 3 ? [...h].map((x) => x + x) : [h.slice(0, 2), h.slice(2, 4), h.slice(4, 6)];
+  const [r, g, b] = v.map((x) => parseInt(x, 16) / 255).map((x) => (x <= 0.03928 ? x / 12.92 : ((x + 0.055) / 1.055) ** 2.4));
+  return 0.2126 * r + 0.7152 * g + 0.0722 * b;
+}
+const peuVisible = (fil, fond) => { const a = luminance(fil), b = luminance(fond); return (Math.max(a, b) + 0.05) / (Math.min(a, b) + 0.05) < 1.6; };
+const liseré = (fond) => (luminance(fond) > 0.4 ? 'rgba(0,0,0,.7)' : 'rgba(255,255,255,.8)');
+function contrasteFils(svg) {
+  const plan = svg && svg.querySelector('#__inkstitch_stitch_plan__'); if (!plan) return;
+  for (const g of plan.children) {
+    const p = g.querySelector('path'); if (!p) continue;
+    const c = ((p.getAttribute('style') || '').match(/stroke:\s*(#[0-9a-fA-F]{3,6})/) || [])[1];
+    g.style.filter = c && peuVisible(c, TISSU) ? `drop-shadow(0 0 0.35px ${liseré(TISSU)}) drop-shadow(0 0 0.35px ${liseré(TISSU)})` : '';
   }
 }
 
@@ -1725,6 +1756,7 @@ async function verifier() {
     try {
       if (p.corriger.action === 'params') S.etat = await api('params', { id: p.id, valeurs: p.corriger.valeurs });
       else if (p.corriger.action === 'visible') S.etat = await api('visible', { id: p.id, visible: p.corriger.visible });
+      else if (p.corriger.action === 'opaque') S.etat = await api('opaque', { id: p.id });
       S.simu = null; rendreTout(); verifier();
     } catch (e) { message(e.message, true); }
   }; });
@@ -2067,7 +2099,11 @@ function dessinerSimulation() {
   g.lineWidth = modePoints ? dpr * px : Math.max(dpr * px * 0.6, SIM_PREF.epaisseur * 10 * k); g.lineCap = 'round'; g.lineJoin = 'round';
   let fil = 0, prec = null, saut = false;
   const sauts = [], marques = [], trous = [];
-  g.strokeStyle = SIM.fils[0] || '#000'; g.beginPath();
+  const fixerFil = (c) => {                            // fil peu visible sur le fond : liseré (voir contrasteFils)
+    g.strokeStyle = c; const faible = peuVisible(c, SIM_AFF.fond);
+    g.shadowColor = faible ? liseré(SIM_AFF.fond) : 'transparent'; g.shadowBlur = faible ? 2 * dpr * px : 0;
+  };
+  fixerFil(SIM.fils[0] || '#000'); g.beginPath();
   for (let i = 0; i < fin; i++) {
     const [x, y, c] = SIM.pts[i];
     if (c === 'STITCH') {
@@ -2080,7 +2116,7 @@ function dessinerSimulation() {
       continue;
     }
     if (c === 'COLOR_CHANGE') {
-      g.stroke(); fil++; g.strokeStyle = SIM.fils[fil] || '#000'; g.beginPath();
+      g.stroke(); fil++; fixerFil(SIM.fils[fil] || '#000'); g.beginPath();
       marques.push(['color_change', X(x), Y(y)]); saut = true; continue;   // nouveau fil : la liaison est un déplacement
     }
     if (c === 'JUMP') {
@@ -2092,7 +2128,7 @@ function dessinerSimulation() {
     if (c === 'STOP') { marques.push(['stop', X(x), Y(y)]); }
     prec = [X(x), Y(y)];
   }
-  g.stroke();
+  g.stroke(); g.shadowColor = 'transparent'; g.shadowBlur = 0;      // le liseré ne vaut que pour le fil
   if (SIM_AFF.sauts && sauts.length) {
     g.save(); g.strokeStyle = 'rgba(90,90,100,.85)'; g.lineWidth = 1.2 * dpr * px; g.setLineDash([5 * dpr * px, 4 * dpr * px]);
     g.beginPath(); for (let j = 0; j < sauts.length; j += 4) { g.moveTo(sauts[j], sauts[j + 1]); g.lineTo(sauts[j + 2], sauts[j + 3]); }

@@ -461,3 +461,6 @@ button.info:hover { border-color: var(--accent); color: var(--accent); }
 /* zones cliquables de l'aperçu : surface pour un remplissage, bande pour un satin, ligne pour un trait */
 .cibles-panneau [data-zone="bande"], .cibles-panneau [data-zone="bande"] * { fill-rule: evenodd !important; }
 .cibles-panneau [data-zone="ligne"], .cibles-panneau [data-zone="ligne"] * { pointer-events: stroke !important; }
+.alerte-transparent { margin: 6px 0 10px; padding: 8px 10px; border-radius: 8px; background: rgba(232,137,46,.16); border-left: 3px solid #e8892e;
+  font-size: 12px; line-height: 1.45; }
+.alerte-transparent button { margin-top: 6px; display: block; }
