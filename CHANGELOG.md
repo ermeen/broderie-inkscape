@@ -5,6 +5,10 @@ Le numéro de version suit le schéma `MAJEUR.MINEUR.CORRECTIF` :
 - **MINEUR** : nouvelle fonction ;
 - **CORRECTIF** : correction sans nouvelle fonction.
 
+## 1.7.5 — 27 octobre 2026
+
+- **Fond transparent** : un contour dont le fond est transparent n'est plus signalé (c'est un trait, comme pour Ink/Stitch) ; l'alerte « Rendre le fond opaque » ne concerne plus que les formes sans contour, qui ne seraient pas brodées du tout. Vérifié sur la citrouille : les 5 contours à fond transparent sont vus comme des satins, sans alerte.
+
 ## 1.7.4 — 27 octobre 2026
 
 - **Isoler** : icône en forme de lunettes (« regarder de près »), pour ne plus la confondre avec la cible de « Suivre l'aiguille ».

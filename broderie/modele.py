@@ -186,10 +186,14 @@ def types(el):
         return ["lettrage"] if attr(el, "lettering") is not None else []
     out = []
     fill = _style_herite(el, "fill")
-    if nom not in ("line", "polyline") and (fill is None or fill.lower() != "none") and booleen(attr(el, "fill"), True):
-        out.append("fill_stitch")
     stroke = _style_herite(el, "stroke")
-    if stroke and stroke.lower() != "none":
+    contour = bool(stroke and stroke.lower() != "none")
+    # fond transparent (opacité 0) : Ink/Stitch l'ignore ; un objet qui a un contour est alors un simple trait.
+    # Sans contour, on le garde comme remplissage, pour pouvoir signaler qu'il ne sera pas brodé.
+    if nom not in ("line", "polyline") and (fill is None or fill.lower() != "none") and booleen(attr(el, "fill"), True) \
+            and not (contour and fond_transparent(el)):
+        out.append("fill_stitch")
+    if contour:
         out.append("satin_column" if booleen(attr(el, "satin_column")) else "stroke")
     return out
 
@@ -251,7 +255,7 @@ def decrire(el):
         "calque_masque": bool(cid) and masque(par_id(el.getroottree(), cid)),
         "valeurs": {etree.QName(k).localname: v for k, v in el.attrib.items() if k.startswith("{%s}" % INKSTITCH_NS)},
         "auto": _auto(el) or [],
-        "transparent": fond_transparent(el),
+        "transparent": "fill_stitch" in t and fond_transparent(el),
     }
 
 
