@@ -5,6 +5,10 @@ Le numéro de version suit le schéma `MAJEUR.MINEUR.CORRECTIF` :
 - **MINEUR** : nouvelle fonction ;
 - **CORRECTIF** : correction sans nouvelle fonction.
 
+## 1.7.4 — 27 octobre 2026
+
+- **Isoler** : icône en forme de lunettes (« regarder de près »), pour ne plus la confondre avec la cible de « Suivre l'aiguille ».
+
 ## 1.7.3 — 27 octobre 2026
 
 - **Isoler plus facile à trouver** : bouton cible dans la barre de l'aperçu (isole les objets choisis), et la cible reste visible sur les objets choisis de la liste (avant : seulement au survol).

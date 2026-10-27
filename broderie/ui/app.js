@@ -115,7 +115,8 @@ function choisir(ids, ajouter = false) {
   S.texte = false;
   rendreTout();
 }
-const CIBLE = '<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="7.5"/><circle cx="12" cy="12" r="2.6" fill="currentColor"/><path d="M12 1.5v3M12 19.5v3M1.5 12h3M19.5 12h3"/></svg>';
+// isoler : des lunettes, « regarder de près » (pas la cible de « Suivre l'aiguille », pas la loupe du zoom)
+const CIBLE = '<svg viewBox="0 0 24 24" stroke-linejoin="round"><circle cx="6.5" cy="14" r="3.8"/><circle cx="17.5" cy="14" r="3.8"/><path d="M10.3 13.2c1.1-.9 2.3-.9 3.4 0M2.7 13.2L4.5 7.5M21.3 13.2L19.5 7.5"/></svg>';
 const OEIL = (vis) => vis ? '<svg viewBox="0 0 24 24"><path d="M2 12s4-7 10-7 10 7 10 7-4 7-10 7S2 12 2 12z"/><circle cx="12" cy="12" r="3"/></svg>'
   : '<svg viewBox="0 0 24 24"><path d="M3 3l18 18M10.6 5.1A10 10 0 0 1 12 5c6 0 10 7 10 7a17 17 0 0 1-3.2 3.9M6.6 6.6C3.9 8.4 2 12 2 12s4 7 10 7a9.6 9.6 0 0 0 4.4-1"/></svg>';
 async function basculerVisible(id, visible) {
