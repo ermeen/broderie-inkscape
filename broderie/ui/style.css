@@ -468,8 +468,10 @@ button.info:hover { border-color: var(--accent); color: var(--accent); }
 /* isoler un objet (aperçu et simulation seulement) */
 #liste .isoler { border: none; background: none; padding: 0 2px; width: 22px; height: 20px; color: var(--muted); flex: none; opacity: 0; }
 #liste li:hover .isoler, #liste .isoler.on { opacity: 1; }
+#liste li.on .isoler { opacity: .75; }
 #liste .isoler svg { width: 15px; height: 15px; fill: none; stroke: currentColor; stroke-width: 1.7; stroke-linecap: round; }
 #liste .isoler:hover { color: var(--texte); }
 #liste .isoler.on { color: var(--accent); }
 #liste li.hors-isole .nom, #liste li.hors-isole .type, #liste li.hors-isole .pastille { opacity: .45; }
 .barre-rendu .isole-actif { background: var(--accent) !important; color: #fff !important; font-weight: 600; margin-left: 4px; padding: 5px 10px !important; }
+.barre-rendu .ico-rendu.isoler-sel svg { width: 17px; height: 17px; fill: none; stroke: currentColor; stroke-width: 1.7; stroke-linecap: round; }

@@ -5,6 +5,10 @@ Le numéro de version suit le schéma `MAJEUR.MINEUR.CORRECTIF` :
 - **MINEUR** : nouvelle fonction ;
 - **CORRECTIF** : correction sans nouvelle fonction.
 
+## 1.7.3 — 27 octobre 2026
+
+- **Isoler plus facile à trouver** : bouton cible dans la barre de l'aperçu (isole les objets choisis), et la cible reste visible sur les objets choisis de la liste (avant : seulement au survol).
+
 ## 1.7.2 — 27 octobre 2026
 
 - **Aperçu plus rapide** : le dessin des points et les sauts / coupes sont calculés en même temps (≈ 3 s au lieu de ≈ 4,5 s sur la citrouille), et un affichage déjà calculé (même dessin, même vue : changer d'onglet, isoler puis tout réafficher…) revient en moins d'une demi-seconde, sans relancer Ink/Stitch. Ink/Stitch met lui-même ≈ 2 s à démarrer à chaque calcul.

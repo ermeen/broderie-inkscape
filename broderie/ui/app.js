@@ -1261,6 +1261,16 @@ function barreRendu() {
     if (!MESURE) $$('#apercu .mesure-panneau').forEach((x) => x.remove());
     message(MESURE ? 'Règle : tirez d\'un point à un autre dans l\'aperçu. Elle s\'accroche aux points d\'aiguille proches.' : ''); };
   outilsVue.append(tout, regle); d.appendChild(outilsVue);
+  if (!(S.isole && S.isole.size)) {                    // isoler la sélection d'un clic
+    const iso = document.createElement('button'); iso.type = 'button'; iso.className = 'ico-rendu isoler-sel';
+    iso.innerHTML = CIBLE; iso.title = 'Isoler : ne voir que les objets choisis dans l’aperçu et la simulation (le dessin ne change pas)';
+    iso.onclick = (e) => {
+      e.stopPropagation();
+      const ids = S.choix.size ? [...S.choix] : (S.sel ? [S.sel] : []);
+      if (ids.length) isoler(ids); else message('Choisissez d’abord un ou plusieurs objets, puis Isoler.');
+    };
+    outilsVue.appendChild(iso);
+  }
   if (S.isole && S.isole.size) {
     const iso = document.createElement('button'); iso.type = 'button'; iso.className = 'isole-actif';
     iso.textContent = `Isolé (${S.isole.size}) ✕`; iso.title = 'Tout réafficher';
