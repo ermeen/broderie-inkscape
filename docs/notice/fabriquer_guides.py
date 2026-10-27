@@ -190,7 +190,9 @@ def guide_complet():
                  "est brodé et affiché.",
                  "Boutons de la barre : <b>grenouille</b> (sauts), <b>ciseaux</b> (coupes, arrêts, changements de couleur), "
                  "<b>carreaux</b> (densité), <b>aiguille</b> (pénétrations).",
-                 "<b>Règle</b> : tirez un trait, la distance s'affiche en mm ; elle s'accroche aux piqûres d'aiguille proches."),
+                 "<b>Règle</b> : tirez un trait, la distance s'affiche en mm ; elle s'accroche aux piqûres d'aiguille proches.",
+                 "<b>Lunettes</b> (Isoler) : n'affiche que les objets choisis, dans l'aperçu et la simulation ; « Isolé (n) ✕ » "
+                 "réaffiche tout. Le dessin et l'export ne changent pas (ce n'est pas l'œil)."),
           p("La carte de densité", "h2"),
           capture("densite", 140, "Carte de densité : rouge = trop serré (risque de casse), jaune = limite, vert = correct. "
                                   "La légende en bas règle les seuils."),
@@ -384,6 +386,8 @@ def guide_complet():
           tableau([["Ce que je vois", "Que faire"],
                    [CMD + " ne fait rien", "Quittez et relancez Inkscape. Le menu Extensions › Broderie › Panneau de broderie fait la même chose."],
                    ["« Panneau arrêté »", "Appuyez sur " + CMD + " : il redémarre, sans perdre les modifications en attente."],
+                   ["Une forme n'a aucun point", "Son fond est transparent (curseur A dans Fond et contour) : bouton <b>Rendre le fond opaque</b> dans sa fiche."],
+                   ["Erreur du remplissage guidé", "Changez un peu la densité, ou prolongez la ligne guide au-delà des bords de la forme."],
                    ["La liste ne montre que quelques objets", "Des objets étaient sélectionnés dans Inkscape : bandeau « Tout le dessin »."],
                    ["Bandeau « ancienne version d'Ink/Stitch »", "« Mettre à jour avec Ink/Stitch », ou « Ce dessin est récent »."],
                    ["Une fenêtre « Ink/Stitch » s'ouvre", "Certaines commandes ont leur propre fenêtre : terminez-la, le résultat arrive dans le panneau."],
