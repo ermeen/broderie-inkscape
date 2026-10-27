@@ -10,7 +10,9 @@ const S = { etat: null, schema: null, sel: null, vue: 'objets', texte: false, cm
 async function api(nom, data = {}, attente = false) {
   if (attente) { $('#attente').hidden = false; $('#attenteMsg').textContent = attente === true ? 'Ink/Stitch travaille…' : attente; }
   try {
-    const r = await fetch('/api/' + nom, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(data) });
+    let r;
+    try { r = await fetch('/api/' + nom, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(data) }); }
+    catch (e) { throw new Error(`Le panneau ne répond plus (arrêté ou en cours de mise à jour) : appuyez sur ${S.etat && S.etat.raccourci || '⌘⌥B'} dans Inkscape.`); }
     const j = await r.json();
     if (!r.ok) throw new Error(j.erreur || r.statusText);
     return j;
@@ -1248,6 +1250,7 @@ function barreRendu() {
   return d;
 }
 async function apercu() {
+  if (S.vue !== 'points' && MODE !== 'points') { MODE = 'points'; modeObjets = null; }    // Objets : toujours en points
   const n = ++apercuDemande;
   if (apercuEnCours) return;
   apercuEnCours = true;
@@ -1256,7 +1259,9 @@ async function apercu() {
   a.appendChild(badge);
   try {
     badge.textContent = MODE === 'points' ? 'Calcul des points…' : 'Rendu réaliste…';
+    const modeDemande = MODE;
     const r = await api('apercu', { ids: S.etat.selection, mode: MODE, options: { sauts: false, penetrations: AFF.penetrations } });
+    if (modeDemande !== 'points' && S.vue !== 'points') { apercuDemande++; return; }    // rendu réaliste arrivé après le retour aux Objets
     if (!r.svg) { a.className = 'vide'; a.textContent = r.erreur || 'Aucun point.'; a.appendChild(barreRendu()); vb = vb0 = null; return; }
     const garder = vb && vb0;
     a.className = ''; a.innerHTML = r.svg; a.style.background = TISSU;
