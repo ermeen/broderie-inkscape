@@ -1457,16 +1457,26 @@ async function superposerCommandes(svg) {
     p.setAttribute('d', chemin); p.setAttribute('class', 'sauts-panneau');
     g.appendChild(p);
   }
-  const t = (vb ? vb[2] : 100) / 28;                  // taille des icônes : ~1/28 de la vue
   for (const [n, [x, y]] of icones) {
     if (n === 'jump' ? !AFF.sauts : !AFF.coupes) continue;
     const im = document.createElementNS(NS, 'image');
     im.setAttribute('href', `/icone/${n}.png`); im.setAttribute('class', 'icone-cmd');
-    im.setAttribute('x', x + t * 0.15); im.setAttribute('y', y - t * 1.1); im.setAttribute('width', t); im.setAttribute('height', t);
+    im.dataset.x = x; im.dataset.y = y;
     g.appendChild(im);
   }
   $$('.commandes-panneau', svg).forEach((x) => x.remove());
   svg.appendChild(g);
+  tailleIcones(svg);
+}
+// Icônes des commandes : même taille à l'écran quel que soit le zoom (comme dans la Simulation)
+function tailleIcones(svg) {
+  const ims = svg ? svg.querySelectorAll('.icone-cmd') : []; if (!ims.length || !vb) return;
+  const r = $('#apercu').getBoundingClientRect();
+  const t = 20 * Math.max(vb[2] / Math.max(1, r.width), vb[3] / Math.max(1, r.height));   // 20 pixels
+  for (const im of ims) {
+    const x = +im.dataset.x, y = +im.dataset.y;
+    im.setAttribute('x', x + t * 0.15); im.setAttribute('y', y - t * 1.1); im.setAttribute('width', t); im.setAttribute('height', t);
+  }
 }
 
 // Points d'aiguille de l'aperçu : Ink/Stitch les dessine en « marqueurs » prévus pour Inkscape ; le navigateur
@@ -1507,7 +1517,7 @@ function contrasteFils(svg) {
   }
 }
 
-function appliquerVue() { const s = $('#apercu > svg'); if (s && vb) s.setAttribute('viewBox', vb.join(' ')); }
+function appliquerVue() { const s = $('#apercu > svg'); if (s && vb) { s.setAttribute('viewBox', vb.join(' ')); tailleIcones(s); } }
 function versDessin(e) {
   const r = $('#apercu').getBoundingClientRect();
   const k = Math.max(vb[2] / r.width, vb[3] / r.height);
@@ -2432,6 +2442,7 @@ $('#poigneeSimu').addEventListener('dblclick', () => {
 });
 $('#sPos').oninput = (e) => allerA(+e.target.value);
 window.addEventListener('resize', () => { if (S.vue === 'points') { dessinerPiste(); dessinerSimulation(); } });
+window.addEventListener('resize', () => tailleIcones($('#apercu > svg')));
 document.addEventListener('keydown', (e) => {
   if (e.key === 'Escape' && S.placer) { S.placer = null; modePlacement(); rendreProps(); message('Placement annulé.'); return; }
   if (e.key === 'Escape' && !/input|textarea|select/i.test(e.target.tagName) && !$('dialog[open]') && S.choix.size) { toutDeselectionner(); return; }

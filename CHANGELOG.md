@@ -5,6 +5,10 @@ Le numéro de version suit le schéma `MAJEUR.MINEUR.CORRECTIF` :
 - **MINEUR** : nouvelle fonction ;
 - **CORRECTIF** : correction sans nouvelle fonction.
 
+## 1.7.7 — 27 octobre 2026
+
+- Aperçu Objets : les icônes des commandes (grenouille du saut, ciseaux de la coupe, bobine du changement de fil, arrêt) gardent la même taille à l'écran quand on zoome, comme dans la Simulation.
+
 ## 1.7.6 — 27 octobre 2026
 
 - **Remplissage guidé** : quand la tuile **Guidé** est choisie, un bloc **Ligne guide** permet de choisir la courbe qui oriente les rangs. Le panneau la marque comme ligne guide (commande d'Ink/Stitch), la réunit à la forme si elle est dans un autre calque (position inchangée) et l'affiche dans la liste comme « Ligne guide » (elle n'est pas brodée).
