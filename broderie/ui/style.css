@@ -457,3 +457,7 @@ button.info:hover { border-color: var(--accent); color: var(--accent); }
 .mode-reglage button + button { border-left: 1px solid var(--bord); }
 .mode-reglage button.on { background: var(--accent); color: #fff; }
 .bloc h2 + .mode-reglage { margin-top: 0; margin-bottom: 6px; }
+
+/* zones cliquables de l'aperçu : surface pour un remplissage, bande pour un satin, ligne pour un trait */
+.cibles-panneau [data-zone="bande"], .cibles-panneau [data-zone="bande"] * { fill-rule: evenodd !important; }
+.cibles-panneau [data-zone="ligne"], .cibles-panneau [data-zone="ligne"] * { pointer-events: stroke !important; }

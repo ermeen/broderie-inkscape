@@ -1492,7 +1492,10 @@ $('#apercu').addEventListener('pointerdown', (e) => {
     document.removeEventListener('pointermove', mv); document.removeEventListener('pointerup', up);
     $('#apercu').classList.remove('deplace');
     if (bouge || e.button !== 0) return;
-    const cible = document.elementsFromPoint(ev.clientX, ev.clientY).map((x) => x.closest && x.closest('[data-objet]')).find(Boolean);
+    // plusieurs objets sous la souris : le plus petit (le sourcil plutôt que la tête qui l'entoure)
+    const touches = [...new Set(document.elementsFromPoint(ev.clientX, ev.clientY).map((x) => x.closest && x.closest('[data-objet]')).filter(Boolean))];
+    const aire = (z) => { try { const b = z.getBBox(); return b.width * b.height; } catch (x) { return Infinity; } };
+    const cible = touches.sort((a, b) => aire(a) - aire(b))[0];
     if (cible) choisir([cible.dataset.objet], ev.metaKey || ev.ctrlKey);
     else if (!(ev.metaKey || ev.ctrlKey)) toutDeselectionner();       // clic dans le vide
   };
@@ -1545,7 +1548,12 @@ async function zonesCliquables(svg) {
     const doc = new DOMParser().parseFromString(o.svg, 'image/svg+xml');
     const n = document.importNode(doc.documentElement, true);
     n.removeAttribute('class'); n.dataset.objet = o.id;
-    const nom = (S.etat.objets.find((x) => x.id === o.id) || {}).nom || o.id;
+    const ob = S.etat.objets.find((x) => x.id === o.id) || {};
+    // un satin ne se clique que sur sa bande, un trait que sur sa ligne (pas tout l'intérieur d'un contour)
+    const t0 = typePrincipal(ob.types ? ob : { types: [] });
+    n.dataset.zone = t0 === 'satin_column' && (ob.sous_chemins || 1) >= 2 ? 'bande'
+      : (ob.types || []).includes('fill_stitch') || t0 === 'lettrage' ? 'surface' : 'ligne';     // satin d'un seul trait : sa ligne
+    const nom = ob.nom || o.id;
     const t = document.createElementNS(NS, 'title'); t.textContent = nom; n.appendChild(t);
     g.appendChild(n);
   }

@@ -5,6 +5,10 @@ Le numéro de version suit le schéma `MAJEUR.MINEUR.CORRECTIF` :
 - **MINEUR** : nouvelle fonction ;
 - **CORRECTIF** : correction sans nouvelle fonction.
 
+## 1.7.1 — 27 octobre 2026
+
+- **Clic dans l'aperçu** : un objet entouré par un satin (un sourcil dans le contour de la citrouille) se choisit enfin d'un clic. Un satin ne se clique plus que sur sa bande, un trait sur sa ligne ; et quand plusieurs objets sont sous la souris, c'est le plus petit qui est choisi. Vérifié sur la citrouille : sourcils, nez, bouche, contour et tête choisis chacun à sa place.
+
 ## 1.7.0 — 26 octobre 2026
 
 **Texte brodé**
